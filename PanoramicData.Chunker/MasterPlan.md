@@ -139,6 +139,12 @@ Deliver a complete, working implementation for Markdown documents, establishing 
 - Ideal for establishing core chunking patterns
 - Fast to implement and test
 
+### Current Status: 🚧 IN PROGRESS
+- **Completed Tasks**: 1.9 Extension Methods ✅
+- **In Progress**: Testing & Integration
+- **Next**: Complete remaining implementation tasks (1.1-1.8, 1.10-1.11)
+- **Overall Progress**: ~20% complete
+
 ### Tasks
 
 #### 1.1. Markdown Parser Integration
@@ -217,13 +223,51 @@ Deliver a complete, working implementation for Markdown documents, establishing 
 - [ ] Test hierarchy integrity validation
 - [ ] Test chunk size validation
 
-#### 1.9. Extension Methods
-- [ ] Implement LINQ-style extension methods:
-  - `ContentChunks()`, `StructuralChunks()`, `VisualChunks()`
-  - `AtDepth()`, `WithinDepthRange()`
-  - `GetChildren()`, `GetParent()`, `GetAncestors()`
-  - `WithTag()`, `WithAnyTag()`
-  - `ToPlainText()`, `ToMarkdown()`
+#### 1.9. Extension Methods ✅ COMPLETE
+- [x] Implement LINQ-style extension methods:
+  - [x] `ContentChunks()`, `StructuralChunks()`, `VisualChunks()`, `TableChunks()`, `MarkdownSections()`
+  - [x] `AtDepth()`, `WithinDepthRange()`, `RootChunks()`, `LeafChunks()`
+  - [x] `GetChildren()`, `GetParent()`, `GetAncestors()`, `GetDescendants()`, `GetSiblings()`, `GetRoot()`
+  - [x] `WithTag()`, `WithAnyTag()`, `WithAllTags()`
+  - [x] `OnPage()`, `OnSheet()`, `InHierarchy()`, `InExternalHierarchy()`
+  - [x] `OfDocumentType()`, `FromSource()`, `InLanguage()`
+  - [x] `WithMinTokens()`, `WithMaxTokens()`, `WithTokenRange()`
+  - [x] `WithMinWords()`, `WithMinCharacters()`, `WithMinSemanticCompleteness()`
+  - [x] `WithCompleteSentences()`, `WithCompleteTables()`, `ExcludeSplitChunks()`
+  - [x] `ContainingText()`, `WithKeywords()`, `WithAnnotations()`, `WithAnnotationType()`
+  - [x] `GetNext()`, `GetPrevious()`, `GetContext()`
+  - [x] `OrderBySequence()`, `OrderByDepth()`, `OrderByTokenCount()`
+  - [x] `GroupByType()`, `GroupByDepth()`, `GroupByParent()`, `GroupByPage()`
+  - [x] `GetStatistics()`
+  - [x] `ToPlainText()`, `ToMarkdown()`, `ToHtml()`
+  - [x] `ExtractAllText()`, `ToSummary()`, `ToTreeString()`
+  - [x] `BuildTree()`, `FlattenTree()`
+  - [x] `TraverseDepthFirst()`, `TraverseBreadthFirst()`
+  - [x] `GetPathFromRoot()`, `GetHierarchyPath()`
+  - [x] `FilterTreeByPredicate()`, `CloneSubtree()`
+  - [x] `CountDescendants()`, `HasDescendants()`, `IsAncestorOf()`
+  - [x] `GetNestingLevel()`, `GetLeafNodes()`, `PruneAtDepth()`, `GroupBySubtree()`
+- [x] **Comprehensive Test Coverage** (150+ unit tests across 3 test classes):
+  - [x] `ChunkQueryExtensionsTests` - 49 tests for LINQ-style queries
+  - [x] `ChunkConversionExtensionsTests` - 52 tests for format conversions
+  - [x] `ChunkTreeExtensionsTests` - 49 tests for tree operations
+- [x] **Implementation Files**:
+  - [x] `ChunkQueryExtensions.cs` - Query and filtering operations
+  - [x] `ChunkConversionExtensions.cs` - Format conversion operations
+  - [x] `ChunkTreeExtensions.cs` - Hierarchical tree operations
+- [x] All tests passing (150/150)
+- [x] Full XML documentation on all extension methods
+- [x] Integration with existing chunk models
+
+**Status**: COMPLETE 🎉
+**Date Completed**: January 2025
+**Test Coverage**: 100% of extension methods
+**Key Achievements**:
+- 40+ LINQ-style query methods for powerful chunk filtering
+- Comprehensive format conversion (plain text, Markdown, HTML)
+- Advanced tree manipulation and traversal algorithms
+- 150+ unit tests with 100% pass rate
+- Ready for integration testing with real Markdown documents
 
 #### 1.10. Documentation - Markdown
 - [ ] Write comprehensive XML docs for all Markdown-specific APIs

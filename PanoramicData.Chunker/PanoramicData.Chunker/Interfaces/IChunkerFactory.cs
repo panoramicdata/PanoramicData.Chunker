@@ -1,4 +1,5 @@
 using PanoramicData.Chunker.Configuration;
+using System.Threading.Tasks;
 
 namespace PanoramicData.Chunker.Interfaces;
 
@@ -15,16 +16,31 @@ public interface IChunkerFactory
 	IDocumentChunker GetChunker(DocumentType type);
 
 	/// <summary>
-	/// Get a chunker by auto-detecting the document type from the stream.
+	/// Get a chunker by auto-detecting the document type from the stream asynchronously.
 	/// </summary>
 	/// <param name="stream">The document stream.</param>
-	/// <param name="fileNameHint">Optional filename hint for type detection.</param>
-	/// <returns>A document chunker instance.</returns>
+	/// <param name="fileNameHint">Optional filename hint for extension-based detection.</param>
+	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <returns>A chunker capable of handling the detected document type.</returns>
+	Task<IDocumentChunker> GetChunkerForStreamAsync(Stream stream, string? fileNameHint = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Get a chunker by auto-detecting the document type from the stream (synchronous).
+	/// </summary>
+	/// <param name="stream">The document stream.</param>
+	/// <param name="fileNameHint">Optional filename hint for extension-based detection.</param>
+	/// <returns>A chunker capable of handling the detected document type.</returns>
 	IDocumentChunker GetChunkerForStream(Stream stream, string? fileNameHint = null);
 
 	/// <summary>
-	/// Register a custom chunker.
+	/// Register a custom chunker for a document type.
 	/// </summary>
 	/// <param name="chunker">The chunker to register.</param>
 	void RegisterChunker(IDocumentChunker chunker);
+
+	/// <summary>
+	/// Get all registered/supported document types.
+	/// </summary>
+	/// <returns>Collection of supported document types.</returns>
+	IReadOnlyCollection<DocumentType> GetSupportedTypes();
 }

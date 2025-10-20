@@ -31,6 +31,11 @@ public enum AnnotationType
 	Link,
 
 	/// <summary>
+	/// Image reference.
+	/// </summary>
+	Image,
+
+	/// <summary>
 	/// Code or monospace text.
 	/// </summary>
 	Code,

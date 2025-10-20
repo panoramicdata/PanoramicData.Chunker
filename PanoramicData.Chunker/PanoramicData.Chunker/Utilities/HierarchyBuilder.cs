@@ -96,9 +96,7 @@ public static class HierarchyBuilder
 	/// Get root chunks (chunks with no parent).
 	/// </summary>
 	public static IEnumerable<ChunkerBase> GetRootChunks(IEnumerable<ChunkerBase> chunks)
-	{
-		return chunks.Where(c => !c.ParentId.HasValue);
-	}
+		=> chunks.Where(c => !c.ParentId.HasValue);
 
 	/// <summary>
 	/// Get leaf chunks (chunks with no children).
@@ -107,7 +105,7 @@ public static class HierarchyBuilder
 	{
 		var chunkList = chunks.ToList();
 		var parentIds = new HashSet<Guid>(chunkList.Where(c => c.ParentId.HasValue).Select(c => c.ParentId!.Value));
-		
+
 		return chunkList.Where(c => !parentIds.Contains(c.Id));
 	}
 

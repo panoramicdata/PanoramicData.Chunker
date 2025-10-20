@@ -21,12 +21,31 @@ public interface IChunkSerializer
 	/// <summary>
 	/// Deserialize chunks from a stream.
 	/// </summary>
-	/// <typeparam name="T">The chunk collection type.</typeparam>
 	/// <param name="input">The input stream.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>The deserialized chunks.</returns>
-	Task<T> DeserializeAsync<T>(
+	Task<IEnumerable<ChunkerBase>> DeserializeAsync(
 		Stream input,
-		CancellationToken cancellationToken = default)
-		where T : IEnumerable<ChunkerBase>;
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Serialize a chunking result to a stream.
+	/// </summary>
+	/// <param name="result">The chunking result to serialize.</param>
+	/// <param name="output">The output stream.</param>
+	/// <param name="cancellationToken">Cancellation token.</param>
+	Task SerializeResultAsync(
+		ChunkingResult result,
+		Stream output,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Deserialize a chunking result from a stream.
+	/// </summary>
+	/// <param name="input">The input stream.</param>
+	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <returns>The deserialized chunking result.</returns>
+	Task<ChunkingResult?> DeserializeResultAsync(
+		Stream input,
+		CancellationToken cancellationToken = default);
 }

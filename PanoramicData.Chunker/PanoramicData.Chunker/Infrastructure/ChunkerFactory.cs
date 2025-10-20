@@ -1,3 +1,4 @@
+using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces;
 
@@ -8,7 +9,24 @@ namespace PanoramicData.Chunker.Infrastructure;
 /// </summary>
 public class ChunkerFactory : IChunkerFactory
 {
-	private readonly Dictionary<DocumentType, IDocumentChunker> _chunkers = new();
+	private readonly Dictionary<DocumentType, IDocumentChunker> _chunkers = [];
+	private readonly ITokenCounter _defaultTokenCounter;
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ChunkerFactory"/> class.
+	/// </summary>
+	/// <param name="tokenCounter">Optional token counter to use for chunkers. If not provided, uses CharacterBasedTokenCounter.</param>
+	public ChunkerFactory(ITokenCounter? tokenCounter = null)
+	{
+		_defaultTokenCounter = tokenCounter ?? new CharacterBasedTokenCounter();
+		RegisterDefaultChunkers();
+	}
+
+	/// <summary>
+	/// Registers default chunkers for supported document types.
+	/// </summary>
+	private void RegisterDefaultChunkers() =>
+		RegisterChunker(new MarkdownDocumentChunker(_defaultTokenCounter));
 
 	/// <summary>
 	/// Get a chunker for the specified document type.
@@ -26,7 +44,7 @@ public class ChunkerFactory : IChunkerFactory
 	/// <summary>
 	/// Get a chunker by auto-detecting the document type from the stream.
 	/// </summary>
-	public IDocumentChunker GetChunkerForStream(Stream stream, string? fileNameHint = null)
+	public async Task<IDocumentChunker> GetChunkerForStreamAsync(Stream stream, string? fileNameHint = null, CancellationToken cancellationToken = default)
 	{
 		// Try to detect from filename extension first
 		if (!string.IsNullOrEmpty(fileNameHint))
@@ -49,22 +67,39 @@ public class ChunkerFactory : IChunkerFactory
 				_ => DocumentType.Auto
 			};
 
-			if (type != DocumentType.Auto && _chunkers.ContainsKey(type))
+			if (type != DocumentType.Auto && _chunkers.TryGetValue(type, out var chunker))
 			{
-				return GetChunker(type);
+				return chunker;
 			}
 		}
 
-		// TODO: Implement content-based detection
-		// For now, throw an exception
-		throw new NotSupportedException("Auto-detection from stream content is not yet implemented. Please specify the document type explicitly or provide a filename hint.");
+		// Content-based detection - try each registered chunker
+		foreach (var chunker in _chunkers.Values)
+		{
+			if (await chunker.CanHandleAsync(stream, cancellationToken))
+			{
+				return chunker;
+			}
+		}
+
+		throw new NotSupportedException("Unable to detect document type from stream content. Please specify the document type explicitly or provide a filename hint with a recognized extension.");
 	}
+
+	/// <summary>
+	/// Get a chunker by auto-detecting the document type from the stream (synchronous wrapper).
+	/// </summary>
+	public IDocumentChunker GetChunkerForStream(Stream stream, string? fileNameHint = null)
+		=> GetChunkerForStreamAsync(stream, fileNameHint).GetAwaiter().GetResult();
 
 	/// <summary>
 	/// Register a custom chunker.
 	/// </summary>
 	public void RegisterChunker(IDocumentChunker chunker)
-	{
-		_chunkers[chunker.SupportedType] = chunker;
-	}
+		=> _chunkers[chunker.SupportedType] = chunker;
+
+	/// <summary>
+	/// Get all registered document types.
+	/// </summary>
+	public IReadOnlyCollection<DocumentType> GetSupportedTypes()
+		=> _chunkers.Keys.ToList().AsReadOnly();
 }

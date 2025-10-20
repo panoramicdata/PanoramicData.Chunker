@@ -21,6 +21,11 @@ public class ChunkingResult
 	public List<ChunkingWarning> Warnings { get; set; } = [];
 
 	/// <summary>
+	/// Validation result for the chunking operation.
+	/// </summary>
+	public ValidationResult? ValidationResult { get; set; }
+
+	/// <summary>
 	/// Indicates if the chunking operation completed successfully.
 	/// </summary>
 	public bool Success { get; set; } = true;

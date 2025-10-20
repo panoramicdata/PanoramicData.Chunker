@@ -1,5 +1,8 @@
 <Solution>
-  <Folder Name="/Solution Items/" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="PanoramicData.Chunker.dic" />
+  </Folder>
   <Folder Name="/Solution Items/Plans/" />
   <Folder Name="/Solution Items/Plans/Plans/">
     <File Path="MasterPlan.md" />
@@ -7,5 +10,6 @@
   <Folder Name="/Solution Items/Specification/">
     <File Path="Specification.md" />
   </Folder>
+  <Project Path="PanoramicData.Chunker.Tests/PanoramicData.Chunker.Tests.csproj" />
   <Project Path="PanoramicData.Chunker/PanoramicData.Chunker.csproj" />
 </Solution>
