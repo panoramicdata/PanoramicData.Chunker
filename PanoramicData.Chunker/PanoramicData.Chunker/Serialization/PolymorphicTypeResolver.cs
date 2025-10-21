@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Models;
 
@@ -32,7 +33,16 @@ internal class PolymorphicTypeResolver : DefaultJsonTypeInfoResolver
 					new JsonDerivedType(typeof(MarkdownCodeBlockChunk), "MarkdownCodeBlock"),
 					new JsonDerivedType(typeof(MarkdownQuoteChunk), "MarkdownQuote"),
 					new JsonDerivedType(typeof(MarkdownTableChunk), "MarkdownTable"),
-					new JsonDerivedType(typeof(MarkdownImageChunk), "MarkdownImage")
+					new JsonDerivedType(typeof(MarkdownImageChunk), "MarkdownImage"),
+
+					// HTML chunk types (concrete types only)
+					new JsonDerivedType(typeof(HtmlSectionChunk), "HtmlSection"),
+					new JsonDerivedType(typeof(HtmlParagraphChunk), "HtmlParagraph"),
+					new JsonDerivedType(typeof(HtmlListItemChunk), "HtmlListItem"),
+					new JsonDerivedType(typeof(HtmlCodeBlockChunk), "HtmlCodeBlock"),
+					new JsonDerivedType(typeof(HtmlBlockquoteChunk), "HtmlBlockquote"),
+					new JsonDerivedType(typeof(HtmlTableChunk), "HtmlTable"),
+					new JsonDerivedType(typeof(HtmlImageChunk), "HtmlImage")
 
 					// Note: Abstract types (StructuralChunk, ContentChunk, VisualChunk, TableChunk)
 					// cannot be included as they are not instantiable.

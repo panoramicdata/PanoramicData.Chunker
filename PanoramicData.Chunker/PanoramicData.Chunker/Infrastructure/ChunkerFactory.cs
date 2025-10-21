@@ -1,3 +1,4 @@
+using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces;
@@ -25,8 +26,11 @@ public class ChunkerFactory : IChunkerFactory
 	/// <summary>
 	/// Registers default chunkers for supported document types.
 	/// </summary>
-	private void RegisterDefaultChunkers() =>
+	private void RegisterDefaultChunkers()
+	{
 		RegisterChunker(new MarkdownDocumentChunker(_defaultTokenCounter));
+		RegisterChunker(new HtmlDocumentChunker());
+	}
 
 	/// <summary>
 	/// Get a chunker for the specified document type.
