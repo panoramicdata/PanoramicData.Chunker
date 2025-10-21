@@ -1,6 +1,7 @@
 using FluentAssertions;
 using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Configuration;
+using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Models;
 using System.Text;
 
@@ -8,7 +9,13 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
 public class HtmlDocumentChunkerTests
 {
-	private readonly HtmlDocumentChunker _chunker = new();
+	private readonly HtmlDocumentChunker _chunker;
+
+	public HtmlDocumentChunkerTests()
+	{
+		var tokenCounter = new CharacterBasedTokenCounter();
+		_chunker = new HtmlDocumentChunker(tokenCounter);
+	}
 
 	[Fact]
 	public async Task ChunkAsync_SimpleHtml_ShouldReturnChunks()

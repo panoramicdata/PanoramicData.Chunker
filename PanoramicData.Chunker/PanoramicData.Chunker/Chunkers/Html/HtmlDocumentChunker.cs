@@ -19,6 +19,7 @@ namespace PanoramicData.Chunker.Chunkers.Html;
 public partial class HtmlDocumentChunker : IDocumentChunker
 {
 	private readonly ILogger<HtmlDocumentChunker>? _logger;
+	private readonly ITokenCounter _tokenCounter;
 	private readonly HtmlParser _parser;
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
@@ -26,9 +27,11 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 	/// <summary>
 	/// Initializes a new instance of the <see cref="HtmlDocumentChunker"/> class.
 	/// </summary>
+	/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
 	/// <param name="logger">Optional logger for diagnostic information.</param>
-	public HtmlDocumentChunker(ILogger<HtmlDocumentChunker>? logger = null)
+	public HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<HtmlDocumentChunker>? logger = null)
 	{
+		_tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
 		_logger = logger;
 		_parser = new HtmlParser();
 	}
@@ -249,6 +252,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 		// Calculate quality metrics based on text content
 		chunk.QualityMetrics = new ChunkQualityMetrics
 		{
+			TokenCount = _tokenCounter.CountTokens(text),
 			CharacterCount = text.Length,
 			WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
 			SemanticCompleteness = 1.0
@@ -319,9 +323,10 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			contentChunk.Annotations = annotations;
 		}
 
-		// Calculate quality metrics
+		// Calculate quality metrics using token counter
 		chunk.QualityMetrics = new ChunkQualityMetrics
 		{
+			TokenCount = _tokenCounter.CountTokens(text),
 			CharacterCount = text.Length,
 			WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
 			SemanticCompleteness = 1.0
@@ -464,10 +469,11 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			}
 		};
 
-		// Calculate quality metrics
+		// Calculate quality metrics using token counter
 		var allText = string.Join(" ", headers) + " " + string.Join(" ", rows.SelectMany(r => r));
 		chunk.QualityMetrics = new ChunkQualityMetrics
 		{
+			TokenCount = _tokenCounter.CountTokens(allText),
 			CharacterCount = allText.Length,
 			WordCount = allText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
 			SemanticCompleteness = 1.0
@@ -687,10 +693,10 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			TableChunks = chunks.OfType<TableChunk>().Count(),
 			MaxDepth = chunks.Count != 0 ? chunks.Max(c => c.Depth) : 0,
 			ProcessingTime = processingTime,
-			AverageTokensPerChunk = 0, // Token counting would require ITokenCounter
-			TotalTokens = 0,
-			MaxTokensInChunk = 0,
-			MinTokensInChunk = 0
+			AverageTokensPerChunk = chunks.Count != 0 ? (int)chunks.Average(c => c.QualityMetrics?.TokenCount ?? 0) : 0,
+			TotalTokens = chunks.Sum(c => c.QualityMetrics?.TokenCount ?? 0),
+			MaxTokensInChunk = chunks.Count != 0 ? chunks.Max(c => c.QualityMetrics?.TokenCount ?? 0) : 0,
+			MinTokensInChunk = chunks.Count != 0 ? chunks.Min(c => c.QualityMetrics?.TokenCount ?? 0) : 0
 		};
 	}
 

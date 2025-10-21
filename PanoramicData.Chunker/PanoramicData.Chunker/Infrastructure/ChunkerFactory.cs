@@ -29,7 +29,7 @@ public class ChunkerFactory : IChunkerFactory
 	private void RegisterDefaultChunkers()
 	{
 		RegisterChunker(new MarkdownDocumentChunker(_defaultTokenCounter));
-		RegisterChunker(new HtmlDocumentChunker());
+		RegisterChunker(new HtmlDocumentChunker(_defaultTokenCounter));
 	}
 
 	/// <summary>
