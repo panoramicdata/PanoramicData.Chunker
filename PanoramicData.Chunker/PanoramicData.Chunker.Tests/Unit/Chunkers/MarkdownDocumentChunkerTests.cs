@@ -2,6 +2,7 @@ using FluentAssertions;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
+using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
@@ -49,7 +50,7 @@ public class MarkdownDocumentChunkerTests
 	{
 		// Arrange
 		var markdown = "# Header\n\nSome content";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.CanHandleAsync(stream);
@@ -86,7 +87,7 @@ public class MarkdownDocumentChunkerTests
 	{
 		// Arrange
 		var markdown = "# Test Header";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -113,7 +114,7 @@ First paragraph.
 ## Subheader
 
 Second paragraph.";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -151,7 +152,7 @@ Second paragraph.";
 - Item 1
 - Item 2
 - Item 3";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -172,7 +173,7 @@ Second paragraph.";
 		var markdown = @"1. First
 2. Second
 3. Third";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -194,7 +195,7 @@ Second paragraph.";
 ```csharp
 public class Test { }
 ```";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -215,7 +216,7 @@ public class Test { }
 
 > This is a quote
 > with multiple lines";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -236,7 +237,7 @@ public class Test { }
 |------|------|
 | A    | B    |
 | C    | D    |";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -255,7 +256,7 @@ public class Test { }
 	{
 		// Arrange
 		var markdown = "# Header\n\nTest paragraph with some content.";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -274,7 +275,7 @@ public class Test { }
 	{
 		// Arrange
 		var markdown = "# Header\n\nParagraph.";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -292,7 +293,7 @@ public class Test { }
 	{
 		// Arrange
 		var markdown = "# Header\n\nContent";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -308,7 +309,7 @@ public class Test { }
 		// Arrange
 		var longText = string.Join(". ", Enumerable.Range(1, 100).Select(i => $"Sentence {i}"));
 		var markdown = $"# Header\n\n{longText}";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		var options = new ChunkingOptions
 		{
@@ -333,7 +334,7 @@ public class Test { }
 	{
 		// Arrange
 		var markdown = "# H1\n\nP1\n\n## H2\n\nP2";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
@@ -348,7 +349,7 @@ public class Test { }
 	{
 		// Arrange
 		var markdown = "# H1\n\n## H2\n\n### H3\n\nContent";
-		using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);

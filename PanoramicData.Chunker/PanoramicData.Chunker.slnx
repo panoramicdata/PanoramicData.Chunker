@@ -10,6 +10,7 @@
   <Folder Name="/Solution Items/Specification/">
     <File Path="Specification.md" />
   </Folder>
+  <Project Path="PanoramicData.Chunker.Benchmarks/PanoramicData.Chunker.Benchmarks.csproj" />
   <Project Path="PanoramicData.Chunker.Tests/PanoramicData.Chunker.Tests.csproj" />
   <Project Path="PanoramicData.Chunker/PanoramicData.Chunker.csproj" />
 </Solution>
