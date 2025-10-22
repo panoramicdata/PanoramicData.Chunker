@@ -1,3 +1,4 @@
+using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Chunkers.PlainText;
@@ -32,6 +33,7 @@ public class ChunkerFactory : IChunkerFactory
 		RegisterChunker(new MarkdownDocumentChunker(_defaultTokenCounter));
 		RegisterChunker(new HtmlDocumentChunker(_defaultTokenCounter));
 		RegisterChunker(new PlainTextDocumentChunker(_defaultTokenCounter));
+		RegisterChunker(new DocxDocumentChunker(_defaultTokenCounter));
 	}
 
 	/// <summary>

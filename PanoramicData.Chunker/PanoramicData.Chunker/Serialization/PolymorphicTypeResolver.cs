@@ -1,8 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Chunkers.Markdown;
+using PanoramicData.Chunker.Chunkers.PlainText;
 using PanoramicData.Chunker.Models;
 
 namespace PanoramicData.Chunker.Serialization;
@@ -42,7 +44,21 @@ internal class PolymorphicTypeResolver : DefaultJsonTypeInfoResolver
 					new JsonDerivedType(typeof(HtmlCodeBlockChunk), "HtmlCodeBlock"),
 					new JsonDerivedType(typeof(HtmlBlockquoteChunk), "HtmlBlockquote"),
 					new JsonDerivedType(typeof(HtmlTableChunk), "HtmlTable"),
-					new JsonDerivedType(typeof(HtmlImageChunk), "HtmlImage")
+					new JsonDerivedType(typeof(HtmlImageChunk), "HtmlImage"),
+
+					// Plain Text chunk types
+					new JsonDerivedType(typeof(PlainTextSectionChunk), "PlainTextSection"),
+					new JsonDerivedType(typeof(PlainTextParagraphChunk), "PlainTextParagraph"),
+					new JsonDerivedType(typeof(PlainTextListItemChunk), "PlainTextListItem"),
+					new JsonDerivedType(typeof(PlainTextCodeBlockChunk), "PlainTextCodeBlock"),
+
+					// DOCX chunk types
+					new JsonDerivedType(typeof(DocxSectionChunk), "DocxSection"),
+					new JsonDerivedType(typeof(DocxParagraphChunk), "DocxParagraph"),
+					new JsonDerivedType(typeof(DocxListItemChunk), "DocxListItem"),
+					new JsonDerivedType(typeof(DocxCodeBlockChunk), "DocxCodeBlock"),
+					new JsonDerivedType(typeof(DocxTableChunk), "DocxTable"),
+					new JsonDerivedType(typeof(DocxImageChunk), "DocxImage")
 
 					// Note: Abstract types (StructuralChunk, ContentChunk, VisualChunk, TableChunk)
 					// cannot be included as they are not instantiable.

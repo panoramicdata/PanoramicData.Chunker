@@ -3,9 +3,29 @@
     <File Path=".editorconfig" />
     <File Path="PanoramicData.Chunker.dic" />
   </Folder>
-  <Folder Name="/Solution Items/Plans/" />
-  <Folder Name="/Solution Items/Plans/Plans/">
-    <File Path="MasterPlan.md" />
+  <Folder Name="/Solution Items/Plans/">
+    <File Path="docs/MasterPlan.md" />
+    <File Path="docs/phases/Phase-00.md" />
+    <File Path="docs/phases/Phase-01.md" />
+    <File Path="docs/phases/Phase-02.md" />
+    <File Path="docs/phases/Phase-03.md" />
+    <File Path="docs/phases/Phase-04.md" />
+    <File Path="docs/phases/Phase-05.md" />
+    <File Path="docs/phases/Phase-06.md" />
+    <File Path="docs/phases/Phase-07.md" />
+    <File Path="docs/phases/Phase-08.md" />
+    <File Path="docs/phases/Phase-09.md" />
+    <File Path="docs/phases/Phase-10.md" />
+    <File Path="docs/phases/Phase-11.md" />
+    <File Path="docs/phases/Phase-12.md" />
+    <File Path="docs/phases/Phase-13.md" />
+    <File Path="docs/phases/Phase-14.md" />
+    <File Path="docs/phases/Phase-15.md" />
+    <File Path="docs/phases/Phase-16.md" />
+    <File Path="docs/phases/Phase-17.md" />
+    <File Path="docs/phases/Phase-18.md" />
+    <File Path="docs/phases/Phase-19.md" />
+    <File Path="docs/phases/Phase-20.md" />
   </Folder>
   <Folder Name="/Solution Items/Specification/">
     <File Path="Specification.md" />

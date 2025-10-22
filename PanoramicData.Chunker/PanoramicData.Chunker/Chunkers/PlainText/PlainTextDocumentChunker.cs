@@ -178,6 +178,8 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 		var chunks = new List<ChunkerBase>();
 		var headerStack = new Stack<(int Level, Guid Id)>();
 		var i = 0;
+		string? previousLine = null;
+		ChunkerBase? previousChunk = null;
 
 		while (i < lines.Length)
 		{
@@ -186,12 +188,14 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 			// Skip empty lines
 			if (string.IsNullOrWhiteSpace(line))
 			{
+				previousLine = line;
+				// Don't reset previousChunk - allow list continuations across empty lines
 				i++;
 				continue;
 			}
 
 			// Try to detect heading
-			var heading = DetectHeading(lines, ref i);
+			var heading = DetectHeading(lines, ref i, previousLine, previousChunk);
 			if (heading != null)
 			{
 				// Update header stack
@@ -206,11 +210,13 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 				
 				headerStack.Push((heading.HeadingLevel, heading.Id));
 				chunks.Add(heading);
+				previousLine = line;
+				previousChunk = heading;
 				continue;
 			}
 
 			// Try to detect list item
-			var listItem = DetectListItem(line);
+			var listItem = DetectListItem(line, previousLine, previousChunk);
 			if (listItem != null)
 			{
 				listItem.ParentId = headerStack.Count > 0 ? headerStack.Peek().Id : null;
@@ -218,6 +224,8 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 				listItem.SequenceNumber = _sequenceNumber++;
 				PopulateQualityMetrics(listItem, listItem.Content);
 				chunks.Add(listItem);
+				previousLine = line;
+				previousChunk = listItem;
 				i++;
 				continue;
 			}
@@ -231,6 +239,8 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 				codeBlock.SequenceNumber = _sequenceNumber++;
 				PopulateQualityMetrics(codeBlock, codeBlock.Content);
 				chunks.Add(codeBlock);
+				previousLine = line;
+				previousChunk = codeBlock;
 				continue;
 			}
 
@@ -243,6 +253,9 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 				paragraph.SequenceNumber = _sequenceNumber++;
 				PopulateQualityMetrics(paragraph, paragraph.Content);
 				chunks.Add(paragraph);
+				// Keep the last line before this paragraph for context (for list detection)
+				previousLine = i > 0 ? lines[i - 1] : null;
+				previousChunk = paragraph;
 			}
 		}
 
@@ -252,7 +265,7 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 	/// <summary>
 	/// Detects a heading using various heuristics.
 	/// </summary>
-	private PlainTextSectionChunk? DetectHeading(string[] lines, ref int index)
+	private PlainTextSectionChunk? DetectHeading(string[] lines, ref int index, string? previousLine, ChunkerBase? previousChunk)
 	{
 		var line = lines[index];
 
@@ -268,8 +281,8 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 			}
 		}
 
-		// Try numbered section
-		var numberedHeading = DetectNumberedHeading(line);
+		// Try numbered section (but check context)
+		var numberedHeading = DetectNumberedHeading(line, previousLine, previousChunk);
 		if (numberedHeading != null)
 		{
 			index++;
@@ -327,9 +340,10 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 	/// <summary>
 	/// Detects numbered section headings (1., 1.1, 1.1.1).
 	/// </summary>
-	private PlainTextSectionChunk? DetectNumberedHeading(string line)
+	private PlainTextSectionChunk? DetectNumberedHeading(string line, string? previousLine, ChunkerBase? previousChunk)
 	{
-		var match = NumberedSectionRegex().Match(line.Trim());
+		var trimmed = line.Trim();
+		var match = NumberedSectionRegex().Match(trimmed);
 		if (!match.Success)
 		{
 			return null;
@@ -340,6 +354,41 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 
 		// Count depth by number of dots
 		var level = numbering.Count(c => c == '.') + 1;
+		
+		// For single number (e.g., "1."), only treat as heading if context suggests heading
+		if (level == 1)
+		{
+			// If previous line ends with colon, this is likely a list item, not a heading
+			if (previousLine != null && previousLine.Trim().EndsWith(':'))
+			{
+				return null;
+			}
+			
+			// If previous chunk was a list item, this is continuing a list, not a heading
+			if (previousChunk is PlainTextListItemChunk)
+			{
+				return null;
+			}
+			
+			// Must start with capital letter
+			if (!char.IsUpper(text.FirstOrDefault()))
+			{
+				return null;
+			}
+			
+			// Should be reasonably short (headings are typically < 100 chars)
+			if (text.Length > 100)
+			{
+				return null;
+			}
+			
+			// Should not end with common sentence endings
+			if (text.TrimEnd().EndsWith('.') || text.TrimEnd().EndsWith('!') || text.TrimEnd().EndsWith('?'))
+			{
+				return null;
+			}
+		}
+		
 		level = Math.Min(level, 6); // Cap at 6
 
 		return CreateSectionChunk(text, level, HeadingHeuristic.Numbered, 0.85);
@@ -429,7 +478,7 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 	/// <summary>
 	/// Detects list items.
 	/// </summary>
-	private PlainTextListItemChunk? DetectListItem(string line)
+	private PlainTextListItemChunk? DetectListItem(string line, string? previousLine, ChunkerBase? previousChunk)
 	{
 		var trimmed = line.TrimStart();
 		var indentLevel = line.Length - trimmed.Length;
@@ -454,13 +503,53 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 			};
 		}
 
-		// Numbered list
+		// Numbered list 
 		var numberedMatch = NumberedListRegex().Match(trimmed);
 		if (numberedMatch.Success)
 		{
 			var marker = numberedMatch.Groups["marker"].Value;
 			var text = numberedMatch.Groups["text"].Value.Trim();
+			
+			// If previous line ends with colon, definitely a list item
+			var previousEndsWithColon = previousLine != null && previousLine.Trim().EndsWith(':');
+			
+			// If previous chunk was a list item, continue the list
+			var previousWasListItem = previousChunk is PlainTextListItemChunk;
+			
+			// If previous line ends with colon or we're continuing a list, definitely treat as list
+			if (previousEndsWithColon || previousWasListItem)
+			{
+				return new PlainTextListItemChunk
+				{
+					Id = Guid.NewGuid(),
+					Content = text,
+					ListType = "numbered",
+					Marker = marker,
+					NestingLevel = indentLevel / 2,
+					IsOrdered = true,
+					SpecificType = "ListItem",
+					Metadata = CreateMetadata("list-item", "numbered")
+				};
+			}
+			
+			// Otherwise, check if it looks more like a heading than a list item
+			// (only for patterns like "1." without parenthesis)
+			if (!marker.Contains(')'))
+			{
+				var looksLikeHeading = char.IsUpper(text.FirstOrDefault()) &&
+									   text.Length < 100 &&
+									   !text.TrimEnd().EndsWith('.') &&
+									   !text.TrimEnd().EndsWith('!') &&
+									   !text.TrimEnd().EndsWith('?');
+				
+				if (looksLikeHeading)
+				{
+					// Let the heading detector handle this
+					return null;
+				}
+			}
 
+			// Treat as list item
 			return new PlainTextListItemChunk
 			{
 				Id = Guid.NewGuid(),
@@ -765,7 +854,7 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 		
 		foreach (var chunk in flatChunks.OfType<StructuralChunk>())
 		{
-			chunk.Children.Clear();
+		chunk.Children.Clear();
 			chunk.Children.AddRange(flatChunks.Where(c => c.ParentId == chunk.Id));
 		}
 
@@ -830,7 +919,7 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 	}
 
 	// Regex patterns
-	[GeneratedRegex(@"^(?<numbering>\d+(\.\d+)+)\.?\s+(?<text>.+)$")]
+	[GeneratedRegex(@"^(?<numbering>\d+(\.\d+)*)\.?\s+(?<text>.+)$")]
 	private static partial Regex NumberedSectionRegex();
 
 	[GeneratedRegex(@"^(?<prefix>#{1,6})\s+(?<text>.+)$")]
