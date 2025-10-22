@@ -171,10 +171,10 @@ Document Root
 ??? PlainTextSection (Heading 1)
     ??? PlainTextParagraph
     ??? PlainTextSection (Heading 2)
-    ?   ??? PlainTextParagraph
-    ?   ??? PlainTextListItem
-    ?   ??? PlainTextListItem
-    ?   ??? PlainTextCodeBlock
+  ??? PlainTextParagraph
+        ??? PlainTextListItem
+        ??? PlainTextListItem
+        ??? PlainTextCodeBlock
     ??? PlainTextParagraph
 ```
 

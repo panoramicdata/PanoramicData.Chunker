@@ -164,8 +164,8 @@ This master plan provides a phased approach to implementing the PanoramicData.Ch
 
 - ?? [Complete Documentation](docs/README.md)
 - ?? [Test Results](docs/testing/Test-Results.md)
-- ?? [Performance Benchmarks](docs/performance/Benchmarks.md)
-- ?? [Roadmap](docs/Roadmap.md)
+- ? [Performance Benchmarks](docs/performance/Benchmarks.md)
+- ??? [Roadmap](docs/Roadmap.md)
 - ?? [Contributing Guide](CONTRIBUTING.md)
 - ?? [Change Log](CHANGELOG.md)
 
