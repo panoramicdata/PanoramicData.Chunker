@@ -1,5 +1,6 @@
 using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Chunkers.Markdown;
+using PanoramicData.Chunker.Chunkers.PlainText;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces;
 
@@ -30,6 +31,7 @@ public class ChunkerFactory : IChunkerFactory
 	{
 		RegisterChunker(new MarkdownDocumentChunker(_defaultTokenCounter));
 		RegisterChunker(new HtmlDocumentChunker(_defaultTokenCounter));
+		RegisterChunker(new PlainTextDocumentChunker(_defaultTokenCounter));
 	}
 
 	/// <summary>

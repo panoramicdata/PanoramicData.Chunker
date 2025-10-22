@@ -1,0 +1,91 @@
+LARGE DOCUMENT FOR TESTING
+
+This is a large plain text document used to test chunking behavior with substantial content.
+
+SECTION 1: INTRODUCTION
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+1.1 Background
+
+The background section provides context for understanding the subsequent material. This includes historical perspective, current challenges, and future directions.
+
+Multiple paragraphs help establish the foundation needed for comprehension. Each paragraph builds upon the previous one, creating a coherent narrative that guides the reader through complex concepts.
+
+SECTION 2: METHODOLOGY
+
+This section describes the approach taken in the research.
+
+2.1 Data Collection
+
+Data was collected from multiple sources over an extended period. The collection process involved rigorous quality control measures to ensure accuracy and reliability.
+
+Sources included:
+- Primary sources
+- Secondary sources
+- Tertiary sources
+- Field observations
+- Laboratory experiments
+
+2.2 Analysis Procedures
+
+The analysis followed standard protocols established in the field. Statistical methods were applied to identify patterns and trends in the data.
+
+    function analyzeData(dataset) {
+ let results = [];
+        for (let i = 0; i < dataset.length; i++) {
+          results.push(processItem(dataset[i]));
+        }
+   return results;
+    }
+
+SECTION 3: RESULTS
+
+The results section presents findings from the analysis.
+
+3.1 Primary Findings
+
+Primary findings indicate several significant trends. These trends align with predictions made in earlier theoretical work but also reveal unexpected patterns.
+
+Key observations:
+1. First major observation with detailed explanation
+2. Second major observation requiring further investigation
+3. Third observation confirming hypothesis
+
+3.2 Secondary Findings
+
+Secondary findings provide additional context and nuance to the primary results. While less prominent, these findings contribute to overall understanding.
+
+3.3 Statistical Analysis
+
+Statistical analysis revealed correlations between multiple variables. The strength of these correlations varied depending on specific conditions and contexts.
+
+SECTION 4: DISCUSSION
+
+The discussion interprets results in light of existing literature.
+
+4.1 Comparison with Previous Work
+
+Current findings align with some previous work while diverging from other studies. These discrepancies may result from methodological differences or changing conditions.
+
+4.2 Implications
+
+Implications of this work extend across multiple domains. Practical applications include improved processes, better outcomes, and enhanced understanding.
+
+SECTION 5: CONCLUSION
+
+In conclusion, this work contributes to the field by providing new insights and confirming existing theories. Future research should build upon these findings to explore remaining questions.
+
+5.1 Summary
+
+To summarize, the key contributions include comprehensive analysis, novel approaches, and practical recommendations.
+
+5.2 Future Directions
+
+Future work should address limitations identified in this study and explore new avenues suggested by current findings. Collaborative efforts across disciplines will enhance progress.
+
+REFERENCES
+
+Citations and references would appear here in a complete document.

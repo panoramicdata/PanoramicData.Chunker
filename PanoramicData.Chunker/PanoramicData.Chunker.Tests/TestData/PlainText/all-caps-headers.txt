@@ -1,0 +1,23 @@
+INTRODUCTION
+
+This document contains all caps headings throughout.
+
+SECTION ONE
+
+Content under section one with regular text.
+
+SECTION TWO
+
+Content under section two.
+
+SUBSECTION TWO A
+
+This is a subsection (though detection may treat it as same level).
+
+SECTION THREE
+
+Final section with ALL CAPS heading.
+
+CONCLUSION
+
+End of document.

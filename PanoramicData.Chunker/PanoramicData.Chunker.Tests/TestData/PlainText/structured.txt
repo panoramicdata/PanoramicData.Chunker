@@ -1,0 +1,59 @@
+INTRODUCTION
+
+This document demonstrates various plain text structures.
+
+Main Heading
+============
+
+This is content under a heading with double underline (equals signs).
+
+Sub Heading
+-----------
+
+This is content under a heading with single underline (dashes).
+
+1. First Section
+
+Content under numbered section.
+
+1.1 Subsection
+
+More detailed content.
+
+1.1.1 Sub-subsection
+
+Even more detailed content.
+
+2. Second Section
+
+Another top-level section.
+
+ANOTHER ALL CAPS HEADING
+
+Content under an ALL CAPS heading.
+
+Lists
+
+Here are some items:
+- First bullet item
+- Second bullet item
+- Third bullet item
+
+Numbered list:
+1. First numbered item
+2. Second numbered item
+3. Third numbered item
+
+Code Example
+
+    public class Example {
+        public void Method() {
+            Console.WriteLine("Hello");
+        }
+    }
+
+Back to normal text.
+
+Conclusion
+
+This concludes the structured plain text document.

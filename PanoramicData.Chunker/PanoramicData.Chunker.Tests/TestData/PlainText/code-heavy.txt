@@ -1,0 +1,47 @@
+Code Examples
+
+Example with fenced code block:
+
+```csharp
+public class Calculator
+{
+    public int Add(int a, int b)
+    {
+     return a + b;
+  }
+}
+```
+
+Example with indented code:
+
+    public class Person
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+
+JavaScript example:
+
+```javascript
+function greet(name) {
+    console.log('Hello, ' + name);
+}
+```
+
+Python example:
+
+    def factorial(n):
+        if n <= 1:
+            return 1
+        return n * factorial(n - 1)
+
+Code with comments:
+
+  // This is a comment
+    public void DoSomething()
+    {
+    var x = 10; // Initialize variable
+        Console.WriteLine(x);
+    }
+
+Regular text continues here.

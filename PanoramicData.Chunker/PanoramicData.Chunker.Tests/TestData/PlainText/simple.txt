@@ -1,0 +1,7 @@
+This is a simple plain text document.
+
+It has multiple paragraphs separated by blank lines.
+
+Each paragraph contains one or more sentences. This is the second sentence in this paragraph.
+
+The document ends here.

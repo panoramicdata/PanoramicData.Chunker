@@ -1,0 +1,29 @@
+Document Title
+==============
+
+This is the main document with underlined headings.
+
+First Section
+=============
+
+Content under the first major section.
+
+Second Section
+--------------
+
+This uses single dashes for a level 2 heading.
+
+Third Section
+-------------
+
+Another level 2 heading.
+
+Subsection A
+------------
+
+Content under subsection.
+
+Final Heading
+=============
+
+The last major section.

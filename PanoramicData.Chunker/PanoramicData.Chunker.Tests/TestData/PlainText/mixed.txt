@@ -1,0 +1,70 @@
+MIXED CONTENT DOCUMENT
+
+This document contains all types of plain text structures.
+
+Introduction
+============
+
+Welcome to this comprehensive example.
+
+Basic Lists
+
+Here are some items:
+- First item
+- Second item
+- Third item
+
+Numbered sections follow.
+
+1. Section with Code
+
+This section contains code examples.
+
+    public class Example
+    {
+    public void Run()
+        {
+         Console.WriteLine("Running");
+  }
+    }
+
+1.1 Subsection
+
+More details in the subsection.
+
+Lists within sections:
+1. First point
+2. Second point
+3. Third point
+
+2. Tables and Data
+
+While plain text doesn't have true tables, we can show data:
+
+Name Age     City
+John        30   NYC
+Jane        25      LA
+
+TECHNICAL DETAILS
+
+More information follows.
+
+Code Block
+----------
+
+```python
+def process(data):
+  return data * 2
+```
+
+Nested List Example
+
+- Level 1
+  - Level 2
+    - Level 3
+  - Back to level 2
+- Back to level 1
+
+CONCLUSION
+
+That covers all structure types.
