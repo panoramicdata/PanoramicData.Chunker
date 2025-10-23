@@ -7,26 +7,19 @@ namespace PanoramicData.Chunker.Infrastructure.TokenCounters;
 /// OpenAI token counter using SharpToken library.
 /// Supports CL100K (GPT-4, GPT-3.5-turbo), P50K (GPT-3), and R50K (GPT-2) encodings.
 /// </summary>
-public class OpenAITokenCounter : ITokenCounter
+/// <remarks>
+/// Initializes a new instance of the <see cref="OpenAITokenCounter"/> class with the specified encoding.
+/// </remarks>
+/// <param name="encodingName">Encoding name: "cl100k_base" (GPT-4), "p50k_base" (GPT-3), or "r50k_base" (GPT-2).</param>
+public class OpenAITokenCounter(string encodingName) : ITokenCounter
 {
-	private readonly GptEncoding _encoding;
-	private readonly string _modelName;
+	private readonly GptEncoding _encoding = GptEncoding.GetEncoding(encodingName);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="OpenAITokenCounter"/> class with CL100K encoding (GPT-4, GPT-3.5-turbo).
 	/// </summary>
 	public OpenAITokenCounter() : this("cl100k_base")
 	{
-	}
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="OpenAITokenCounter"/> class with the specified encoding.
-	/// </summary>
-	/// <param name="encodingName">Encoding name: "cl100k_base" (GPT-4), "p50k_base" (GPT-3), or "r50k_base" (GPT-2).</param>
-	public OpenAITokenCounter(string encodingName)
-	{
-		_encoding = GptEncoding.GetEncoding(encodingName);
-		_modelName = encodingName;
 	}
 
 	/// <summary>
@@ -70,9 +63,7 @@ public class OpenAITokenCounter : ITokenCounter
 	/// Async version (wraps synchronous version as encoding is CPU-bound).
 	/// </summary>
 	public Task<int> CountTokensAsync(string text, CancellationToken cancellationToken = default)
-	{
-		return Task.Run(() => CountTokens(text), cancellationToken);
-	}
+		=> Task.Run(() => CountTokens(text), cancellationToken);
 
 	/// <summary>
 	/// Split text at token boundaries to fit within maxTokens.
@@ -123,5 +114,5 @@ public class OpenAITokenCounter : ITokenCounter
 	/// <summary>
 	/// Gets the encoding name.
 	/// </summary>
-	public string EncodingName => _modelName;
+	public string EncodingName => encodingName;
 }
