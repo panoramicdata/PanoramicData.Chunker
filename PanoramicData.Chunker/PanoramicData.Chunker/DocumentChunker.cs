@@ -21,10 +21,7 @@ public static class DocumentChunker
 	public static async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		DocumentType type,
-		CancellationToken cancellationToken = default)
-	{
-		return await ChunkAsync(documentStream, type, new ChunkingOptions(), cancellationToken);
-	}
+		CancellationToken cancellationToken = default) => await ChunkAsync(documentStream, type, new ChunkingOptions(), cancellationToken);
 
 	/// <summary>
 	/// Chunk a document from a stream with custom options.
@@ -103,17 +100,11 @@ public static class DocumentChunker
 	/// Create a fluent builder for advanced chunking scenarios.
 	/// </summary>
 	/// <returns>A new ChunkerBuilder instance.</returns>
-	public static ChunkerBuilder CreateBuilder()
-	{
-		return new ChunkerBuilder(_factory);
-	}
+	public static ChunkerBuilder CreateBuilder() => new ChunkerBuilder(_factory);
 
 	/// <summary>
 	/// Register a custom document chunker.
 	/// </summary>
 	/// <param name="chunker">The chunker to register.</param>
-	public static void RegisterChunker(Interfaces.IDocumentChunker chunker)
-	{
-		_factory.RegisterChunker(chunker);
-	}
+	public static void RegisterChunker(Interfaces.IDocumentChunker chunker) => _factory.RegisterChunker(chunker);
 }

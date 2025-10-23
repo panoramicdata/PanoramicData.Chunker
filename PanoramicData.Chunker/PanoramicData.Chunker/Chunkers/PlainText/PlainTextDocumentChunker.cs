@@ -804,48 +804,37 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 		return indicators;
 	}
 
-	private static bool HasMarkdownSyntax(string text)
-	{
+	private static bool HasMarkdownSyntax(string text) =>
 		// Check for strong Markdown indicators
-		return text.Contains("**") || text.Contains("__") ||
+		text.Contains("**") || text.Contains("__") ||
 			   text.Contains("```") || text.Contains("![](") ||
 			   text.Contains("[](") || text.Contains("| ") ||
 			   (text.Contains('#') && text.Contains('\n'));
-	}
 
-	private void PopulateQualityMetrics(ChunkerBase chunk, string text)
+	private void PopulateQualityMetrics(ChunkerBase chunk, string text) => chunk.QualityMetrics = new ChunkQualityMetrics
 	{
-		chunk.QualityMetrics = new ChunkQualityMetrics
-		{
-			TokenCount = _tokenCounter.CountTokens(text),
-			CharacterCount = text.Length,
-			WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-			SemanticCompleteness = 1.0
-		};
-	}
+		TokenCount = _tokenCounter.CountTokens(text),
+		CharacterCount = text.Length,
+		WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
+		SemanticCompleteness = 1.0
+	};
 
-	private ChunkMetadata CreateMetadata(params string[] tags)
+	private ChunkMetadata CreateMetadata(params string[] tags) => new ChunkMetadata
 	{
-		return new ChunkMetadata
-		{
-			DocumentType = "PlainText",
-			SourceId = string.Empty,
-			Hierarchy = string.Empty,
-			Tags = [.. tags],
-			CreatedAt = DateTimeOffset.UtcNow
-		};
-	}
+		DocumentType = "PlainText",
+		SourceId = string.Empty,
+		Hierarchy = string.Empty,
+		Tags = [.. tags],
+		CreatedAt = DateTimeOffset.UtcNow
+	};
 
-	private static List<ChunkerBase> ApplyOutputFormat(List<ChunkerBase> chunks, OutputFormat format)
+	private static List<ChunkerBase> ApplyOutputFormat(List<ChunkerBase> chunks, OutputFormat format) => format switch
 	{
-		return format switch
-		{
-			OutputFormat.Flat => chunks,
-			OutputFormat.Hierarchical => BuildHierarchicalStructure(chunks),
-			OutputFormat.LeavesOnly => chunks.Where(c => c is ContentChunk).ToList(),
-			_ => chunks
-		};
-	}
+		OutputFormat.Flat => chunks,
+		OutputFormat.Hierarchical => BuildHierarchicalStructure(chunks),
+		OutputFormat.LeavesOnly => chunks.Where(c => c is ContentChunk).ToList(),
+		_ => chunks
+	};
 
 	private static List<ChunkerBase> BuildHierarchicalStructure(List<ChunkerBase> flatChunks)
 	{
@@ -862,15 +851,12 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 		return flatChunks.Where(c => c.ParentId == null).ToList();
 	}
 
-	private static ChunkingResult CreateEmptyResult(DateTime startTime)
+	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new ChunkingResult
 	{
-		return new ChunkingResult
-		{
-			Chunks = [],
-			Statistics = CalculateStatistics([], startTime),
-			Success = true
-		};
-	}
+		Chunks = [],
+		Statistics = CalculateStatistics([], startTime),
+		Success = true
+	};
 
 	private static ChunkingStatistics CalculateStatistics(List<ChunkerBase> chunks, DateTime startTime)
 	{

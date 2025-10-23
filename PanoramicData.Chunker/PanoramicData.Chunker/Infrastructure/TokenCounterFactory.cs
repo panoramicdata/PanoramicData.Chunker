@@ -16,21 +16,18 @@ public static class TokenCounterFactory
 	/// <param name="customCounter">Optional custom counter to use when method is Custom.</param>
 	/// <returns>An instance of ITokenCounter.</returns>
 	/// <exception cref="NotSupportedException">Thrown when the method is not supported.</exception>
-	public static ITokenCounter Create(TokenCountingMethod method, ITokenCounter? customCounter = null)
+	public static ITokenCounter Create(TokenCountingMethod method, ITokenCounter? customCounter = null) => method switch
 	{
-		return method switch
-		{
-			TokenCountingMethod.CharacterBased => new CharacterBasedTokenCounter(),
-			TokenCountingMethod.OpenAI_CL100K => OpenAITokenCounter.ForGpt4(),
-			TokenCountingMethod.OpenAI_P50K => OpenAITokenCounter.ForGpt3(),
-			TokenCountingMethod.OpenAI_R50K => OpenAITokenCounter.ForGpt2(),
-			TokenCountingMethod.Custom when customCounter != null => customCounter,
-			TokenCountingMethod.Custom => throw new ArgumentException("Custom token counter must be provided when using TokenCountingMethod.Custom", nameof(customCounter)),
-			TokenCountingMethod.Claude => throw new NotSupportedException("Claude tokenization is not yet implemented. Use CharacterBased or OpenAI methods."),
-			TokenCountingMethod.Cohere => throw new NotSupportedException("Cohere tokenization is not yet implemented. Use CharacterBased or OpenAI methods."),
-			_ => throw new NotSupportedException($"Token counting method '{method}' is not supported.")
-		};
-	}
+		TokenCountingMethod.CharacterBased => new CharacterBasedTokenCounter(),
+		TokenCountingMethod.OpenAI_CL100K => OpenAITokenCounter.ForGpt4(),
+		TokenCountingMethod.OpenAI_P50K => OpenAITokenCounter.ForGpt3(),
+		TokenCountingMethod.OpenAI_R50K => OpenAITokenCounter.ForGpt2(),
+		TokenCountingMethod.Custom when customCounter != null => customCounter,
+		TokenCountingMethod.Custom => throw new ArgumentException("Custom token counter must be provided when using TokenCountingMethod.Custom", nameof(customCounter)),
+		TokenCountingMethod.Claude => throw new NotSupportedException("Claude tokenization is not yet implemented. Use CharacterBased or OpenAI methods."),
+		TokenCountingMethod.Cohere => throw new NotSupportedException("Cohere tokenization is not yet implemented. Use CharacterBased or OpenAI methods."),
+		_ => throw new NotSupportedException($"Token counting method '{method}' is not supported.")
+	};
 
 	/// <summary>
 	/// Gets or creates a token counter from chunking options.

@@ -137,9 +137,7 @@ public class MarkdownChunkingBenchmarks
 		return new MemoryStream(bytes);
 	}
 
-	private static string GenerateSmallMarkdown()
-	{
-		return @"# Introduction
+	private static string GenerateSmallMarkdown() => @"# Introduction
 
 This is a simple introduction paragraph.
 
@@ -153,7 +151,6 @@ This is a simple introduction paragraph.
 
 Thank you for reading.
 ";
-	}
 
 	private static string GenerateMediumMarkdown()
 	{

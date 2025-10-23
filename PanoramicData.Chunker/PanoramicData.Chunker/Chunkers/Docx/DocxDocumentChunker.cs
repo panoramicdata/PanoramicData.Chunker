@@ -795,16 +795,13 @@ public partial class DocxDocumentChunker : IDocumentChunker
 		return currentParentId;
 	}
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text)
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new ChunkQualityMetrics
 	{
-		return new ChunkQualityMetrics
-		{
-			TokenCount = _tokenCounter.CountTokens(text),
-			CharacterCount = text.Length,
-			WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-			SemanticCompleteness = 1.0
-		};
-	}
+		TokenCount = _tokenCounter.CountTokens(text),
+		CharacterCount = text.Length,
+		WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
+		SemanticCompleteness = 1.0
+	};
 
 	private static ChunkingStatistics CalculateStatistics(List<ChunkerBase> chunks, DateTime startTime)
 	{
