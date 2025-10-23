@@ -41,5 +41,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TestData\Pptx\" />
+  </ItemGroup>
 
 </Project>
