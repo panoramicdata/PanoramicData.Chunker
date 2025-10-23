@@ -116,8 +116,9 @@ public class ChunkerFactoryTests
 	{
 		// Arrange
 		var factory = new ChunkerFactory();
-		var plainText = "Just some plain text with no markdown patterns";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(plainText));
+		// Use binary data that looks like corrupted/unrecognized format
+		var binaryData = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46 }; // Not a valid format we support
+		using var stream = new MemoryStream(binaryData);
 
 		// Act
 		var act = async () => await factory.GetChunkerForStreamAsync(stream);

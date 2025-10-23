@@ -23,6 +23,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 	private readonly HtmlParser _parser;
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
+	private readonly Stack<(int level, Guid id)> _headingStack = new();
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="HtmlDocumentChunker"/> class.
@@ -149,9 +150,9 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			element.Remove();
 		}
 
-		// Find the main content area (prefer <main>, <article>, or <body>)
+		// Find the main content area (prefer <main>, or <body>)
+		// Don't use <article> as the main area since there might be multiple articles
 		var mainContent = document.QuerySelector("main") 
-			?? document.QuerySelector("article") 
 			?? document.Body;
 
 		if (mainContent == null)
@@ -159,6 +160,9 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			_logger?.LogWarning("No main content area found in HTML document");
 			return;
 		}
+
+		// Clear heading stack for new document
+		_headingStack.Clear();
 
 		// Process the main content recursively
 		ProcessElement(mainContent, parentId: null, depth: 0);
@@ -171,13 +175,62 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 		// Check if this is a structural element (semantic or heading)
 		if (IsStructuralElement(tagName))
 		{
-			var structuralChunk = CreateStructuralChunk(element, parentId, depth);
+			// Determine the actual parent ID based on heading hierarchy
+			Guid? actualParentId = parentId;
+			var headingLevel = GetHeadingLevel(tagName);
+			
+			if (headingLevel.HasValue)
+			{
+				// For headings, find the appropriate parent based on hierarchy
+				// Pop headings from stack that are at same or deeper level
+				while (_headingStack.Count > 0 && _headingStack.Peek().level >= headingLevel.Value)
+				{
+					_headingStack.Pop();
+				}
+
+				// The parent is the heading on top of the stack (if any)
+				if (_headingStack.Count > 0)
+				{
+					actualParentId = _headingStack.Peek().id;
+				}
+				else
+				{
+					actualParentId = null; // This is a root-level heading
+				}
+			}
+
+			var structuralChunk = CreateStructuralChunk(element, actualParentId, depth);
 			_chunks.Add(structuralChunk);
+
+			// Push this heading onto the stack if it's a heading
+			if (headingLevel.HasValue)
+			{
+				_headingStack.Push((headingLevel.Value, structuralChunk.Id));
+			}
 
 			// Process children with this chunk as parent
 			foreach (var child in element.Children)
 			{
 				ProcessElement(child, structuralChunk.Id, depth + 1);
+			}
+		}
+		// Check if this is a list item - special handling for nested lists
+		else if (tagName == "li")
+		{
+			var contentChunk = CreateContentChunk(element, parentId, depth);
+			if (contentChunk != null)
+			{
+				_chunks.Add(contentChunk);
+				
+				// Process any nested ul/ol elements within this li
+				foreach (var child in element.Children.Where(c => c.TagName.ToLowerInvariant() is "ul" or "ol"))
+				{
+					// Process the nested list's children with same parent
+					foreach (var listItem in child.Children)
+					{
+						ProcessElement(listItem, parentId, depth);
+					}
+				}
 			}
 		}
 		// Check if this is a content element
@@ -264,7 +317,18 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 	private ChunkerBase? CreateContentChunk(IElement element, Guid? parentId, int depth)
 	{
 		var tagName = element.TagName.ToLowerInvariant();
-		var text = GetCleanText(element);
+		
+		// For list items, exclude nested list content
+		string text;
+		if (tagName == "li")
+		{
+			// Get only direct text nodes, not nested ul/ol content
+			text = GetDirectTextContent(element);
+		}
+		else
+		{
+			text = GetCleanText(element);
+		}
 
 		if (string.IsNullOrWhiteSpace(text))
 		{
@@ -363,16 +427,21 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 
 	private HtmlListItemChunk CreateListItemChunk(IElement element, string text)
 	{
-		// Determine list type by looking at parent
+		// Determine list type by looking at immediate parent
 		var parent = element.ParentElement;
 		var listType = parent?.TagName.ToLowerInvariant() ?? "ul";
 
-		// Calculate nesting level
+		// Calculate nesting level - count the number of list (ul/ol) ancestors
+		// Start counting from the parent's parent (skip the immediate list parent)
+		// to get 0-based nesting level where 0 = top-level list item
 		var nestingLevel = 0;
-		var current = element.ParentElement;
+		var current = element.ParentElement?.ParentElement; // Start from grandparent
+		
 		while (current != null)
 		{
-			if (current.TagName.ToLowerInvariant() is "ul" or "ol")
+			var tagName = current.TagName.ToLowerInvariant();
+			// Count ul/ol ancestors, but skip if they're inside a li (that's the content)
+			if (tagName is "ul" or "ol")
 			{
 				nestingLevel++;
 			}
@@ -384,7 +453,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			Content = text,
 			HtmlContent = element.InnerHtml,
 			ListType = listType,
-			NestingLevel = nestingLevel > 0 ? nestingLevel - 1 : 0, // 0-based
+			NestingLevel = nestingLevel,
 			CssClasses = element.ClassList.ToList(),
 			ElementId = element.Id
 		};
@@ -489,7 +558,9 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			return null;
 		}
 
-		var src = img.Source;
+		// Use the original src attribute, not the computed Source property
+		// AngleSharp's Source property resolves relative URLs to absolute URLs with a base URL
+		var src = img.GetAttribute("src");
 		if (string.IsNullOrEmpty(src))
 		{
 			return null;
@@ -558,6 +629,33 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 	{
 		// Get text content and normalize whitespace
 		var text = element.TextContent;
+		text = WhitespaceRegex().Replace(text, " ");
+		return text.Trim();
+	}
+
+	private static string GetDirectTextContent(IElement element)
+	{
+		// Get only direct text nodes, excluding nested ul/ol elements
+		var sb = new StringBuilder();
+		
+		foreach (var node in element.ChildNodes)
+		{
+			if (node.NodeType == NodeType.Text)
+			{
+				sb.Append(node.TextContent);
+			}
+			else if (node is IElement childElement)
+			{
+				var childTag = childElement.TagName.ToLowerInvariant();
+				// Skip nested lists
+				if (childTag is not "ul" and not "ol")
+				{
+					sb.Append(childElement.TextContent);
+				}
+			}
+		}
+		
+		var text = sb.ToString();
 		text = WhitespaceRegex().Replace(text, " ");
 		return text.Trim();
 	}

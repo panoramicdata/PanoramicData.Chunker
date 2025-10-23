@@ -84,6 +84,11 @@ public class OpenAITokenCounter : ITokenCounter
 			yield break;
 		}
 
+		if (overlap >= maxTokens)
+		{
+			throw new ArgumentException("Overlap must be less than maxTokens", nameof(overlap));
+		}
+
 		// Encode the entire text first
 		var allTokens = _encoding.Encode(text);
 		var totalTokens = allTokens.Count;
@@ -96,10 +101,6 @@ public class OpenAITokenCounter : ITokenCounter
 
 		// Calculate stride (how many tokens to advance each iteration)
 		var stride = maxTokens - overlap;
-		if (stride <= 0)
-		{
-			throw new ArgumentException("Overlap must be less than maxTokens", nameof(overlap));
-		}
 
 		// Split into batches
 		for (var start = 0; start < totalTokens; start += stride)
