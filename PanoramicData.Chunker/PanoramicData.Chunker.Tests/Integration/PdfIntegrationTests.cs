@@ -41,7 +41,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var firstPage = pages[0];
 		firstPage.PageNumber.Should().Be(1);
 		firstPage.ExtractedText.Should().NotBeNullOrEmpty();
-		output.WriteLine($"Extracted text from page 1: {firstPage.ExtractedText?.Substring(0, Math.Min(100, firstPage.ExtractedText.Length))}");
+		output.WriteLine($"Extracted text from page 1: {firstPage.ExtractedText?[..Math.Min(100, firstPage.ExtractedText.Length)]}");
 
 		// Should have paragraph chunks
 		var paragraphs = result.Chunks.OfType<PdfParagraphChunk>().ToList();
@@ -123,7 +123,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		{
 			foreach (var heading in headings)
 			{
-				output.WriteLine($"Heading: {heading.Content?.Substring(0, Math.Min(50, heading.Content.Length))}");
+				output.WriteLine($"Heading: {heading.Content?[..Math.Min(50, heading.Content.Length)]}");
 			}
 		}
 
@@ -179,7 +179,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		 pageText?.Contains("Name") == true ||
 		 pageText?.Contains("Department") == true).Should().BeTrue();
 
-		output.WriteLine($"Table content sample: {pageText?.Substring(0, Math.Min(200, pageText.Length))}");
+		output.WriteLine($"Table content sample: {pageText?[..Math.Min(200, pageText.Length)]}");
 	}
 
 	[Fact]

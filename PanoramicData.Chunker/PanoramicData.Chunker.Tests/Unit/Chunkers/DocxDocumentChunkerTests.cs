@@ -150,7 +150,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 
 		foreach (var paragraph in paragraphs.Take(5))
 		{
-			_output.WriteLine($"Paragraph: {paragraph.Content.Substring(0, Math.Min(50, paragraph.Content.Length))}...");
+			_output.WriteLine($"Paragraph: {paragraph.Content[..Math.Min(50, paragraph.Content.Length)]}...");
 		}
 	}
 
@@ -343,7 +343,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 
 		foreach (var item in listItems.Take(5))
 		{
-			_output.WriteLine($"List item (Level {item.ListLevel}): {item.Content.Substring(0, Math.Min(50, item.Content.Length))}...");
+			_output.WriteLine($"List item (Level {item.ListLevel}): {item.Content[..Math.Min(50, item.Content.Length)]}...");
 		}
 	}
 

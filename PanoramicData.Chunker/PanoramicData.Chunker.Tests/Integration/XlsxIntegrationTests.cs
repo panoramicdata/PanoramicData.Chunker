@@ -43,7 +43,7 @@ public class XlsxIntegrationTests
 		
 		var table = tables[0];
 		table.TableInfo.Should().NotBeNull();
-		table.TableInfo!.Headers.Should().Contain(new[] { "Name", "Age", "City" });
+		table.TableInfo!.Headers.Should().Contain(["Name", "Age", "City"]);
 		table.TableInfo.RowCount.Should().Be(3);  // 3 data rows
 		table.TableInfo.ColumnCount.Should().Be(3);
 	}

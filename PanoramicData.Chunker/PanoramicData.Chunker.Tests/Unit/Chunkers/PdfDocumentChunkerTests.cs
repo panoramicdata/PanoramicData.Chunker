@@ -3,7 +3,6 @@ using PanoramicData.Chunker.Chunkers.Pdf;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using System.Text;
-using Xunit;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
@@ -54,7 +53,7 @@ public class PdfDocumentChunkerTests
 	public async Task CanHandleAsync_WithPdfStream_ShouldReturnTrue()
 	{
 		// Arrange - PDF signature %PDF-
-		var pdfSignature = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x37 }; // %PDF-1.7
+		var pdfSignature = "%PDF-1.7"u8.ToArray();
 		using var stream = new MemoryStream(pdfSignature);
 
 		// Act
@@ -96,7 +95,7 @@ public class PdfDocumentChunkerTests
 	public async Task CanHandleAsync_WithShortStream_ShouldReturnFalse()
 	{
 		// Arrange - Less than 5 bytes
-		var content = new byte[] { 0x25, 0x50, 0x44 }; // Only %PD
+		var content = "%PD"u8.ToArray();
 		using var stream = new MemoryStream(content);
 
 		// Act
@@ -149,7 +148,7 @@ public class PdfDocumentChunkerTests
 			result.Should().NotBeNull();
 			result.Success.Should().BeTrue();
 			result.Chunks.Should().NotBeEmpty();
-			
+
 			// Should have document and page chunks
 			result.Chunks.OfType<PdfDocumentChunk>().Should().HaveCount(1);
 			result.Chunks.OfType<PdfPageChunk>().Should().NotBeEmpty();
@@ -313,7 +312,7 @@ public class PdfDocumentChunkerTests
 			// Assert
 			var doc = result.Chunks.OfType<PdfDocumentChunk>().First();
 			var pages = result.Chunks.OfType<PdfPageChunk>();
-			
+
 			// All pages should be children of document
 			pages.Should().AllSatisfy(page =>
 			{

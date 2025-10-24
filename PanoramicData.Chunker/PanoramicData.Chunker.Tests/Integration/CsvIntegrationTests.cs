@@ -35,17 +35,17 @@ public class CsvIntegrationTests
 		// Should have document chunk
 		var documents = result.Chunks.OfType<CsvDocumentChunk>().ToList();
 		documents.Should().HaveCount(1);
-		
+
 		var doc = documents[0];
 		doc.Delimiter.Should().Be(',');
 		doc.HasHeaderRow.Should().BeTrue();
-		doc.Headers.Should().Contain(new[] { "Name", "Age", "City" });
+		doc.Headers.Should().Contain(["Name", "Age", "City"]);
 		doc.ColumnCount.Should().Be(3);
 
 		// Should have row chunks
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
 		rows.Should().HaveCount(3); // 3 data rows
-		
+
 		rows[0].Fields.Should().Contain("Alice");
 		rows[1].Fields.Should().Contain("Bob");
 		rows[2].Fields.Should().Contain("Charlie");
@@ -80,10 +80,10 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
 		rows.Should().HaveCount(3);
-		
+
 		// Check quoted fields are parsed correctly
 		rows[0].Fields[0].Should().Be("Premium Widget");
 		rows[0].Fields[1].Should().Contain("High-quality");
@@ -103,10 +103,10 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
 		doc.Delimiter.Should().Be('\t');
-		
+
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
 		rows.Should().HaveCount(2);
 	}
@@ -124,7 +124,7 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
 		doc.Delimiter.Should().Be(';');
 	}
@@ -142,7 +142,7 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
 		doc.Delimiter.Should().Be('|');
 	}
@@ -162,10 +162,10 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
 		rows.Should().HaveCount(1000);
-		
+
 		// Should process 1000 rows reasonably fast (< 2 seconds)
 		processingTime.TotalSeconds.Should().BeLessThan(2);
 	}
@@ -183,11 +183,11 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
 		doc.HasHeaderRow.Should().BeFalse();
 		doc.Headers.Should().BeEmpty();
-		
+
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
 		rows.Should().HaveCount(3);
 	}
@@ -205,10 +205,10 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
-		doc.Headers.Should().Contain(new[] { "Text", "Number", "Date", "Boolean", "Currency" });
-		
+		doc.Headers.Should().Contain(["Text", "Number", "Date", "Boolean", "Currency"]);
+
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
 		rows.Should().HaveCount(3);
 		rows[0].Fields.Should().Contain("Sample");
@@ -228,7 +228,7 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		// Row chunks should have quality metrics
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
 		rows.Should().AllSatisfy(row =>
@@ -251,10 +251,10 @@ public class CsvIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
-		
+
 		// All rows should be children of document
 		rows.Should().AllSatisfy(row =>
 		{
@@ -348,7 +348,7 @@ public class CsvIntegrationTests
 
 		// Assert
 		var row = result.Chunks.OfType<CsvRowChunk>().First();
-		
+
 		// Content should have header context (Name: Alice, Age: 30, City: New York)
 		row.Content.Should().Contain("Name:");
 		row.Content.Should().Contain("Age:");

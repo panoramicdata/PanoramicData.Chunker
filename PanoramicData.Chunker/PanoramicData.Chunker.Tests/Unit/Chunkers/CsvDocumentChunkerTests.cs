@@ -3,7 +3,6 @@ using PanoramicData.Chunker.Chunkers.Csv;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using System.Text;
-using Xunit;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
@@ -147,7 +146,7 @@ public class CsvDocumentChunkerTests
 		result.Should().NotBeNull();
 		result.Success.Should().BeTrue();
 		result.Chunks.Should().NotBeEmpty();
-		
+
 		// Should have document chunk and row chunks
 		result.Chunks.OfType<CsvDocumentChunk>().Should().HaveCount(1);
 		result.Chunks.OfType<CsvRowChunk>().Should().HaveCount(2); // 2 data rows
@@ -219,7 +218,7 @@ public class CsvDocumentChunkerTests
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().FirstOrDefault();
 		doc.Should().NotBeNull();
 		doc!.HasHeaderRow.Should().BeTrue();
-		doc.Headers.Should().Contain(new[] { "Name", "Age", "City" });
+		doc.Headers.Should().Contain(["Name", "Age", "City"]);
 	}
 
 	[Fact]

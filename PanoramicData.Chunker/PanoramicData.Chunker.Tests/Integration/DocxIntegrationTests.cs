@@ -275,7 +275,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 
 		foreach (var paragraph in paragraphs.Take(5))
 		{
-			_output.WriteLine($"  Paragraph: {paragraph.Content.Substring(0, Math.Min(50, paragraph.Content.Length))}...");
+			_output.WriteLine($"  Paragraph: {paragraph.Content[..Math.Min(50, paragraph.Content.Length)]}...");
 			_output.WriteLine($"  Annotations: {paragraph.Annotations.Count}");
 
 			foreach (var annotation in paragraph.Annotations.Take(3))
