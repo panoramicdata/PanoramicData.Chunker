@@ -4,7 +4,41 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>PanoramicData.Chunker</PackageId>
+    <Version>0.9.0</Version>
+    <Authors>Panoramic Data Limited</Authors>
+    <Company>Panoramic Data Limited</Company>
+    <Product>PanoramicData.Chunker</Product>
+    <Description>A comprehensive document chunking library for .NET that intelligently splits various document formats (Markdown, HTML, DOCX, PPTX, XLSX, CSV, PDF, Plain Text) into semantic chunks optimized for RAG (Retrieval-Augmented Generation) and LLM processing. Features include hierarchical chunking, token counting, quality metrics, and support for multiple document formats.</Description>
+    <PackageTags>chunking;rag;llm;document-processing;markdown;html;docx;pptx;xlsx;csv;pdf;openai;embedding;semantic-search;document-intelligence</PackageTags>
+    <PackageProjectUrl>https://github.com/panoramicdata/PanoramicData.Chunker</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/panoramicdata/PanoramicData.Chunker</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright © Panoramic Data Limited 2025</Copyright>
+    <PackageReleaseNotes>
+   Version 0.9.0 (Beta Release)
+      - Initial beta release with 9 document formats supported
+      - Markdown, HTML, Plain Text, DOCX, PPTX, XLSX, CSV, PDF (basic text extraction)
+      - 409 tests with 100% pass rate
+   - Hierarchical chunking with parent-child relationships
+      - OpenAI token counting support
+      - Quality metrics and validation
+      - Comprehensive documentation
+</PackageReleaseNotes>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.3.0" />
@@ -16,7 +50,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
+ <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
