@@ -9,7 +9,7 @@ namespace PanoramicData.Chunker.Tests.Utilities;
 /// </summary>
 public static class PdfTestFileGenerator
 {
-	private static readonly string TestDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
+	private static readonly string _testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
 
 	/// <summary>
 	/// Generate all test PDF files.
@@ -19,10 +19,10 @@ public static class PdfTestFileGenerator
 		// Configure QuestPDF license (community license)
 		QuestPDF.Settings.License = LicenseType.Community;
 
-		Directory.CreateDirectory(TestDataPath);
+		Directory.CreateDirectory(_testDataPath);
 
 		// If files already exist, skip generation
-		if (File.Exists(Path.Combine(TestDataPath, "simple.pdf")))
+		if (File.Exists(Path.Combine(_testDataPath, "simple.pdf")))
 		{
 			return;
 		}
@@ -41,7 +41,7 @@ public static class PdfTestFileGenerator
 	/// </summary>
 	private static void CreateSimplePdf()
 	{
-		var filePath = Path.Combine(TestDataPath, "simple.pdf");
+		var filePath = Path.Combine(_testDataPath, "simple.pdf");
 
 		Document.Create(container =>
 		{
@@ -89,7 +89,7 @@ public static class PdfTestFileGenerator
 	/// </summary>
 	private static void CreateEmptyPdf()
 	{
-		var filePath = Path.Combine(TestDataPath, "empty.pdf");
+		var filePath = Path.Combine(_testDataPath, "empty.pdf");
 
 		Document.Create(container =>
 		{
@@ -110,7 +110,7 @@ public static class PdfTestFileGenerator
 	/// </summary>
 	private static void CreateMultiPagePdf()
 	{
-		var filePath = Path.Combine(TestDataPath, "multi-page.pdf");
+		var filePath = Path.Combine(_testDataPath, "multi-page.pdf");
 
 		Document.Create(container =>
 		{
@@ -174,7 +174,7 @@ public static class PdfTestFileGenerator
 	/// </summary>
 	private static void CreateWithHeadings()
 	{
-		var filePath = Path.Combine(TestDataPath, "with-headings.pdf");
+		var filePath = Path.Combine(_testDataPath, "with-headings.pdf");
 
 		Document.Create(container =>
 		{
@@ -225,7 +225,7 @@ public static class PdfTestFileGenerator
 	/// </summary>
 	private static void CreateWithLists()
 	{
-		var filePath = Path.Combine(TestDataPath, "with-lists.pdf");
+		var filePath = Path.Combine(_testDataPath, "with-lists.pdf");
 
 		Document.Create(container =>
 		{
@@ -274,7 +274,7 @@ public static class PdfTestFileGenerator
 	/// </summary>
 	private static void CreateWithTables()
 	{
-		var filePath = Path.Combine(TestDataPath, "with-tables.pdf");
+		var filePath = Path.Combine(_testDataPath, "with-tables.pdf");
 
 		Document.Create(container =>
 		{
@@ -356,7 +356,7 @@ public static class PdfTestFileGenerator
 	/// </summary>
 	private static void CreateLargePdf()
 	{
-		var filePath = Path.Combine(TestDataPath, "large.pdf");
+		var filePath = Path.Combine(_testDataPath, "large.pdf");
 
 		Document.Create(container =>
 		{

@@ -9,17 +9,17 @@ namespace PanoramicData.Chunker.Tests.Utilities;
 /// </summary>
 public static class XlsxTestFileGenerator
 {
-	private static readonly string TestDataPath = Path.Combine("TestData", "Xlsx");
+	private static readonly string _testDataPath = Path.Combine("TestData", "Xlsx");
 
 	/// <summary>
 	/// Generate all test XLSX files.
 	/// </summary>
 	public static void GenerateAllTestFiles()
 	{
-		Directory.CreateDirectory(TestDataPath);
+		Directory.CreateDirectory(_testDataPath);
 
 		// If files already exist, skip generation
-		if (File.Exists(Path.Combine(TestDataPath, "simple.xlsx")))
+		if (File.Exists(Path.Combine(_testDataPath, "simple.xlsx")))
 		{
 			return;
 		}
@@ -39,7 +39,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	private static void CreateSimpleSpreadsheet()
 	{
-		var filePath = Path.Combine(TestDataPath, "simple.xlsx");
+		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
 
 		using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
 
@@ -106,7 +106,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	private static void CreateEmptySpreadsheet()
 	{
-		var filePath = Path.Combine(TestDataPath, "empty.xlsx");
+		var filePath = Path.Combine(_testDataPath, "empty.xlsx");
 
 		using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
 
@@ -133,7 +133,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	private static void CreateMultipleWorksheets()
 	{
-		var filePath = Path.Combine(TestDataPath, "multiple-sheets.xlsx");
+		var filePath = Path.Combine(_testDataPath, "multiple-sheets.xlsx");
 
 		using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
 
@@ -225,7 +225,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	private static void CreateWithFormulas()
 	{
-		var filePath = Path.Combine(TestDataPath, "with-formulas.xlsx");
+		var filePath = Path.Combine(_testDataPath, "with-formulas.xlsx");
 
 		using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
 
@@ -293,7 +293,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	private static void CreateWithTable()
 	{
-		var filePath = Path.Combine(TestDataPath, "with-table.xlsx");
+		var filePath = Path.Combine(_testDataPath, "with-table.xlsx");
 
 		using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
 
@@ -342,7 +342,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	private static void CreateLargeSpreadsheet()
 	{
-		var filePath = Path.Combine(TestDataPath, "large.xlsx");
+		var filePath = Path.Combine(_testDataPath, "large.xlsx");
 
 		using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
 
@@ -396,7 +396,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	private static void CreateWithMergedCells()
 	{
-		var filePath = Path.Combine(TestDataPath, "with-merged-cells.xlsx");
+		var filePath = Path.Combine(_testDataPath, "with-merged-cells.xlsx");
 
 		using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
 
@@ -455,7 +455,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	private static void CreateWithDataTypes()
 	{
-		var filePath = Path.Combine(TestDataPath, "with-data-types.xlsx");
+		var filePath = Path.Combine(_testDataPath, "with-data-types.xlsx");
 
 		using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
 

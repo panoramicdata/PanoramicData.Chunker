@@ -119,7 +119,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 
 		output.WriteLine($"Total paragraphs: {paragraphs.Count}");
 		output.WriteLine($"Detected headings: {headings.Count}");
-		if (headings.Any())
+		if (headings.Count != 0)
 		{
 			foreach (var heading in headings)
 			{

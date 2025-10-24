@@ -104,21 +104,6 @@ None - Ready for Phase 10
 
 ---
 
-## Supporting Documentation
-
-### Process & Guidelines
-- **[Testing Strategy](process/Testing-Strategy.md)** - Comprehensive testing approach
-- **[Quality Gates](process/Quality-Gates.md)** - Criteria for phase completion
-- **[Risk Management](process/Risk-Management.md)** - Identified risks and mitigations
-- **[Success Criteria](process/Success-Criteria.md)** - Definition of success
-
-### Reference
-- **[Development Environment](docs/reference/Development-Environment.md)** - Setup and tools
-- **[Dependencies Strategy](docs/reference/Dependencies-Strategy.md)** - Package management approach
-- **[Versioning Strategy](docs/reference/Versioning-Strategy.md)** - SemVer and release schedule
-
----
-
 ## Progress Tracking
 
 ### Velocity Metrics
