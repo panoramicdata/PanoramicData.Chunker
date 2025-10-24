@@ -1,6 +1,6 @@
 # Phase 1: Markdown Chunking (End-to-End MVP)
 
-[? Back to Master Plan](../../MasterPlan.md)
+[? Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -88,4 +88,4 @@ Deliver a complete, working implementation for Markdown documents, establishing 
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: Foundation ?](Phase-00.md) | [Next Phase: HTML ?](Phase-02.md)
+[? Back to Master Plan](../MasterPlan.md) | [Previous Phase: Foundation ?](Phase-00.md) | [Next Phase: HTML ?](Phase-02.md)

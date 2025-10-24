@@ -1,6 +1,6 @@
 # Phase 4: Plain Text Chunking
 
-[? Back to Master Plan](../../MasterPlan.md)
+[? Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -226,4 +226,4 @@ Document Root
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Next Phase: DOCX ?](Phase-05.md)
+[? Back to Master Plan](../MasterPlan.md) | [Next Phase: DOCX ?](Phase-05.md)

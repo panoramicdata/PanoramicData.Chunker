@@ -1,6 +1,7 @@
+﻿
 # Phase 14: Serialization and Export
 
-[? Back to Master Plan](../../MasterPlan.md)
+[← Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -9,7 +10,7 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase Number** | 14 |
-| **Status** | ?? **PENDING** |
+| **Status** | 📅 **PENDING** |
 
 ---
 
@@ -19,4 +20,4 @@ Implement multiple serialization formats (JSON, Markdown, CSV, Parquet) and vect
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: Performance ?](Phase-13.md) | [Next Phase: Validation ?](Phase-15.md)
+[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: Performance ←](Phase-13.md) | [Next Phase: Validation →](Phase-15.md)

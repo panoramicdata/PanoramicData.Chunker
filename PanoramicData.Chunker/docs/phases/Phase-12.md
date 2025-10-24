@@ -1,6 +1,6 @@
-# Phase 12: Semantic Chunking
+﻿# Phase 12: Semantic Chunking
 
-[? Back to Master Plan](../../MasterPlan.md)
+[← Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -9,7 +9,7 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase Number** | 12 |
-| **Status** | ?? **PENDING** |
+| **Status** | 📅 **PENDING** |
 
 ---
 
@@ -19,4 +19,4 @@ Implement semantic chunking strategy using embeddings to detect natural semantic
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: LLM Integration ?](Phase-11.md) | [Next Phase: Performance ?](Phase-13.md)
+[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: LLM Integration ←](Phase-11.md) | [Next Phase: Performance →](Phase-13.md)

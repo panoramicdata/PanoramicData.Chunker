@@ -1,6 +1,6 @@
 # Phase 7: XLSX Chunking (Microsoft Excel)
 
-[? Back to Master Plan](../../MasterPlan.md)
+[? Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -420,4 +420,4 @@ Total time: 2.0 seconds
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: PPTX ?](Phase-06.md) | [Next Phase: CSV ?](Phase-08.md)
+[? Back to Master Plan](../MasterPlan.md) | [Previous Phase: PPTX ?](Phase-06.md) | [Next Phase: CSV ?](Phase-08.md)

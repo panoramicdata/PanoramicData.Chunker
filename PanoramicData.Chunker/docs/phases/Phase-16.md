@@ -1,6 +1,6 @@
-# Phase 16: Additional Document Formats
+﻿# Phase 16: Additional Document Formats
 
-[? Back to Master Plan](../../MasterPlan.md)
+[← Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -9,7 +9,7 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase Number** | 16 |
-| **Status** | ?? **PENDING** |
+| **Status** | 📅 **PENDING** |
 
 ---
 
@@ -19,4 +19,4 @@ Implement support for additional formats: RTF, JSON, XML, and Email (.eml, .msg)
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: Validation ?](Phase-15.md) | [Next Phase: Developer Experience ?](Phase-17.md)
+[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: Validation ←](Phase-15.md) | [Next Phase: Developer Experience →](Phase-17.md)

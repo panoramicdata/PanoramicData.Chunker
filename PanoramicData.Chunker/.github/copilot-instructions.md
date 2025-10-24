@@ -6,7 +6,7 @@
 
 1. **Update Existing Documentation**
    - Update `docs/MasterPlan.md` when phase status changes
-   - Update individual phase files in `docs/phases/Phase-XX.md` as work progresses
+ - Update individual phase files in `docs/phases/Phase-XX.md` as work progresses
    - Keep phase documentation in sync with implementation
 
 2. **Maintain Project Status**
@@ -15,7 +15,7 @@
    - Update milestone timelines
 
 3. **Document in Code**
- - Add XML documentation comments to all public APIs
+   - Add XML documentation comments to all public APIs
    - Include inline comments for complex logic
    - Document OpenXML patterns and element mappings
 
@@ -39,13 +39,13 @@
 
 ```
 docs/
-??? MasterPlan.md           ? Project-level status, all phases summary
+??? MasterPlan.md       ? Project-level status, all phases summary
 ??? phases/
 ?   ??? Phase-00.md         ? Foundation
 ?   ??? Phase-01.md         ? Markdown (include implementation, tests, results)
 ?   ??? Phase-02.md         ? HTML
 ?   ??? ...
-? ??? Phase-20.md         ? Release
+?   ??? Phase-20.md         ? Release
 ??? other specialized docs only when necessary
 ```
 

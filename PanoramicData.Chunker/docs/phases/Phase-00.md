@@ -1,6 +1,6 @@
 # Phase 0: Foundation and Infrastructure
 
-[? Back to Master Plan](../../MasterPlan.md)
+[? Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -176,4 +176,4 @@ Establish the foundational architecture, core models, and testing infrastructure
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Next Phase: Markdown ?](Phase-01.md)
+[? Back to Master Plan](../MasterPlan.md) | [Next Phase: Markdown ?](Phase-01.md)

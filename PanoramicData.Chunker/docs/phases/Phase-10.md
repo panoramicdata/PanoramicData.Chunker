@@ -1,6 +1,6 @@
-# Phase 10: Image Description
+﻿# Phase 10: Image Description
 
-[? Back to Master Plan](../../MasterPlan.md)
+[← Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -9,7 +9,7 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase Number** | 10 |
-| **Status** | ?? **PENDING** |
+| **Status** | 📅 **PENDING** |
 
 ---
 
@@ -19,4 +19,4 @@ Integrate AI-powered image description using Azure Computer Vision and/or OpenAI
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: PDF Basic ?](Phase-09.md) | [Next Phase: LLM Integration ?](Phase-11.md)
+[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: PDF Basic ←](Phase-09.md) | [Next Phase: LLM Integration →](Phase-11.md)

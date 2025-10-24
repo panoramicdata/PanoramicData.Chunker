@@ -1,6 +1,6 @@
 # Phase 3: Advanced Token Counting
 
-[? Back to Master Plan](../../MasterPlan.md)
+[? Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -77,4 +77,4 @@ After:  "The quick brown fox" | "fox jumps over" ?
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: HTML ?](Phase-02.md) | [Next Phase: Plain Text ?](Phase-04.md)
+[? Back to Master Plan](../MasterPlan.md) | [Previous Phase: HTML ?](Phase-02.md) | [Next Phase: Plain Text ?](Phase-04.md)

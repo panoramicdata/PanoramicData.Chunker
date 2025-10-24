@@ -1,6 +1,6 @@
-# Phase 11: LLM Integration
+﻿# Phase 11: LLM Integration
 
-[? Back to Master Plan](../../MasterPlan.md)
+[← Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -9,7 +9,7 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase Number** | 11 |
-| **Status** | ?? **PENDING** |
+| **Status** | 📅 **PENDING** |
 
 ---
 
@@ -19,4 +19,4 @@ Integrate LLM providers (OpenAI, Azure OpenAI, Anthropic) for chunk summaries an
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: Image Description ?](Phase-10.md) | [Next Phase: Semantic Chunking ?](Phase-12.md)
+[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: Image Description ←](Phase-10.md) | [Next Phase: Semantic Chunking →](Phase-12.md)

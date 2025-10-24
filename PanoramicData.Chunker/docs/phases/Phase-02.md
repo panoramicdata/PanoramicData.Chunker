@@ -1,6 +1,6 @@
 # Phase 2: HTML Chunking
 
-[? Back to Master Plan](../../MasterPlan.md)
+[? Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -62,4 +62,4 @@ Implement complete HTML chunking support using DOM parsing, building on patterns
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: Markdown ?](Phase-01.md) | [Next Phase: Token Counting ?](Phase-03.md)
+[? Back to Master Plan](../MasterPlan.md) | [Previous Phase: Markdown ?](Phase-01.md) | [Next Phase: Token Counting ?](Phase-03.md)

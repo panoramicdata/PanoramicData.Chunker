@@ -1,6 +1,6 @@
 # Phase 5: DOCX Chunking (Microsoft Word)
 
-[? Back to Master Plan](../../MasterPlan.md)
+[? Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -289,4 +289,4 @@ Document Root
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: Plain Text ?](Phase-04.md) | [Next Phase: PPTX ?](Phase-06.md)
+[? Back to Master Plan](../MasterPlan.md) | [Previous Phase: Plain Text ?](Phase-04.md) | [Next Phase: PPTX ?](Phase-06.md)

@@ -1,6 +1,6 @@
 # Phase 6: PPTX Chunking (Microsoft PowerPoint)
 
-[? Back to Master Plan](../../MasterPlan.md)
+[? Back to Master Plan](../MasterPlan.md)
 
 ---
 
@@ -479,4 +479,4 @@ All implementation, testing, and documentation complete. Phase 6 is production-r
 
 ---
 
-[? Back to Master Plan](../../MasterPlan.md) | [Previous Phase: DOCX ?](Phase-05.md) | [Next Phase: XLSX ?](Phase-07.md)
+[? Back to Master Plan](../MasterPlan.md) | [Previous Phase: DOCX ?](Phase-05.md) | [Next Phase: XLSX ?](Phase-07.md)
