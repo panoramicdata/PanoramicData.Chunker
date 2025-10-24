@@ -42,8 +42,8 @@ public class ChunkerFactoryTests
 		// Arrange
 		var factory = new ChunkerFactory();
 
-		// Act
-		var act = () => factory.GetChunker(DocumentType.Pdf);
+		// Act - Use Email type which is not yet supported
+		var act = () => factory.GetChunker(DocumentType.Email);
 
 		// Assert
 		act.Should().Throw<NotSupportedException>()
