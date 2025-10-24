@@ -3,7 +3,6 @@ using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Utilities;
-using System.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 using DocType = PanoramicData.Chunker.Configuration.DocumentType;
@@ -13,23 +12,16 @@ namespace PanoramicData.Chunker.Chunkers.Pdf;
 /// <summary>
 /// Chunks PDF documents by extracting text from pages and identifying paragraphs.
 /// </summary>
-public class PdfDocumentChunker : IDocumentChunker
+/// <remarks>
+/// Initializes a new instance of the <see cref="PdfDocumentChunker"/> class.
+/// </remarks>
+/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
+/// <param name="logger">Optional logger for diagnostic information.</param>
+public class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfDocumentChunker>? logger = null) : IDocumentChunker
 {
-	private readonly ILogger<PdfDocumentChunker>? _logger;
-	private readonly ITokenCounter _tokenCounter;
+	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="PdfDocumentChunker"/> class.
-	/// </summary>
-	/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
-	/// <param name="logger">Optional logger for diagnostic information.</param>
-	public PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfDocumentChunker>? logger = null)
-	{
-		_tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
-		_logger = logger;
-	}
 
 	/// <inheritdoc/>
 	public DocType SupportedType => DocType.Pdf;
@@ -83,7 +75,7 @@ public class PdfDocumentChunker : IDocumentChunker
 		try
 		{
 			// Copy stream to memory if needed (PdfPig requires seekable stream)
-			Stream workingStream = documentStream;
+			var workingStream = documentStream;
 			if (!documentStream.CanSeek)
 			{
 				var memoryStream = new MemoryStream();
@@ -97,7 +89,7 @@ public class PdfDocumentChunker : IDocumentChunker
 
 			if (pdf.NumberOfPages == 0)
 			{
-				_logger?.LogInformation("Empty PDF document");
+				logger?.LogInformation("Empty PDF document");
 				return CreateEmptyResult(startTime);
 			}
 
@@ -105,13 +97,13 @@ public class PdfDocumentChunker : IDocumentChunker
 			var documentChunk = CreateDocumentChunk(pdf);
 			_chunks.Add(documentChunk);
 
-			_logger?.LogInformation("Processing PDF with {PageCount} pages", pdf.NumberOfPages);
+			logger?.LogInformation("Processing PDF with {PageCount} pages", pdf.NumberOfPages);
 
 			// Process each page
-			for (int pageIndex = 0; pageIndex < pdf.NumberOfPages; pageIndex++)
+			for (var pageIndex = 0; pageIndex < pdf.NumberOfPages; pageIndex++)
 			{
 				var page = pdf.GetPage(pageIndex + 1); // Pages are 1-based in PdfPig
-				
+
 				var pageChunk = CreatePageChunk(page, documentChunk.Id);
 				_chunks.Add(pageChunk);
 
@@ -123,7 +115,7 @@ public class PdfDocumentChunker : IDocumentChunker
 			// Build hierarchy
 			HierarchyBuilder.BuildHierarchy(_chunks);
 
-			_logger?.LogInformation("Extracted {ChunkCount} chunks from PDF ({PageCount} pages)",
+			logger?.LogInformation("Extracted {ChunkCount} chunks from PDF ({PageCount} pages)",
 				_chunks.Count, pdf.NumberOfPages);
 
 			// Calculate statistics
@@ -145,7 +137,7 @@ public class PdfDocumentChunker : IDocumentChunker
 		}
 		catch (Exception ex)
 		{
-			_logger?.LogError(ex, "Error chunking PDF document");
+			logger?.LogError(ex, "Error chunking PDF document");
 			return new ChunkingResult
 			{
 				Chunks = [],
@@ -223,11 +215,10 @@ public class PdfDocumentChunker : IDocumentChunker
 				Hierarchy = $"pdf/page{page.Number}",
 				Tags = ["pdf-page"],
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(text)
 		};
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(text);
 
 		return chunk;
 	}
@@ -245,10 +236,10 @@ public class PdfDocumentChunker : IDocumentChunker
 		// Split text into paragraphs (simple heuristic: double newline or significant spacing)
 		var paragraphTexts = text.Split(["\n\n", "\r\n\r\n"], StringSplitOptions.RemoveEmptyEntries);
 
-		for (int i = 0; i < paragraphTexts.Length; i++)
+		for (var i = 0; i < paragraphTexts.Length; i++)
 		{
 			var paragraphText = paragraphTexts[i].Trim();
-			
+
 			if (string.IsNullOrWhiteSpace(paragraphText))
 			{
 				continue;
@@ -275,11 +266,10 @@ public class PdfDocumentChunker : IDocumentChunker
 					Hierarchy = $"pdf/page{page.Number}/para{i}",
 					Tags = isLikelyHeading ? ["pdf-paragraph", "heading"] : ["pdf-paragraph"],
 					CreatedAt = DateTimeOffset.UtcNow
-				}
+				},
+				// Calculate quality metrics
+				QualityMetrics = CalculateQualityMetrics(paragraphText)
 			};
-
-			// Calculate quality metrics
-			chunk.QualityMetrics = CalculateQualityMetrics(paragraphText);
 
 			paragraphs.Add(chunk);
 		}
@@ -319,16 +309,13 @@ public class PdfDocumentChunker : IDocumentChunker
 		return false;
 	}
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text)
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
 	{
-		return new ChunkQualityMetrics
-		{
-			TokenCount = _tokenCounter.CountTokens(text),
-			CharacterCount = text.Length,
-			WordCount = string.IsNullOrWhiteSpace(text) ? 0 : text.Split([' ', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries).Length,
-			SemanticCompleteness = 1.0
-		};
-	}
+		TokenCount = _tokenCounter.CountTokens(text),
+		CharacterCount = text.Length,
+		WordCount = string.IsNullOrWhiteSpace(text) ? 0 : text.Split([' ', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries).Length,
+		SemanticCompleteness = 1.0
+	};
 
 	private static ChunkingStatistics CalculateStatistics(List<ChunkerBase> chunks, DateTime startTime)
 	{
@@ -378,19 +365,16 @@ public class PdfDocumentChunker : IDocumentChunker
 		};
 	}
 
-	private ChunkingResult CreateEmptyResult(DateTime startTime)
+	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()
 	{
-		return new ChunkingResult
+		Chunks = [],
+		Statistics = new ChunkingStatistics
 		{
-			Chunks = [],
-			Statistics = new ChunkingStatistics
-			{
-				ProcessingTime = DateTime.UtcNow - startTime
-			},
-			Warnings = [],
-			Success = true
-		};
-	}
+			ProcessingTime = DateTime.UtcNow - startTime
+		},
+		Warnings = [],
+		Success = true
+	};
 
 	private static DateTime? TryParseDate(string? dateString)
 	{

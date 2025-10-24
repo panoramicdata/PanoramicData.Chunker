@@ -16,26 +16,18 @@ namespace PanoramicData.Chunker.Chunkers.Html;
 /// Chunks HTML documents by extracting semantic elements, headings, paragraphs, lists, tables, code blocks, and images.
 /// Uses AngleSharp for robust HTML parsing and DOM manipulation.
 /// </summary>
-public partial class HtmlDocumentChunker : IDocumentChunker
+/// <remarks>
+/// Initializes a new instance of the <see cref="HtmlDocumentChunker"/> class.
+/// </remarks>
+/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
+/// <param name="logger">Optional logger for diagnostic information.</param>
+public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<HtmlDocumentChunker>? logger = null) : IDocumentChunker
 {
-	private readonly ILogger<HtmlDocumentChunker>? _logger;
-	private readonly ITokenCounter _tokenCounter;
-	private readonly HtmlParser _parser;
+	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
+	private readonly HtmlParser _parser = new HtmlParser();
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
 	private readonly Stack<(int level, Guid id)> _headingStack = new();
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="HtmlDocumentChunker"/> class.
-	/// </summary>
-	/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
-	/// <param name="logger">Optional logger for diagnostic information.</param>
-	public HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<HtmlDocumentChunker>? logger = null)
-	{
-		_tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
-		_logger = logger;
-		_parser = new HtmlParser();
-	}
 
 	/// <inheritdoc/>
 	public DocumentType SupportedType => DocumentType.Html;
@@ -94,7 +86,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			// Parse HTML document
 			var document = await _parser.ParseDocumentAsync(documentStream, cancellationToken);
 
-			_logger?.LogInformation("Parsed HTML document with {ElementCount} elements", document.All.Length);
+			logger?.LogInformation("Parsed HTML document with {ElementCount} elements", document.All.Length);
 
 			// Extract chunks from the document
 			ExtractChunks(document);
@@ -102,7 +94,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 			// Build hierarchy
 			HierarchyBuilder.BuildHierarchy(_chunks);
 
-			_logger?.LogInformation("Extracted {ChunkCount} chunks from HTML document", _chunks.Count);
+			logger?.LogInformation("Extracted {ChunkCount} chunks from HTML document", _chunks.Count);
 
 			// Calculate statistics
 			var statistics = CalculateStatistics(_chunks, startTime);
@@ -123,7 +115,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 		}
 		catch (Exception ex)
 		{
-			_logger?.LogError(ex, "Error chunking HTML document");
+			logger?.LogError(ex, "Error chunking HTML document");
 			return new ChunkingResult
 			{
 				Chunks = [],
@@ -157,7 +149,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 
 		if (mainContent == null)
 		{
-			_logger?.LogWarning("No main content area found in HTML document");
+			logger?.LogWarning("No main content area found in HTML document");
 			return;
 		}
 
@@ -176,7 +168,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 		if (IsStructuralElement(tagName))
 		{
 			// Determine the actual parent ID based on heading hierarchy
-			Guid? actualParentId = parentId;
+			var actualParentId = parentId;
 			var headingLevel = GetHeadingLevel(tagName);
 			
 			if (headingLevel.HasValue)
@@ -299,16 +291,15 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 				Hierarchy = tagName,
 				Tags = [tagName],
 				CreatedAt = DateTimeOffset.UtcNow
+			},
+			// Calculate quality metrics based on text content
+			QualityMetrics = new ChunkQualityMetrics
+			{
+				TokenCount = _tokenCounter.CountTokens(text),
+				CharacterCount = text.Length,
+				WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
+				SemanticCompleteness = 1.0
 			}
-		};
-
-		// Calculate quality metrics based on text content
-		chunk.QualityMetrics = new ChunkQualityMetrics
-		{
-			TokenCount = _tokenCounter.CountTokens(text),
-			CharacterCount = text.Length,
-			WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-			SemanticCompleteness = 1.0
 		};
 
 		return chunk;
@@ -399,7 +390,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 		return chunk;
 	}
 
-	private HtmlCodeBlockChunk CreateCodeBlockChunk(IElement element, string text)
+	private static HtmlCodeBlockChunk CreateCodeBlockChunk(IElement element, string text)
 	{
 		var codeElement = element.QuerySelector("code");
 		var hasCodeElement = codeElement != null;
@@ -425,7 +416,7 @@ public partial class HtmlDocumentChunker : IDocumentChunker
 		};
 	}
 
-	private HtmlListItemChunk CreateListItemChunk(IElement element, string text)
+	private static HtmlListItemChunk CreateListItemChunk(IElement element, string text)
 	{
 		// Determine list type by looking at immediate parent
 		var parent = element.ParentElement;

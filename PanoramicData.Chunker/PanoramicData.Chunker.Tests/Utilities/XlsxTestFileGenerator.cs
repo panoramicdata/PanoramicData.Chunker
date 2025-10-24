@@ -323,7 +323,7 @@ public static class XlsxTestFileGenerator
 		);
 		sheetData.Append(header);
 
-		for (int i = 2; i <= 6; i++)
+		for (var i = 2; i <= 6; i++)
 		{
 			var row = new Row { RowIndex = (uint)i };
 			row.Append(
@@ -375,7 +375,7 @@ public static class XlsxTestFileGenerator
 		sheetData.Append(header);
 
 		// Generate 1000 rows
-		for (int i = 2; i <= 1001; i++)
+		for (var i = 2; i <= 1001; i++)
 		{
 			var row = new Row { RowIndex = (uint)i };
 			row.Append(

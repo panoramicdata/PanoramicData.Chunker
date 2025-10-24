@@ -11,22 +11,15 @@ namespace PanoramicData.Chunker.Chunkers.PlainText;
 /// <summary>
 /// Chunks plain text documents using heuristic-based structure detection.
 /// </summary>
-public partial class PlainTextDocumentChunker : IDocumentChunker
+/// <remarks>
+/// Initializes a new instance of the <see cref="PlainTextDocumentChunker"/> class.
+/// </remarks>
+/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
+/// <param name="logger">Optional logger for diagnostic information.</param>
+public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogger<PlainTextDocumentChunker>? logger = null) : IDocumentChunker
 {
-	private readonly ITokenCounter _tokenCounter;
-	private readonly ILogger<PlainTextDocumentChunker>? _logger;
+	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
 	private int _sequenceNumber;
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="PlainTextDocumentChunker"/> class.
-	/// </summary>
-	/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
-	/// <param name="logger">Optional logger for diagnostic information.</param>
-	public PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogger<PlainTextDocumentChunker>? logger = null)
-	{
-		_tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
-		_logger = logger;
-	}
 
 	/// <summary>
 	/// Gets the supported document type.
@@ -135,7 +128,7 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 		}
 		catch (Exception ex)
 		{
-			_logger?.LogError(ex, "Error chunking plain text document");
+			logger?.LogError(ex, "Error chunking plain text document");
 			
 			return new ChunkingResult
 			{
@@ -819,7 +812,7 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 		SemanticCompleteness = 1.0
 	};
 
-	private ChunkMetadata CreateMetadata(params string[] tags) => new()
+	private static ChunkMetadata CreateMetadata(params string[] tags) => new()
 	{
 		DocumentType = "PlainText",
 		SourceId = string.Empty,

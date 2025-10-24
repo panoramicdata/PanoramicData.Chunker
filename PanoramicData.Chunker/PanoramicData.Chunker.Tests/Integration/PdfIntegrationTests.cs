@@ -1,8 +1,6 @@
 using FluentAssertions;
 using PanoramicData.Chunker.Chunkers.Pdf;
 using PanoramicData.Chunker.Configuration;
-using PanoramicData.Chunker.Models;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Integration;
@@ -10,16 +8,9 @@ namespace PanoramicData.Chunker.Tests.Integration;
 /// <summary>
 /// Integration tests for PDF document chunking.
 /// </summary>
-public class PdfIntegrationTests
+public class PdfIntegrationTests(ITestOutputHelper output)
 {
-	private readonly string _testDataPath;
-	private readonly ITestOutputHelper _output;
-
-	public PdfIntegrationTests(ITestOutputHelper output)
-	{
-		_testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_output = output;
-	}
+	private readonly string _testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
 
 	[Fact]
 	public async Task ChunkAsync_SimplePdf_ShouldExtractText()
@@ -39,18 +30,18 @@ public class PdfIntegrationTests
 		// Should have document chunk
 		var documents = result.Chunks.OfType<PdfDocumentChunk>().ToList();
 		documents.Should().HaveCount(1);
-		
+
 		var doc = documents[0];
 		doc.PageCount.Should().BeGreaterThan(0);
 
 		// Should have page chunks
 		var pages = result.Chunks.OfType<PdfPageChunk>().ToList();
 		pages.Should().HaveCountGreaterOrEqualTo(1);
-		
+
 		var firstPage = pages[0];
 		firstPage.PageNumber.Should().Be(1);
 		firstPage.ExtractedText.Should().NotBeNullOrEmpty();
-		_output.WriteLine($"Extracted text from page 1: {firstPage.ExtractedText?.Substring(0, Math.Min(100, firstPage.ExtractedText.Length))}");
+		output.WriteLine($"Extracted text from page 1: {firstPage.ExtractedText?.Substring(0, Math.Min(100, firstPage.ExtractedText.Length))}");
 
 		// Should have paragraph chunks
 		var paragraphs = result.Chunks.OfType<PdfParagraphChunk>().ToList();
@@ -70,7 +61,7 @@ public class PdfIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var pages = result.Chunks.OfType<PdfPageChunk>().ToList();
 		pages.Should().HaveCount(1); // Empty PDF still has one page
 	}
@@ -88,21 +79,21 @@ public class PdfIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var doc = result.Chunks.OfType<PdfDocumentChunk>().First();
 		doc.PageCount.Should().Be(3);
-		
+
 		var pages = result.Chunks.OfType<PdfPageChunk>().ToList();
 		pages.Should().HaveCount(3);
-		
+
 		pages[0].PageNumber.Should().Be(1);
 		pages[1].PageNumber.Should().Be(2);
 		pages[2].PageNumber.Should().Be(3);
 
-		_output.WriteLine($"Total pages: {pages.Count}");
+		output.WriteLine($"Total pages: {pages.Count}");
 		foreach (var page in pages)
 		{
-			_output.WriteLine($"Page {page.PageNumber}: {page.WordCount} words");
+			output.WriteLine($"Page {page.PageNumber}: {page.WordCount} words");
 		}
 	}
 
@@ -119,23 +110,23 @@ public class PdfIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var paragraphs = result.Chunks.OfType<PdfParagraphChunk>().ToList();
 		paragraphs.Should().NotBeEmpty();
-		
+
 		// Some paragraphs should be detected as likely headings (or at least we tried)
 		var headings = paragraphs.Where(p => p.IsLikelyHeading).ToList();
 
-		_output.WriteLine($"Total paragraphs: {paragraphs.Count}");
-		_output.WriteLine($"Detected headings: {headings.Count}");
+		output.WriteLine($"Total paragraphs: {paragraphs.Count}");
+		output.WriteLine($"Detected headings: {headings.Count}");
 		if (headings.Any())
 		{
 			foreach (var heading in headings)
 			{
-				_output.WriteLine($"Heading: {heading.Content?.Substring(0, Math.Min(50, heading.Content.Length))}");
+				output.WriteLine($"Heading: {heading.Content?.Substring(0, Math.Min(50, heading.Content.Length))}");
 			}
 		}
-		
+
 		// At minimum, we should have extracted some paragraphs
 		paragraphs.Count.Should().BeGreaterThan(0);
 	}
@@ -153,10 +144,10 @@ public class PdfIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var paragraphs = result.Chunks.OfType<PdfParagraphChunk>().ToList();
 		paragraphs.Should().NotBeEmpty();
-		
+
 		// Check that list items are present in content
 		var hasListContent = paragraphs.Any(p => p.Content?.Contains("item", StringComparison.OrdinalIgnoreCase) == true);
 		hasListContent.Should().BeTrue();
@@ -175,20 +166,20 @@ public class PdfIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var pages = result.Chunks.OfType<PdfPageChunk>().ToList();
 		pages.Should().NotBeEmpty();
-		
+
 		// Should extract text from the table
 		var pageText = pages[0].ExtractedText;
 		pageText.Should().NotBeNullOrEmpty();
-		
+
 		// Check for table content keywords
 		(pageText?.Contains("Employee") == true ||
 		 pageText?.Contains("Name") == true ||
 		 pageText?.Contains("Department") == true).Should().BeTrue();
 
-		_output.WriteLine($"Table content sample: {pageText?.Substring(0, Math.Min(200, pageText.Length))}");
+		output.WriteLine($"Table content sample: {pageText?.Substring(0, Math.Min(200, pageText.Length))}");
 	}
 
 	[Fact]
@@ -206,14 +197,14 @@ public class PdfIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var pages = result.Chunks.OfType<PdfPageChunk>().ToList();
 		pages.Should().NotBeEmpty();
-		
+
 		// Should process reasonably fast (< 5 seconds for large PDF)
 		processingTime.TotalSeconds.Should().BeLessThan(5);
 
-		_output.WriteLine($"Processed {pages.Count} pages in {processingTime.TotalSeconds:F2} seconds");
+		output.WriteLine($"Processed {pages.Count} pages in {processingTime.TotalSeconds:F2} seconds");
 	}
 
 	[Fact]
@@ -229,7 +220,7 @@ public class PdfIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		// Page and paragraph chunks should have quality metrics
 		var pages = result.Chunks.OfType<PdfPageChunk>().ToList();
 		pages.Should().AllSatisfy(page =>
@@ -259,11 +250,11 @@ public class PdfIntegrationTests
 
 		// Assert
 		result.Success.Should().BeTrue();
-		
+
 		var doc = result.Chunks.OfType<PdfDocumentChunk>().First();
 		var pages = result.Chunks.OfType<PdfPageChunk>().ToList();
 		var paragraphs = result.Chunks.OfType<PdfParagraphChunk>().ToList();
-		
+
 		// All pages should be children of document
 		pages.Should().AllSatisfy(page =>
 		{
@@ -296,7 +287,7 @@ public class PdfIntegrationTests
 		result.Statistics.ContentChunks.Should().BeGreaterOrEqualTo(0); // Paragraphs
 		result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 
-		_output.WriteLine($"Statistics: {result.Statistics.TotalChunks} chunks, {result.Statistics.StructuralChunks} structural, {result.Statistics.ContentChunks} content");
+		output.WriteLine($"Statistics: {result.Statistics.TotalChunks} chunks, {result.Statistics.StructuralChunks} structural, {result.Statistics.ContentChunks} content");
 	}
 
 	[Fact]

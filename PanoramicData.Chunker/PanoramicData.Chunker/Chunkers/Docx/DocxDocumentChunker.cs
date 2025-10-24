@@ -17,25 +17,18 @@ namespace PanoramicData.Chunker.Chunkers.Docx;
 /// Chunks DOCX documents by extracting paragraphs, headings, lists, tables, and images.
 /// Uses OpenXML SDK for robust DOCX parsing and document structure analysis.
 /// </summary>
-public partial class DocxDocumentChunker : IDocumentChunker
+/// <remarks>
+/// Initializes a new instance of the <see cref="DocxDocumentChunker"/> class.
+/// </remarks>
+/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
+/// <param name="logger">Optional logger for diagnostic information.</param>
+public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<DocxDocumentChunker>? logger = null) : IDocumentChunker
 {
-	private readonly ILogger<DocxDocumentChunker>? _logger;
-	private readonly ITokenCounter _tokenCounter;
+	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
 	private WordprocessingDocument? _document;
 	private MainDocumentPart? _mainPart;
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="DocxDocumentChunker"/> class.
-	/// </summary>
-	/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
-	/// <param name="logger">Optional logger for diagnostic information.</param>
-	public DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<DocxDocumentChunker>? logger = null)
-	{
-		_tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
-		_logger = logger;
-	}
 
 	/// <inheritdoc/>
 	public DocType SupportedType => DocType.Docx;
@@ -111,7 +104,7 @@ public partial class DocxDocumentChunker : IDocumentChunker
 				throw new InvalidOperationException("Invalid DOCX document: missing body");
 			}
 
-			_logger?.LogInformation("Opened DOCX document with {ElementCount} body elements",
+			logger?.LogInformation("Opened DOCX document with {ElementCount} body elements",
 				_mainPart.Document.Body.ChildElements.Count);
 
 			// Extract chunks from the document body
@@ -120,7 +113,7 @@ public partial class DocxDocumentChunker : IDocumentChunker
 			// Build hierarchy
 			HierarchyBuilder.BuildHierarchy(_chunks);
 
-			_logger?.LogInformation("Extracted {ChunkCount} chunks from DOCX document", _chunks.Count);
+			logger?.LogInformation("Extracted {ChunkCount} chunks from DOCX document", _chunks.Count);
 
 			// Calculate statistics
 			var statistics = CalculateStatistics(_chunks, startTime);
@@ -141,7 +134,7 @@ public partial class DocxDocumentChunker : IDocumentChunker
 		}
 		catch (Exception ex)
 		{
-			_logger?.LogError(ex, "Error chunking DOCX document");
+			logger?.LogError(ex, "Error chunking DOCX document");
 			return new ChunkingResult
 			{
 				Chunks = [],
@@ -264,11 +257,10 @@ public partial class DocxDocumentChunker : IDocumentChunker
 				Hierarchy = $"h{headingLevel}",
 				Tags = [$"heading{headingLevel}", "section"],
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(text)
 		};
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(text);
 
 		return chunk;
 	}
@@ -301,14 +293,13 @@ public partial class DocxDocumentChunker : IDocumentChunker
 				Hierarchy = "paragraph",
 				Tags = ["paragraph"],
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Extract annotations (hyperlinks, formatting)
+			Annotations = ExtractAnnotations(paragraph),
+
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(text)
 		};
-
-		// Extract annotations (hyperlinks, formatting)
-		chunk.Annotations = ExtractAnnotations(paragraph);
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(text);
 
 		return chunk;
 	}
@@ -339,14 +330,13 @@ public partial class DocxDocumentChunker : IDocumentChunker
 				Hierarchy = "listItem",
 				Tags = ["list", numberingInfo.IsNumbered ? "numbered" : "bullet"],
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Extract annotations
+			Annotations = ExtractAnnotations(paragraph),
+
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(text)
 		};
-
-		// Extract annotations
-		chunk.Annotations = ExtractAnnotations(paragraph);
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(text);
 
 		return chunk;
 	}
@@ -377,11 +367,10 @@ public partial class DocxDocumentChunker : IDocumentChunker
 				Hierarchy = "code",
 				Tags = ["code", "preformatted"],
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(text)
 		};
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(text);
 
 		return chunk;
 	}

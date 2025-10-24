@@ -15,26 +15,19 @@ namespace PanoramicData.Chunker.Chunkers.Xlsx;
 /// Chunks XLSX documents by extracting worksheets, tables, rows, formulas, and charts.
 /// Uses OpenXML SDK for robust Excel parsing and spreadsheet structure analysis.
 /// </summary>
-public partial class XlsxDocumentChunker : IDocumentChunker
+/// <remarks>
+/// Initializes a new instance of the <see cref="XlsxDocumentChunker"/> class.
+/// </remarks>
+/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
+/// <param name="logger">Optional logger for diagnostic information.</param>
+public partial class XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<XlsxDocumentChunker>? logger = null) : IDocumentChunker
 {
-	private readonly ILogger<XlsxDocumentChunker>? _logger;
-	private readonly ITokenCounter _tokenCounter;
+	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
 	private SpreadsheetDocument? _document;
 	private WorkbookPart? _workbookPart;
 	private SharedStringTablePart? _sharedStringTable;
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="XlsxDocumentChunker"/> class.
-	/// </summary>
-	/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
-	/// <param name="logger">Optional logger for diagnostic information.</param>
-	public XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<XlsxDocumentChunker>? logger = null)
-	{
-		_tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
-		_logger = logger;
-	}
 
 	/// <inheritdoc/>
 	public DocType SupportedType => DocType.Xlsx;
@@ -113,7 +106,7 @@ public partial class XlsxDocumentChunker : IDocumentChunker
 
 			var sheets = _workbookPart.Workbook.Sheets?.Elements<Sheet>().ToList() ?? [];
 
-			_logger?.LogInformation("Opened XLSX document with {SheetCount} worksheets", sheets.Count);
+			logger?.LogInformation("Opened XLSX document with {SheetCount} worksheets", sheets.Count);
 
 			// Extract chunks from each worksheet
 			var sheetIndex = 0;
@@ -131,7 +124,7 @@ public partial class XlsxDocumentChunker : IDocumentChunker
 			// Build hierarchy
 			HierarchyBuilder.BuildHierarchy(_chunks);
 
-			_logger?.LogInformation("Extracted {ChunkCount} chunks from XLSX document", _chunks.Count);
+			logger?.LogInformation("Extracted {ChunkCount} chunks from XLSX document", _chunks.Count);
 
 			// Calculate statistics
 			var statistics = CalculateStatistics(_chunks, startTime);
@@ -152,7 +145,7 @@ public partial class XlsxDocumentChunker : IDocumentChunker
 		}
 		catch (Exception ex)
 		{
-			_logger?.LogError(ex, "Error chunking XLSX document");
+			logger?.LogError(ex, "Error chunking XLSX document");
 			return new ChunkingResult
 			{
 				Chunks = [],
@@ -485,11 +478,10 @@ public partial class XlsxDocumentChunker : IDocumentChunker
 						Tags = ["formula", formulaType ?? "unknown", sheetName],
 						SheetName = sheetName,
 						CreatedAt = DateTimeOffset.UtcNow
-					}
+					},
+					// Calculate quality metrics
+					QualityMetrics = CalculateQualityMetrics(formulaText)
 				};
-
-				// Calculate quality metrics
-				formulaChunk.QualityMetrics = CalculateQualityMetrics(formulaText);
 
 				_chunks.Add(formulaChunk);
 			}

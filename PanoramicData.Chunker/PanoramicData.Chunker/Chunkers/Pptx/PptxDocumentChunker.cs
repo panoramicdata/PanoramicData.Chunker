@@ -18,25 +18,18 @@ namespace PanoramicData.Chunker.Chunkers.Pptx;
 /// Chunks PPTX documents by extracting slides, titles, content, notes, tables, and images.
 /// Uses OpenXML SDK for robust PPTX parsing and presentation structure analysis.
 /// </summary>
-public partial class PptxDocumentChunker : IDocumentChunker
+/// <remarks>
+/// Initializes a new instance of the <see cref="PptxDocumentChunker"/> class.
+/// </remarks>
+/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
+/// <param name="logger">Optional logger for diagnostic information.</param>
+public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<PptxDocumentChunker>? logger = null) : IDocumentChunker
 {
-	private readonly ILogger<PptxDocumentChunker>? _logger;
-	private readonly ITokenCounter _tokenCounter;
+	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
 	private PresentationDocument? _document;
 	private PresentationPart? _presentationPart;
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="PptxDocumentChunker"/> class.
-	/// </summary>
-	/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
-	/// <param name="logger">Optional logger for diagnostic information.</param>
-	public PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<PptxDocumentChunker>? logger = null)
-	{
-		_tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
-		_logger = logger;
-	}
 
 	/// <inheritdoc/>
 	public DocType SupportedType => DocType.Pptx;
@@ -115,7 +108,7 @@ public partial class PptxDocumentChunker : IDocumentChunker
 			var slideIds = _presentationPart.Presentation.SlideIdList?.ChildElements.OfType<SlideId>().ToList()
 				?? [];
 
-			_logger?.LogInformation("Opened PPTX document with {SlideCount} slides", slideIds.Count);
+			logger?.LogInformation("Opened PPTX document with {SlideCount} slides", slideIds.Count);
 
 			// Extract chunks from each slide
 			var slideNumber = 1;
@@ -128,7 +121,7 @@ public partial class PptxDocumentChunker : IDocumentChunker
 			// Build hierarchy
 			HierarchyBuilder.BuildHierarchy(_chunks);
 
-			_logger?.LogInformation("Extracted {ChunkCount} chunks from PPTX document", _chunks.Count);
+			logger?.LogInformation("Extracted {ChunkCount} chunks from PPTX document", _chunks.Count);
 
 			// Calculate statistics
 			var statistics = CalculateStatistics(_chunks, startTime);
@@ -149,7 +142,7 @@ public partial class PptxDocumentChunker : IDocumentChunker
 		}
 		catch (Exception ex)
 		{
-			_logger?.LogError(ex, "Error chunking PPTX document");
+			logger?.LogError(ex, "Error chunking PPTX document");
 			return new ChunkingResult
 			{
 				Chunks = [],
@@ -326,14 +319,13 @@ public partial class PptxDocumentChunker : IDocumentChunker
 				Tags = [isSubtitle ? "subtitle" : "title", $"slide{slideNumber}"],
 				PageNumber = slideNumber,
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Extract annotations
+			Annotations = ExtractAnnotations(shape),
+
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(text)
 		};
-
-		// Extract annotations
-		chunk.Annotations = ExtractAnnotations(shape);
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(text);
 
 		return chunk;
 	}
@@ -372,14 +364,13 @@ public partial class PptxDocumentChunker : IDocumentChunker
 				Tags = ["content", $"slide{slideNumber}"],
 				PageNumber = slideNumber,
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Extract annotations
+			Annotations = ExtractAnnotations(shape),
+
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(text)
 		};
-
-		// Extract annotations
-		chunk.Annotations = ExtractAnnotations(shape);
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(text);
 
 		return chunk;
 	}
@@ -509,11 +500,10 @@ public partial class PptxDocumentChunker : IDocumentChunker
 				Tags = ["notes", "speakerNotes", $"slide{slideNumber}"],
 				PageNumber = slideNumber,
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(notesContent)
 		};
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(notesContent);
 
 		return chunk;
 	}

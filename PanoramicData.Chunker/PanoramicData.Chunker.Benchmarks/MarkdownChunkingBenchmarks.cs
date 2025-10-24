@@ -161,7 +161,7 @@ Thank you for reading.
 		sb.AppendLine("This is a comprehensive guide to Markdown syntax and features.");
 		sb.AppendLine();
 
-		for (int i = 1; i <= 5; i++)
+		for (var i = 1; i <= 5; i++)
 		{
 			sb.AppendLine($"## Chapter {i}: Advanced Topics");
 			sb.AppendLine();
@@ -206,7 +206,7 @@ Thank you for reading.
 		sb.AppendLine();
 
 		// Generate 20 chapters
-		for (int chapter = 1; chapter <= 20; chapter++)
+		for (var chapter = 1; chapter <= 20; chapter++)
 		{
 			sb.AppendLine($"## Chapter {chapter}: Topic {chapter}");
 			sb.AppendLine();
@@ -214,13 +214,13 @@ Thank you for reading.
 			sb.AppendLine();
 
 			// 5 sections per chapter
-			for (int section = 1; section <= 5; section++)
+			for (var section = 1; section <= 5; section++)
 			{
 				sb.AppendLine($"### Section {chapter}.{section}: Subtopic");
 				sb.AppendLine();
 				
 				// Multiple paragraphs
-				for (int para = 1; para <= 3; para++)
+				for (var para = 1; para <= 3; para++)
 				{
 					sb.AppendLine($"This is paragraph {para} of section {chapter}.{section}. It contains detailed explanations and examples to help understand the concept better.");
 					sb.AppendLine();
@@ -248,7 +248,7 @@ Thank you for reading.
 				// Add list
 				sb.AppendLine("Key points:");
 				sb.AppendLine();
-				for (int i = 1; i <= 5; i++)
+				for (var i = 1; i <= 5; i++)
 				{
 					sb.AppendLine($"- Point {i}: Important detail about the topic");
 				}
@@ -280,14 +280,14 @@ Thank you for reading.
 		sb.AppendLine();
 
 		// Generate 100 sections
-		for (int i = 1; i <= 100; i++)
+		for (var i = 1; i <= 100; i++)
 		{
 			sb.AppendLine($"## Section {i}: Component Documentation");
 			sb.AppendLine();
 			sb.AppendLine($"### Overview of Section {i}");
 			sb.AppendLine();
 			
-			for (int para = 1; para <= 10; para++)
+			for (var para = 1; para <= 10; para++)
 			{
 				sb.AppendLine($"Paragraph {para}: This is detailed content for section {i}. It contains comprehensive information about the topic, including examples, best practices, and common pitfalls to avoid. The content is designed to be informative and practical for developers working with this technology.");
 				sb.AppendLine();
@@ -317,7 +317,7 @@ Thank you for reading.
 
 			sb.AppendLine("### Implementation Details");
 			sb.AppendLine();
-			for (int j = 1; j <= 5; j++)
+			for (var j = 1; j <= 5; j++)
 			{
 				sb.AppendLine($"- Implementation point {j} with detailed explanation");
 			}

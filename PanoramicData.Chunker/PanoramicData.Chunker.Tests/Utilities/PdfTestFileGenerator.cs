@@ -1,7 +1,6 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using Unit = QuestPDF.Infrastructure.Unit;
 
 namespace PanoramicData.Chunker.Tests.Utilities;
 
@@ -379,7 +378,7 @@ public static class PdfTestFileGenerator
 						x.Spacing(10);
 
 						// Generate 50 paragraphs
-						for (int i = 1; i <= 50; i++)
+						for (var i = 1; i <= 50; i++)
 						{
 							x.Item().Text($"Section {i}").FontSize(14).SemiBold();
 							x.Item().Text($"This is paragraph {i}. Lorem ipsum dolor sit amet, " +

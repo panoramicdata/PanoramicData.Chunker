@@ -96,10 +96,10 @@ Charlie,35,Tokyo";
 	{
 		var filePath = Path.Combine(TestDataPath, "large.csv");
 		var sb = new StringBuilder();
-		
+
 		sb.AppendLine("ID,Name,Value,Date,Status");
-		
-		for (int i = 1; i <= 1000; i++)
+
+		for (var i = 1; i <= 1000; i++)
 		{
 			sb.AppendLine($"{i},Item {i},{i * 10.5:F2},2025-01-{(i % 28) + 1:D2},{(i % 3 == 0 ? "Active" : "Inactive")}");
 		}

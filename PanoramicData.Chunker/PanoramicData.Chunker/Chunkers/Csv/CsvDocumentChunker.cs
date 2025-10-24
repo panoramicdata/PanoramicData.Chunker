@@ -4,7 +4,6 @@ using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Utilities;
 using System.Text;
-using System.Text.RegularExpressions;
 using DocType = PanoramicData.Chunker.Configuration.DocumentType;
 
 namespace PanoramicData.Chunker.Chunkers.Csv;
@@ -12,23 +11,16 @@ namespace PanoramicData.Chunker.Chunkers.Csv;
 /// <summary>
 /// Chunks CSV documents by detecting delimiters, parsing rows, and preserving header context.
 /// </summary>
-public partial class CsvDocumentChunker : IDocumentChunker
+/// <remarks>
+/// Initializes a new instance of the <see cref="CsvDocumentChunker"/> class.
+/// </remarks>
+/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
+/// <param name="logger">Optional logger for diagnostic information.</param>
+public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvDocumentChunker>? logger = null) : IDocumentChunker
 {
-	private readonly ILogger<CsvDocumentChunker>? _logger;
-	private readonly ITokenCounter _tokenCounter;
+	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="CsvDocumentChunker"/> class.
-	/// </summary>
-	/// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
-	/// <param name="logger">Optional logger for diagnostic information.</param>
-	public CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvDocumentChunker>? logger = null)
-	{
-		_tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
-		_logger = logger;
-	}
 
 	/// <inheritdoc/>
 	public DocType SupportedType => DocType.Csv;
@@ -43,7 +35,7 @@ public partial class CsvDocumentChunker : IDocumentChunker
 
 			// Read first few lines to check if it looks like CSV
 			using var reader = new StreamReader(documentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
-			
+
 			var linesRead = 0;
 			var hasDelimiters = false;
 
@@ -98,7 +90,7 @@ public partial class CsvDocumentChunker : IDocumentChunker
 
 			if (string.IsNullOrWhiteSpace(content))
 			{
-				_logger?.LogInformation("Empty CSV document");
+				logger?.LogInformation("Empty CSV document");
 				return CreateEmptyResult(startTime);
 			}
 
@@ -109,19 +101,19 @@ public partial class CsvDocumentChunker : IDocumentChunker
 
 			if (lines.Count == 0)
 			{
-				_logger?.LogInformation("CSV document has no valid lines");
+				logger?.LogInformation("CSV document has no valid lines");
 				return CreateEmptyResult(startTime);
 			}
 
 			// Detect delimiter
 			var delimiter = DetectDelimiter(lines);
-			_logger?.LogInformation("Detected CSV delimiter: '{Delimiter}'", delimiter);
+			logger?.LogInformation("Detected CSV delimiter: '{Delimiter}'", delimiter);
 
 			// Parse header
 			var headers = ParseCsvLine(lines[0], delimiter);
 			var hasHeader = DetectHeaderRow(headers);
 
-			_logger?.LogInformation("CSV has {ColumnCount} columns, header detected: {HasHeader}", 
+			logger?.LogInformation("CSV has {ColumnCount} columns, header detected: {HasHeader}",
 				headers.Count, hasHeader);
 
 			// Create document chunk
@@ -166,7 +158,7 @@ public partial class CsvDocumentChunker : IDocumentChunker
 				// Skip rows that don't match column count
 				if (fields.Count != headers.Count && hasHeader)
 				{
-					_logger?.LogWarning("Skipping row {RowNumber} with {FieldCount} fields (expected {ColumnCount})",
+					logger?.LogWarning("Skipping row {RowNumber} with {FieldCount} fields (expected {ColumnCount})",
 						rowNumber, fields.Count, headers.Count);
 					rowNumber++;
 					continue;
@@ -180,7 +172,7 @@ public partial class CsvDocumentChunker : IDocumentChunker
 			// Build hierarchy
 			HierarchyBuilder.BuildHierarchy(_chunks);
 
-			_logger?.LogInformation("Extracted {ChunkCount} chunks from CSV ({DataRows} data rows)",
+			logger?.LogInformation("Extracted {ChunkCount} chunks from CSV ({DataRows} data rows)",
 				_chunks.Count, rowNumber - 1);
 
 			// Calculate statistics
@@ -202,7 +194,7 @@ public partial class CsvDocumentChunker : IDocumentChunker
 		}
 		catch (Exception ex)
 		{
-			_logger?.LogError(ex, "Error chunking CSV document");
+			logger?.LogError(ex, "Error chunking CSV document");
 			return new ChunkingResult
 			{
 				Chunks = [],
@@ -231,11 +223,11 @@ public partial class CsvDocumentChunker : IDocumentChunker
 	{
 		// Build content with header context if available
 		var contentBuilder = new StringBuilder();
-		
+
 		if (hasHeader && headers.Count > 0)
 		{
 			// Create key-value pairs for better context
-			for (int i = 0; i < Math.Min(fields.Count, headers.Count); i++)
+			for (var i = 0; i < Math.Min(fields.Count, headers.Count); i++)
 			{
 				contentBuilder.Append($"{headers[i]}: {fields[i]}");
 				if (i < Math.Min(fields.Count, headers.Count) - 1)
@@ -285,16 +277,15 @@ public partial class CsvDocumentChunker : IDocumentChunker
 				Hierarchy = $"csv/row{rowNumber}",
 				Tags = ["csv-row", "tabular"],
 				CreatedAt = DateTimeOffset.UtcNow
-			}
+			},
+			// Calculate quality metrics
+			QualityMetrics = CalculateQualityMetrics(content)
 		};
-
-		// Calculate quality metrics
-		chunk.QualityMetrics = CalculateQualityMetrics(content);
 
 		return chunk;
 	}
 
-	private char DetectDelimiter(List<string> lines)
+	private static char DetectDelimiter(List<string> lines)
 	{
 		// Try common delimiters and count occurrences in first few lines
 		var delimiters = new[] { ',', '\t', ';', '|' };
@@ -305,7 +296,7 @@ public partial class CsvDocumentChunker : IDocumentChunker
 		foreach (var delimiter in delimiters)
 		{
 			var counts = sampleLines.Select(line => CountDelimiter(line, delimiter)).ToList();
-			
+
 			// Check if counts are consistent (same number of delimiters per line)
 			if (counts.Count > 0 && counts.Distinct().Count() == 1 && counts[0] > 0)
 			{
@@ -341,7 +332,7 @@ public partial class CsvDocumentChunker : IDocumentChunker
 		return count;
 	}
 
-	private bool DetectHeaderRow(List<string> fields)
+	private static bool DetectHeaderRow(List<string> fields)
 	{
 		// Heuristic: if most fields are non-numeric, likely a header
 		var nonNumericCount = 0;
@@ -358,21 +349,18 @@ public partial class CsvDocumentChunker : IDocumentChunker
 		return fields.Count > 0 && (double)nonNumericCount / fields.Count >= 0.7;
 	}
 
-	private static bool IsNumeric(string value)
-	{
-		return double.TryParse(value, out _) || 
-		       DateTime.TryParse(value, out _) ||
-		       value.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+	private static bool IsNumeric(string value) => double.TryParse(value, out _) ||
+			   DateTime.TryParse(value, out _) ||
+			   value.Equals("true", StringComparison.OrdinalIgnoreCase) ||
 		 value.Equals("false", StringComparison.OrdinalIgnoreCase);
-	}
 
-	private List<string> ParseCsvLine(string line, char delimiter)
+	private static List<string> ParseCsvLine(string line, char delimiter)
 	{
 		var fields = new List<string>();
 		var currentField = new StringBuilder();
 		var inQuotes = false;
 
-		for (int i = 0; i < line.Length; i++)
+		for (var i = 0; i < line.Length; i++)
 		{
 			var ch = line[i];
 
@@ -433,16 +421,13 @@ public partial class CsvDocumentChunker : IDocumentChunker
 		return sb.ToString();
 	}
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text)
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
 	{
-		return new ChunkQualityMetrics
-		{
-			TokenCount = _tokenCounter.CountTokens(text),
-			CharacterCount = text.Length,
-			WordCount = text.Split([' ', ','], StringSplitOptions.RemoveEmptyEntries).Length,
-			SemanticCompleteness = 1.0
-		};
-	}
+		TokenCount = _tokenCounter.CountTokens(text),
+		CharacterCount = text.Length,
+		WordCount = text.Split([' ', ','], StringSplitOptions.RemoveEmptyEntries).Length,
+		SemanticCompleteness = 1.0
+	};
 
 	private static ChunkingStatistics CalculateStatistics(List<ChunkerBase> chunks, DateTime startTime)
 	{
@@ -492,17 +477,14 @@ public partial class CsvDocumentChunker : IDocumentChunker
 		};
 	}
 
-	private ChunkingResult CreateEmptyResult(DateTime startTime)
+	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()
 	{
-		return new ChunkingResult
+		Chunks = [],
+		Statistics = new ChunkingStatistics
 		{
-			Chunks = [],
-			Statistics = new ChunkingStatistics
-			{
-				ProcessingTime = DateTime.UtcNow - startTime
-			},
-			Warnings = [],
-			Success = true
-		};
-	}
+			ProcessingTime = DateTime.UtcNow - startTime
+		},
+		Warnings = [],
+		Success = true
+	};
 }
