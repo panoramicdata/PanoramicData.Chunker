@@ -795,7 +795,7 @@ public partial class DocxDocumentChunker : IDocumentChunker
 		return currentParentId;
 	}
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new ChunkQualityMetrics
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
 	{
 		TokenCount = _tokenCounter.CountTokens(text),
 		CharacterCount = text.Length,

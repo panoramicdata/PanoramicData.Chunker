@@ -504,7 +504,7 @@ public static class XlsxTestFileGenerator
 	/// <summary>
 	/// Create a cell with text value.
 	/// </summary>
-	private static Cell CreateCell(string reference, string value) => new Cell
+	private static Cell CreateCell(string reference, string value) => new()
 	{
 		CellReference = reference,
 		DataType = CellValues.InlineString,
@@ -514,7 +514,7 @@ public static class XlsxTestFileGenerator
 	/// <summary>
 	/// Create a cell with a formula.
 	/// </summary>
-	private static Cell CreateFormulaCell(string reference, string formula) => new Cell
+	private static Cell CreateFormulaCell(string reference, string formula) => new()
 	{
 		CellReference = reference,
 		CellFormula = new CellFormula(formula)

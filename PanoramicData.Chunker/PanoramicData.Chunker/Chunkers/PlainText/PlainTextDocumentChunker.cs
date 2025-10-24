@@ -819,7 +819,7 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 		SemanticCompleteness = 1.0
 	};
 
-	private ChunkMetadata CreateMetadata(params string[] tags) => new ChunkMetadata
+	private ChunkMetadata CreateMetadata(params string[] tags) => new()
 	{
 		DocumentType = "PlainText",
 		SourceId = string.Empty,
@@ -851,7 +851,7 @@ public partial class PlainTextDocumentChunker : IDocumentChunker
 		return flatChunks.Where(c => c.ParentId == null).ToList();
 	}
 
-	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new ChunkingResult
+	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()
 	{
 		Chunks = [],
 		Statistics = CalculateStatistics([], startTime),

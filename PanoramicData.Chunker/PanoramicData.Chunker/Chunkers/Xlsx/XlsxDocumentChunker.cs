@@ -661,7 +661,7 @@ public partial class XlsxDocumentChunker : IDocumentChunker
 		return sb.ToString();
 	}
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new ChunkQualityMetrics
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
 	{
 		TokenCount = _tokenCounter.CountTokens(text),
 		CharacterCount = text.Length,

@@ -100,7 +100,7 @@ public static class DocumentChunker
 	/// Create a fluent builder for advanced chunking scenarios.
 	/// </summary>
 	/// <returns>A new ChunkerBuilder instance.</returns>
-	public static ChunkerBuilder CreateBuilder() => new ChunkerBuilder(_factory);
+	public static ChunkerBuilder CreateBuilder() => new(_factory);
 
 	/// <summary>
 	/// Register a custom document chunker.
