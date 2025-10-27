@@ -1,7 +1,9 @@
 using FluentAssertions;
 using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Configuration;
+using PanoramicData.Chunker.Extensions;
 using PanoramicData.Chunker.Infrastructure;
+using PanoramicData.Chunker.Infrastructure.TokenCounters;
 using PanoramicData.Chunker.Models;
 using System.Text;
 using Xunit;
@@ -186,6 +188,74 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 			chunk.QualityMetrics.CharacterCount.Should().BeGreaterThan(0);
 			_output.WriteLine($"Chunk tokens: {chunk.QualityMetrics.TokenCount}, chars: {chunk.QualityMetrics.CharacterCount}");
 		}
+	}
+
+	[Fact]
+	public async Task ChunkAsync_WithOpenAITokenCounter_ShouldCalculateAccurateTokenCounts()
+	{
+		// Arrange
+		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
+
+		if (!File.Exists(testFilePath))
+		{
+			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
+			return;
+		}
+
+		// Use OpenAI token counter for accurate token counting (not the naive chars/4 approximation)
+		var tokenCounter = OpenAITokenCounter.ForGpt4();
+		var chunker = new DocxDocumentChunker(tokenCounter);
+		var options = new ChunkingOptions();
+
+		await using var stream = File.OpenRead(testFilePath);
+
+		// Act
+		var result = await chunker.ChunkAsync(stream, options);
+
+		// Assert
+		result.Success.Should().BeTrue();
+		result.Chunks.Should().NotBeEmpty();
+
+		_output.WriteLine("=== OpenAI Token Counter (GPT-4 CL100K) ===");
+
+		foreach (var chunk in result.Chunks)
+		{
+			chunk.QualityMetrics.Should().NotBeNull();
+			chunk.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
+			chunk.QualityMetrics.CharacterCount.Should().BeGreaterThan(0);
+
+			// Calculate what CharacterBasedTokenCounter would have given
+			var charBasedApprox = (int)Math.Ceiling(chunk.QualityMetrics.CharacterCount / 4.0);
+			var difference = chunk.QualityMetrics.TokenCount - charBasedApprox;
+			var percentDiff = charBasedApprox > 0 
+				? (difference / (double)charBasedApprox * 100) 
+				: 0;
+
+			// Get content text from chunk
+			var contentText = chunk.ToPlainText();
+			var contentPreview = contentText.Length > 50 
+				? contentText[..50] + "..." 
+				: contentText;
+
+			_output.WriteLine($"Content: '{contentPreview}'");
+			_output.WriteLine($"  Chars: {chunk.QualityMetrics.CharacterCount}");
+			_output.WriteLine($"  OpenAI tokens: {chunk.QualityMetrics.TokenCount}");
+			_output.WriteLine($"  Char-based approx: {charBasedApprox} (difference: {difference:+0;-0;0}, {percentDiff:+0.0;-0.0;0.0}%)");
+			_output.WriteLine("");
+
+			// OpenAI token count should be more accurate and typically lower than char-based
+			// For English text, actual tokens are usually fewer than chars/4
+		}
+
+		// Verify that we're using actual tokenization, not approximation
+		// The token counts should not always equal Math.Ceiling(chars / 4)
+		var hasAccurateTokenization = result.Chunks.Any(chunk =>
+		{
+			var charBasedApprox = (int)Math.Ceiling(chunk.QualityMetrics!.CharacterCount / 4.0);
+			return chunk.QualityMetrics.TokenCount != charBasedApprox;
+		});
+
+		hasAccurateTokenization.Should().BeTrue("OpenAI tokenization should differ from char-based approximation for at least some chunks");
 	}
 
 	[Fact]
