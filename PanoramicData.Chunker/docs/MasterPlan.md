@@ -47,6 +47,12 @@
 | 18 | PDF Advanced (OCR) | Pending | - | - | [Phase 18](phases/Phase-18.md) |
 | 19 | Production Hardening | Pending | - | - | [Phase 19](phases/Phase-19.md) |
 | 20 | Release | Pending | - | - | [Phase 20](phases/Phase-20.md) |
+| 21 | **KG Foundation** | **Pending** | **-** | **-** | **[Phase 21](phases/Phase-21.md)** |
+| 22 | **KG NER Integration** | **Pending** | **-** | **-** | **[Phase 22](phases/Phase-22.md)** |
+| 23 | **KG Relationships** | **Pending** | **-** | **-** | **[Phase 23](phases/Phase-23.md)** |
+| 24 | **KG Query API** | **Pending** | **-** | **-** | **[Phase 24](phases/Phase-24.md)** |
+| 25 | **KG Persistence** | **Pending** | **-** | **-** | **[Phase 25](phases/Phase-25.md)** |
+| 26 | **KG RAG Enhancement** | **Pending** | **-** | **-** | **[Phase 26](phases/Phase-26.md)** |
 
 ---
 
@@ -102,6 +108,15 @@ None - Ready for Phase 10
 - **[Phase 19: Production Hardening](phases/Phase-19.md)** - Reliability and security
 - **[Phase 20: Release](phases/Phase-20.md)** - Version 1.0 and maintenance
 
+### Knowledge Graph Phases (Extended Roadmap)
+
+- **[Phase 21: Knowledge Graph Foundation](phases/Phase-21.md)** - Core models, basic extraction, PostgreSQL + AGE setup
+- **[Phase 22: Named Entity Recognition](phases/Phase-22.md)** - ML-based entity extraction (Person, Org, Location)
+- **[Phase 23: Advanced Relationships](phases/Phase-23.md)** - Dependency parsing, coreference resolution, domain extractors
+- **[Phase 24: Graph Query API](phases/Phase-24.md)** - LINQ-style API, Cypher support, traversal algorithms
+- **[Phase 25: Graph Persistence](phases/Phase-25.md)** - Full PostgreSQL integration, serialization formats
+- **[Phase 26: RAG Enhancement](phases/Phase-26.md)** - Graph-aware retrieval, hybrid search, context expansion
+
 ---
 
 ## Progress Tracking
@@ -125,12 +140,13 @@ Phase 3 Complete - January 2025 (Token Counting)
 Phase 4 Complete - January 2025 (Plain Text)
 Phase 5 Complete - January 2025 (DOCX)
 Phase 6 Complete - January 2025 (PPTX)
-Phase 7 Complete - January 2025 (XLSX) ? **NEW**
-Phase 8 Complete - January 2025 (CSV) ? **NEW**
-Phase 9 Complete - January 2025 (PDF) ? **NEW**
+Phase 7 Complete - January 2025 (XLSX) ✨ **NEW**
+Phase 8 Complete - January 2025 (CSV) ✨ **NEW**
+Phase 9 Complete - January 2025 (PDF) ✨ **NEW**
 Phase 10-11 Planned - Q1 2025 (Image Descriptions, LLM Integration)
 Phase 12-17 Planned - Q2 2025 (Advanced Features, Performance, Serialization)
 Phase 18-20 Planned - Q3 2025 (Production Release, Hardening, OCR)
+Phase 21-26 Planned - Q3-Q4 2025 (Knowledge Graph: Foundation, NER, Relationships, Query, Persistence, RAG)
 ```
 
 ---
@@ -153,3 +169,4 @@ Phase 18-20 Planned - Q3 2025 (Production Release, Hardening, OCR)
 1. Begin Phase 10: Image Description (optional AI integration)
 2. Consider Phase 11: LLM Integration for summaries
 3. Or continue with Phase 12-16: Additional features and formats
+4. Plan for Knowledge Graph phases (21-26)
