@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -19,7 +19,7 @@ public class ChunkerFactoryTests
 
 		// Assert
 		var supportedTypes = factory.GetSupportedTypes();
-		supportedTypes.Should().Contain(DocumentType.Markdown);
+		_ = supportedTypes.Should().Contain(DocumentType.Markdown);
 	}
 
 	[Fact]
@@ -32,8 +32,8 @@ public class ChunkerFactoryTests
 		var chunker = factory.GetChunker(DocumentType.Markdown);
 
 		// Assert
-		chunker.Should().NotBeNull();
-		chunker.SupportedType.Should().Be(DocumentType.Markdown);
+		_ = chunker.Should().NotBeNull();
+		_ = chunker.SupportedType.Should().Be(DocumentType.Markdown);
 	}
 
 	[Fact]
@@ -46,7 +46,7 @@ public class ChunkerFactoryTests
 		var act = () => factory.GetChunker(DocumentType.Email);
 
 		// Assert
-		act.Should().Throw<NotSupportedException>()
+		_ = act.Should().Throw<NotSupportedException>()
 			.WithMessage("*not currently supported*");
 	}
 
@@ -61,8 +61,8 @@ public class ChunkerFactoryTests
 		var chunker = factory.GetChunkerForStream(stream, "document.md");
 
 		// Assert
-		chunker.Should().NotBeNull();
-		chunker.SupportedType.Should().Be(DocumentType.Markdown);
+		_ = chunker.Should().NotBeNull();
+		_ = chunker.SupportedType.Should().Be(DocumentType.Markdown);
 	}
 
 	[Fact]
@@ -76,8 +76,8 @@ public class ChunkerFactoryTests
 		var chunker = factory.GetChunkerForStream(stream, "DOCUMENT.MD");
 
 		// Assert
-		chunker.Should().NotBeNull();
-		chunker.SupportedType.Should().Be(DocumentType.Markdown);
+		_ = chunker.Should().NotBeNull();
+		_ = chunker.SupportedType.Should().Be(DocumentType.Markdown);
 	}
 
 	[Fact]
@@ -91,8 +91,8 @@ public class ChunkerFactoryTests
 		var chunker = factory.GetChunkerForStream(stream, "document.markdown");
 
 		// Assert
-		chunker.Should().NotBeNull();
-		chunker.SupportedType.Should().Be(DocumentType.Markdown);
+		_ = chunker.Should().NotBeNull();
+		_ = chunker.SupportedType.Should().Be(DocumentType.Markdown);
 	}
 
 	[Fact]
@@ -107,8 +107,8 @@ public class ChunkerFactoryTests
 		var chunker = await factory.GetChunkerForStreamAsync(stream);
 
 		// Assert
-		chunker.Should().NotBeNull();
-		chunker.SupportedType.Should().Be(DocumentType.Markdown);
+		_ = chunker.Should().NotBeNull();
+		_ = chunker.SupportedType.Should().Be(DocumentType.Markdown);
 	}
 
 	[Fact]
@@ -124,7 +124,7 @@ public class ChunkerFactoryTests
 		var act = async () => await factory.GetChunkerForStreamAsync(stream);
 
 		// Assert
-		await act.Should().ThrowAsync<NotSupportedException>()
+		_ = await act.Should().ThrowAsync<NotSupportedException>()
 			.WithMessage("*Unable to detect document type*");
 	}
 
@@ -140,7 +140,7 @@ public class ChunkerFactoryTests
 		factory.RegisterChunker(customChunker);
 
 		// Assert
-		factory.GetSupportedTypes().Should().Contain(DocumentType.Markdown);
+		_ = factory.GetSupportedTypes().Should().Contain(DocumentType.Markdown);
 	}
 
 	[Fact]
@@ -153,8 +153,8 @@ public class ChunkerFactoryTests
 		var types = factory.GetSupportedTypes();
 
 		// Assert
-		types.Should().NotBeNull();
-		types.Should().BeAssignableTo<IReadOnlyCollection<DocumentType>>();
+		_ = types.Should().NotBeNull();
+		_ = types.Should().BeAssignableTo<IReadOnlyCollection<DocumentType>>();
 	}
 
 	[Fact]
@@ -168,7 +168,7 @@ public class ChunkerFactoryTests
 
 		// Assert
 		var chunker = factory.GetChunker(DocumentType.Markdown);
-		chunker.Should().NotBeNull();
+		_ = chunker.Should().NotBeNull();
 	}
 
 	[Fact]
@@ -179,6 +179,6 @@ public class ChunkerFactoryTests
 
 		// Assert
 		var chunker = factory.GetChunker(DocumentType.Markdown);
-		chunker.Should().NotBeNull();
+		_ = chunker.Should().NotBeNull();
 	}
 }

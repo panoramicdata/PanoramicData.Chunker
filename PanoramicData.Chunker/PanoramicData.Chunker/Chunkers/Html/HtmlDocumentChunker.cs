@@ -177,7 +177,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 				// Pop headings from stack that are at same or deeper level
 				while (_headingStack.Count > 0 && _headingStack.Peek().level >= headingLevel.Value)
 				{
-					_headingStack.Pop();
+					_ = _headingStack.Pop();
 				}
 
 				// The parent is the heading on top of the stack (if any)
@@ -633,7 +633,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 		{
 			if (node.NodeType == NodeType.Text)
 			{
-				sb.Append(node.TextContent);
+				_ = sb.Append(node.TextContent);
 			}
 			else if (node is IElement childElement)
 			{
@@ -641,7 +641,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 				// Skip nested lists
 				if (childTag is not "ul" and not "ol")
 				{
-					sb.Append(childElement.TextContent);
+					_ = sb.Append(childElement.TextContent);
 				}
 			}
 		}
@@ -738,20 +738,20 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 
 		if (headers.Count > 0)
 		{
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers);
+			_ = sb.AppendLine(" |");
 
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers.Select(_ => "---"));
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers.Select(_ => "---"));
+			_ = sb.AppendLine(" |");
 		}
 
 		foreach (var row in rows)
 		{
-			sb.Append("| ");
-			sb.AppendJoin(" | ", row);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", row);
+			_ = sb.AppendLine(" |");
 		}
 
 		return sb.ToString();

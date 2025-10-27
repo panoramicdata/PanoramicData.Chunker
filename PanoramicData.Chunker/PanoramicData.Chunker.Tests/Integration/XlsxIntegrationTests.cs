@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Xlsx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Models;
@@ -29,23 +29,23 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		// Should have worksheet chunk
 		var worksheets = result.Chunks.OfType<XlsxWorksheetChunk>().ToList();
-		worksheets.Should().HaveCount(1);
-		worksheets[0].SheetName.Should().Be("Sheet1");
+		_ = worksheets.Should().ContainSingle();
+		_ = worksheets[0].SheetName.Should().Be("Sheet1");
 
 		// Should have table chunk with headers
 		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		tables.Should().HaveCount(1);
-		
+		_ = tables.Should().ContainSingle();
+
 		var table = tables[0];
-		table.TableInfo.Should().NotBeNull();
-		table.TableInfo!.Headers.Should().Contain(["Name", "Age", "City"]);
-		table.TableInfo.RowCount.Should().Be(3);  // 3 data rows
-		table.TableInfo.ColumnCount.Should().Be(3);
+		_ = table.TableInfo.Should().NotBeNull();
+		_ = table.TableInfo!.Headers.Should().Contain(["Name", "Age", "City"]);
+		_ = table.TableInfo.RowCount.Should().Be(3);  // 3 data rows
+		_ = table.TableInfo.ColumnCount.Should().Be(3);
 	}
 
 	[Fact]
@@ -60,8 +60,8 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().BeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -76,19 +76,19 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		// Should have 3 worksheet chunks
 		var worksheets = result.Chunks.OfType<XlsxWorksheetChunk>().ToList();
-		worksheets.Should().HaveCount(3);
-		
-		worksheets.Should().Contain(w => w.SheetName == "Sales");
-		worksheets.Should().Contain(w => w.SheetName == "Expenses");
-		worksheets.Should().Contain(w => w.SheetName == "Summary");
+		_ = worksheets.Should().HaveCount(3);
+
+		_ = worksheets.Should().Contain(w => w.SheetName == "Sales");
+		_ = worksheets.Should().Contain(w => w.SheetName == "Expenses");
+		_ = worksheets.Should().Contain(w => w.SheetName == "Summary");
 
 		// Each sheet should have table chunks
 		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		tables.Should().HaveCountGreaterThan(0);
+		_ = tables.Should().HaveCountGreaterThan(0);
 	}
 
 	[Fact]
@@ -103,16 +103,16 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		// Should have formula chunks
 		var formulas = result.Chunks.OfType<XlsxFormulaChunk>().ToList();
-		formulas.Should().HaveCountGreaterThan(0);
+		_ = formulas.Should().HaveCountGreaterThan(0);
 
 		// Check for SUM formula
 		var sumFormula = formulas.FirstOrDefault(f => f.FormulaType == "SUM");
-		sumFormula.Should().NotBeNull();
-		sumFormula!.Formula.Should().Contain("SUM");
+		_ = sumFormula.Should().NotBeNull();
+		_ = sumFormula!.Formula.Should().Contain("SUM");
 	}
 
 	[Fact]
@@ -127,17 +127,17 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		tables.Should().HaveCount(1);
+		_ = tables.Should().ContainSingle();
 
 		var table = tables[0];
-		table.TableInfo.Should().NotBeNull();
-		table.TableInfo!.Headers.Should().Contain("Employee");
-		table.TableInfo.Headers.Should().Contain("Department");
-		table.TableInfo.Headers.Should().Contain("Salary");
-		table.TableInfo.RowCount.Should().Be(5);  // 5 employee records
+		_ = table.TableInfo.Should().NotBeNull();
+		_ = table.TableInfo!.Headers.Should().Contain("Employee");
+		_ = table.TableInfo.Headers.Should().Contain("Department");
+		_ = table.TableInfo.Headers.Should().Contain("Salary");
+		_ = table.TableInfo.RowCount.Should().Be(5);  // 5 employee records
 	}
 
 	[Fact]
@@ -154,19 +154,19 @@ public class XlsxIntegrationTests
 		var processingTime = DateTime.UtcNow - startTime;
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		// Should process 1000 rows reasonably fast (< 5 seconds)
-		processingTime.TotalSeconds.Should().BeLessThan(5);
+		_ = processingTime.TotalSeconds.Should().BeLessThan(5);
 
 		// Should have table chunk with all data
 		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		tables.Should().HaveCount(1);
-		
+		_ = tables.Should().ContainSingle();
+
 		var table = tables[0];
-		table.TableInfo.Should().NotBeNull();
-		table.TableInfo!.RowCount.Should().Be(1000);
+		_ = table.TableInfo.Should().NotBeNull();
+		_ = table.TableInfo!.RowCount.Should().Be(1000);
 	}
 
 	[Fact]
@@ -181,12 +181,12 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		// Should extract table with data
 		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		tables.Should().HaveCount(1);
+		_ = tables.Should().ContainSingle();
 	}
 
 	[Fact]
@@ -201,16 +201,16 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		tables.Should().HaveCount(1);
+		_ = tables.Should().ContainSingle();
 
 		var table = tables[0];
-		table.TableInfo.Should().NotBeNull();
-		table.TableInfo!.Headers.Should().Contain("Text");
-		table.TableInfo.Headers.Should().Contain("Number");
-		table.TableInfo.Headers.Should().Contain("Date");
+		_ = table.TableInfo.Should().NotBeNull();
+		_ = table.TableInfo!.Headers.Should().Contain("Text");
+		_ = table.TableInfo.Headers.Should().Contain("Number");
+		_ = table.TableInfo.Headers.Should().Contain("Date");
 	}
 
 	[Fact]
@@ -225,15 +225,15 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		// All chunks should have quality metrics
-		result.Chunks.Should().AllSatisfy(chunk =>
+		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
-			chunk.QualityMetrics.Should().NotBeNull();
+			_ = chunk.QualityMetrics.Should().NotBeNull();
 			if (chunk is not XlsxWorksheetChunk) // Worksheet chunks don't have direct content
 			{
-				chunk.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
+				_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
 			}
 		});
 	}
@@ -250,14 +250,14 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		// Tables should be children of worksheets
 		var worksheet = result.Chunks.OfType<XlsxWorksheetChunk>().First();
 		var table = result.Chunks.OfType<XlsxTableChunk>().First();
-		
-		table.ParentId.Should().Be(worksheet.Id);
-		table.Depth.Should().BeGreaterThan(worksheet.Depth);
+
+		_ = table.ParentId.Should().Be(worksheet.Id);
+		_ = table.Depth.Should().BeGreaterThan(worksheet.Depth);
 	}
 
 	[Fact]
@@ -272,11 +272,11 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
-		result.Statistics.StructuralChunks.Should().BeGreaterThan(0);
-		result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
-		result.Statistics.TotalTokens.Should().BeGreaterThan(0);
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
+		_ = result.Statistics.StructuralChunks.Should().BePositive();
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		_ = result.Statistics.TotalTokens.Should().BePositive();
 	}
 
 	[Fact]
@@ -291,8 +291,8 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.xlsx", options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 	}
 
 	[Fact]
@@ -308,9 +308,9 @@ public class XlsxIntegrationTests
 
 		// Assert
 		var table = result.Chunks.OfType<XlsxTableChunk>().First();
-		table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
-		table.SerializedTable.Should().Contain("|");
-		table.SerializedTable.Should().Contain("---");
+		_ = table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
+		_ = table.SerializedTable.Should().Contain("|");
+		_ = table.SerializedTable.Should().Contain("---");
 	}
 
 	[Fact]
@@ -325,13 +325,13 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.Chunks.Should().AllSatisfy(chunk =>
+		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
-			chunk.Metadata.Should().NotBeNull();
-			chunk.Metadata!.DocumentType.Should().Be("XLSX");
+			_ = chunk.Metadata.Should().NotBeNull();
+			_ = chunk.Metadata!.DocumentType.Should().Be("XLSX");
 			if (chunk is not XlsxWorksheetChunk worksheet || !string.IsNullOrEmpty(worksheet.SheetName))
 			{
-				chunk.Metadata.SheetName.Should().NotBeNullOrEmpty();
+				_ = chunk.Metadata.SheetName.Should().NotBeNullOrEmpty();
 			}
 		});
 	}
@@ -351,7 +351,7 @@ public class XlsxIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
 
 		// Assert
-		result.ValidationResult.Should().NotBeNull();
-		result.ValidationResult!.IsValid.Should().BeTrue();
+		_ = result.ValidationResult.Should().NotBeNull();
+		_ = result.ValidationResult!.IsValid.Should().BeTrue();
 	}
 }

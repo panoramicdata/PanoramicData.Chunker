@@ -16,7 +16,7 @@ public static class XlsxTestFileGenerator
 	/// </summary>
 	public static void GenerateAllTestFiles()
 	{
-		Directory.CreateDirectory(_testDataPath);
+		_ = Directory.CreateDirectory(_testDataPath);
 
 		// If files already exist, skip generation
 		if (File.Exists(Path.Combine(_testDataPath, "simple.xlsx")))

@@ -460,7 +460,7 @@ public static class ChunkQueryExtensions
 
 		if (!includeSelf)
 		{
-			result.RemoveAll(c => c.Id == chunk.Id);
+			_ = result.RemoveAll(c => c.Id == chunk.Id);
 		}
 
 		return result;

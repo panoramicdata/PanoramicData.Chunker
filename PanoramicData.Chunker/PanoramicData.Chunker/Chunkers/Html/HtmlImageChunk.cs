@@ -21,14 +21,4 @@ public class HtmlImageChunk : VisualChunk
 	/// Gets or sets the title attribute of the image, if present.
 	/// </summary>
 	public string? Title { get; set; }
-
-	/// <summary>
-	/// Gets or sets the width attribute of the image, if specified.
-	/// </summary>
-	public int? Width { get; set; }
-
-	/// <summary>
-	/// Gets or sets the height attribute of the image, if specified.
-	/// </summary>
-	public int? Height { get; set; }
 }

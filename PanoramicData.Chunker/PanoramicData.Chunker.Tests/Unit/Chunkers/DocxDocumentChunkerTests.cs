@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Extensions;
@@ -6,7 +6,6 @@ using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Infrastructure.TokenCounters;
 using PanoramicData.Chunker.Models;
 using System.Text;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -25,7 +24,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var act = () => new DocxDocumentChunker(null!);
 
 		// Assert
-		act.Should().Throw<ArgumentNullException>();
+		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -39,7 +38,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = chunker.SupportedType;
 
 		// Assert
-		result.Should().Be(DocumentType.Docx);
+		_ = result.Should().Be(DocumentType.Docx);
 	}
 
 	[Fact]
@@ -62,7 +61,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeTrue();
+		_ = result.Should().BeTrue();
 	}
 
 	[Fact]
@@ -77,7 +76,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -105,12 +104,12 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 		_output.WriteLine($"Total chunks: {result.Chunks.Count}");
 
 		var sections = result.Chunks.OfType<DocxSectionChunk>().ToList();
-		sections.Should().NotBeEmpty();
+		_ = sections.Should().NotBeEmpty();
 		_output.WriteLine($"Section chunks: {sections.Count}");
 
 		foreach (var section in sections)
@@ -144,10 +143,10 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var paragraphs = result.Chunks.OfType<DocxParagraphChunk>().ToList();
-		paragraphs.Should().NotBeEmpty();
+		_ = paragraphs.Should().NotBeEmpty();
 		_output.WriteLine($"Paragraph chunks: {paragraphs.Count}");
 
 		foreach (var paragraph in paragraphs.Take(5))
@@ -178,14 +177,14 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		foreach (var chunk in result.Chunks)
 		{
-			chunk.QualityMetrics.Should().NotBeNull();
-			chunk.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
-			chunk.QualityMetrics.CharacterCount.Should().BeGreaterThan(0);
+			_ = chunk.QualityMetrics.Should().NotBeNull();
+			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
+			_ = chunk.QualityMetrics.CharacterCount.Should().BePositive();
 			_output.WriteLine($"Chunk tokens: {chunk.QualityMetrics.TokenCount}, chars: {chunk.QualityMetrics.CharacterCount}");
 		}
 	}
@@ -213,28 +212,28 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		_output.WriteLine("=== OpenAI Token Counter (GPT-4 CL100K) ===");
 
 		foreach (var chunk in result.Chunks)
 		{
-			chunk.QualityMetrics.Should().NotBeNull();
-			chunk.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
-			chunk.QualityMetrics.CharacterCount.Should().BeGreaterThan(0);
+			_ = chunk.QualityMetrics.Should().NotBeNull();
+			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
+			_ = chunk.QualityMetrics.CharacterCount.Should().BePositive();
 
 			// Calculate what CharacterBasedTokenCounter would have given
 			var charBasedApprox = (int)Math.Ceiling(chunk.QualityMetrics.CharacterCount / 4.0);
 			var difference = chunk.QualityMetrics.TokenCount - charBasedApprox;
-			var percentDiff = charBasedApprox > 0 
-				? (difference / (double)charBasedApprox * 100) 
+			var percentDiff = charBasedApprox > 0
+				? (difference / (double)charBasedApprox * 100)
 				: 0;
 
 			// Get content text from chunk
 			var contentText = chunk.ToPlainText();
-			var contentPreview = contentText.Length > 50 
-				? contentText[..50] + "..." 
+			var contentPreview = contentText.Length > 50
+				? contentText[..50] + "..."
 				: contentText;
 
 			_output.WriteLine($"Content: '{contentPreview}'");
@@ -255,7 +254,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 			return chunk.QualityMetrics.TokenCount != charBasedApprox;
 		});
 
-		hasAccurateTokenization.Should().BeTrue("OpenAI tokenization should differ from char-based approximation for at least some chunks");
+		_ = hasAccurateTokenization.Should().BeTrue("OpenAI tokenization should differ from char-based approximation for at least some chunks");
 	}
 
 	[Fact]
@@ -280,9 +279,9 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.MaxDepth.Should().BeGreaterThanOrEqualTo(0);
+		_ = result.Success.Should().BeTrue();
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.MaxDepth.Should().BeGreaterThanOrEqualTo(0);
 		_output.WriteLine($"Max depth: {result.Statistics.MaxDepth}");
 	}
 
@@ -308,11 +307,11 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
-		result.Statistics.StructuralChunks.Should().BeGreaterThanOrEqualTo(0);
-		result.Statistics.ContentChunks.Should().BeGreaterThanOrEqualTo(0);
-		result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
+		_ = result.Statistics.StructuralChunks.Should().BeGreaterThanOrEqualTo(0);
+		_ = result.Statistics.ContentChunks.Should().BeGreaterThanOrEqualTo(0);
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 
 		_output.WriteLine($"Statistics:");
 		_output.WriteLine($"  Total chunks: {result.Statistics.TotalChunks}");
@@ -343,8 +342,8 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().BeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -369,17 +368,17 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<DocxTableChunk>().ToList();
-		tables.Should().NotBeEmpty();
+		_ = tables.Should().NotBeEmpty();
 		_output.WriteLine($"Table chunks: {tables.Count}");
 
 		foreach (var table in tables)
 		{
 			_output.WriteLine($"Table: {table.TableInfo?.RowCount} rows, {table.TableInfo?.ColumnCount} columns");
-			table.SerializedTable.Should().NotBeEmpty();
-			table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
+			_ = table.SerializedTable.Should().NotBeEmpty();
+			_ = table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
 		}
 	}
 
@@ -405,10 +404,10 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var listItems = result.Chunks.OfType<DocxListItemChunk>().ToList();
-		listItems.Should().NotBeEmpty();
+		_ = listItems.Should().NotBeEmpty();
 		_output.WriteLine($"List item chunks: {listItems.Count}");
 
 		foreach (var item in listItems.Take(5))
@@ -442,8 +441,8 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.ValidationResult.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		_ = result.ValidationResult.Should().NotBeNull();
 		_output.WriteLine($"Validation result: {(result.ValidationResult!.IsValid ? "Valid" : "Invalid")}");
 
 		if (!result.ValidationResult.IsValid)

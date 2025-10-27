@@ -742,20 +742,20 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 
 		if (headers.Count > 0)
 		{
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers);
+			_ = sb.AppendLine(" |");
 
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers.Select(_ => "---"));
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers.Select(_ => "---"));
+			_ = sb.AppendLine(" |");
 		}
 
 		foreach (var row in rows)
 		{
-			sb.Append("| ");
-			sb.AppendJoin(" | ", row);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", row);
+			_ = sb.AppendLine(" |");
 		}
 
 		return sb.ToString();

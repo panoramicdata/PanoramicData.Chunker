@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Utilities;
 
@@ -41,8 +42,8 @@ public class HierarchyBuilderTests
 		HierarchyBuilder.BuildHierarchy(chunks);
 
 		// Assert
-		Assert.Empty(root.AncestorIds);
-		Assert.Single(child1.AncestorIds);
+		_ = root.AncestorIds.Should().BeEmpty();
+		_ = Assert.Single(child1.AncestorIds);
 		Assert.Equal(root.Id, child1.AncestorIds[0]);
 		Assert.Equal(2, child2.AncestorIds.Length);
 		Assert.Equal(root.Id, child2.AncestorIds[0]);
@@ -64,7 +65,7 @@ public class HierarchyBuilderTests
 
 		// Assert
 		Assert.Equal(2, root.Children.Count);
-		Assert.Contains(child1, root.Children);
+		_ = root.Children.Should().Contain(child1);
 		Assert.Contains(child2, root.Children);
 	}
 
@@ -81,7 +82,7 @@ public class HierarchyBuilderTests
 		var roots = HierarchyBuilder.GetRootChunks(chunks).ToList();
 
 		// Assert
-		Assert.Single(roots);
+		_ = Assert.Single(roots);
 		Assert.Contains(root, roots);
 	}
 

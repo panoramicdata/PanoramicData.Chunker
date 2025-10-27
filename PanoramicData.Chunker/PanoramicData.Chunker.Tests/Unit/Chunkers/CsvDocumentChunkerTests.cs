@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Csv;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -27,8 +27,8 @@ public class CsvDocumentChunkerTests
 		var chunker = new CsvDocumentChunker(_tokenCounter);
 
 		// Assert
-		chunker.Should().NotBeNull();
-		chunker.SupportedType.Should().Be(DocumentType.Csv);
+		_ = chunker.Should().NotBeNull();
+		_ = chunker.SupportedType.Should().Be(DocumentType.Csv);
 	}
 
 	[Fact]
@@ -36,7 +36,7 @@ public class CsvDocumentChunkerTests
 	{
 		// Arrange, Act & Assert
 		var act = () => new CsvDocumentChunker(null!);
-		act.Should().Throw<ArgumentNullException>();
+		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -46,7 +46,7 @@ public class CsvDocumentChunkerTests
 		var type = _chunker.SupportedType;
 
 		// Assert
-		type.Should().Be(DocumentType.Csv);
+		_ = type.Should().Be(DocumentType.Csv);
 	}
 
 	[Fact]
@@ -60,8 +60,8 @@ public class CsvDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeTrue();
-		stream.Position.Should().Be(0); // Should restore position
+		_ = result.Should().BeTrue();
+		_ = stream.Position.Should().Be(0); // Should restore position
 	}
 
 	[Fact]
@@ -75,7 +75,7 @@ public class CsvDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeTrue();
+		_ = result.Should().BeTrue();
 	}
 
 	[Fact]
@@ -89,7 +89,7 @@ public class CsvDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -102,7 +102,7 @@ public class CsvDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -115,7 +115,7 @@ public class CsvDocumentChunkerTests
 		var act = async () => await _chunker.ChunkAsync(null!, options);
 
 		// Assert
-		await act.Should().ThrowAsync<ArgumentNullException>();
+		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -128,7 +128,7 @@ public class CsvDocumentChunkerTests
 		var act = async () => await _chunker.ChunkAsync(stream, null!);
 
 		// Assert
-		await act.Should().ThrowAsync<ArgumentNullException>();
+		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -143,13 +143,13 @@ public class CsvDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Should().NotBeNull();
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		// Should have document chunk and row chunks
-		result.Chunks.OfType<CsvDocumentChunk>().Should().HaveCount(1);
-		result.Chunks.OfType<CsvRowChunk>().Should().HaveCount(2); // 2 data rows
+		_ = result.Chunks.OfType<CsvDocumentChunk>().Should().ContainSingle();
+		_ = result.Chunks.OfType<CsvRowChunk>().Should().HaveCount(2); // 2 data rows
 	}
 
 	[Fact]
@@ -164,9 +164,9 @@ public class CsvDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Should().NotBeNull();
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().BeEmpty();
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -182,8 +182,8 @@ public class CsvDocumentChunkerTests
 
 		// Assert
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().FirstOrDefault();
-		doc.Should().NotBeNull();
-		doc!.Delimiter.Should().Be(',');
+		_ = doc.Should().NotBeNull();
+		_ = doc!.Delimiter.Should().Be(',');
 	}
 
 	[Fact]
@@ -199,8 +199,8 @@ public class CsvDocumentChunkerTests
 
 		// Assert
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().FirstOrDefault();
-		doc.Should().NotBeNull();
-		doc!.Delimiter.Should().Be('\t');
+		_ = doc.Should().NotBeNull();
+		_ = doc!.Delimiter.Should().Be('\t');
 	}
 
 	[Fact]
@@ -216,9 +216,9 @@ public class CsvDocumentChunkerTests
 
 		// Assert
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().FirstOrDefault();
-		doc.Should().NotBeNull();
-		doc!.HasHeaderRow.Should().BeTrue();
-		doc.Headers.Should().Contain(["Name", "Age", "City"]);
+		_ = doc.Should().NotBeNull();
+		_ = doc!.HasHeaderRow.Should().BeTrue();
+		_ = doc.Headers.Should().Contain(["Name", "Age", "City"]);
 	}
 
 	[Fact]
@@ -234,10 +234,10 @@ public class CsvDocumentChunkerTests
 
 		// Assert
 		var row = result.Chunks.OfType<CsvRowChunk>().FirstOrDefault();
-		row.Should().NotBeNull();
-		row!.Fields.Should().Contain("John Doe");
-		row.Fields.Should().Contain("Hello, World");
-		row.HasQuotedFields.Should().BeTrue();
+		_ = row.Should().NotBeNull();
+		_ = row!.Fields.Should().Contain("John Doe");
+		_ = row.Fields.Should().Contain("Hello, World");
+		_ = row.HasQuotedFields.Should().BeTrue();
 	}
 
 	[Fact]
@@ -252,9 +252,9 @@ public class CsvDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.TotalChunks.Should().BeGreaterThan(0);
-		result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().BePositive();
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 	}
 
 	[Fact]
@@ -269,8 +269,8 @@ public class CsvDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.ValidationResult.Should().NotBeNull();
-		result.ValidationResult!.IsValid.Should().BeTrue();
+		_ = result.ValidationResult.Should().NotBeNull();
+		_ = result.ValidationResult!.IsValid.Should().BeTrue();
 	}
 
 	[Fact]
@@ -286,10 +286,10 @@ public class CsvDocumentChunkerTests
 
 		// Assert
 		var rows = result.Chunks.OfType<CsvRowChunk>();
-		rows.Should().AllSatisfy(chunk =>
+		_ = rows.Should().AllSatisfy(chunk =>
 		{
-			chunk.QualityMetrics.Should().NotBeNull();
-			chunk.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
+			_ = chunk.QualityMetrics.Should().NotBeNull();
+			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
 		});
 	}
 
@@ -306,9 +306,9 @@ public class CsvDocumentChunkerTests
 
 		// Assert
 		var row = result.Chunks.OfType<CsvRowChunk>().FirstOrDefault();
-		row.Should().NotBeNull();
-		row!.Content.Should().Contain("Name:");
-		row.Content.Should().Contain("Age:");
-		row.Content.Should().Contain("Alice");
+		_ = row.Should().NotBeNull();
+		_ = row!.Content.Should().Contain("Name:");
+		_ = row.Content.Should().Contain("Age:");
+		_ = row.Content.Should().Contain("Alice");
 	}
 }

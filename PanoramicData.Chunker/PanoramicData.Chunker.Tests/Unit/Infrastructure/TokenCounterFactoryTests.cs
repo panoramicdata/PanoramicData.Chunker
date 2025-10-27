@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Infrastructure.TokenCounters;
@@ -14,7 +14,7 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.Create(TokenCountingMethod.CharacterBased);
 
 		// Assert
-		counter.Should().BeOfType<CharacterBasedTokenCounter>();
+		_ = counter.Should().BeOfType<CharacterBasedTokenCounter>();
 	}
 
 	[Fact]
@@ -24,9 +24,9 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.Create(TokenCountingMethod.OpenAI_CL100K);
 
 		// Assert
-		counter.Should().BeOfType<OpenAITokenCounter>();
+		_ = counter.Should().BeOfType<OpenAITokenCounter>();
 		var openAICounter = (OpenAITokenCounter)counter;
-		openAICounter.EncodingName.Should().Be("cl100k_base");
+		_ = openAICounter.EncodingName.Should().Be("cl100k_base");
 	}
 
 	[Fact]
@@ -36,9 +36,9 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.Create(TokenCountingMethod.OpenAI_P50K);
 
 		// Assert
-		counter.Should().BeOfType<OpenAITokenCounter>();
+		_ = counter.Should().BeOfType<OpenAITokenCounter>();
 		var openAICounter = (OpenAITokenCounter)counter;
-		openAICounter.EncodingName.Should().Be("p50k_base");
+		_ = openAICounter.EncodingName.Should().Be("p50k_base");
 	}
 
 	[Fact]
@@ -48,9 +48,9 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.Create(TokenCountingMethod.OpenAI_R50K);
 
 		// Assert
-		counter.Should().BeOfType<OpenAITokenCounter>();
+		_ = counter.Should().BeOfType<OpenAITokenCounter>();
 		var openAICounter = (OpenAITokenCounter)counter;
-		openAICounter.EncodingName.Should().Be("r50k_base");
+		_ = openAICounter.EncodingName.Should().Be("r50k_base");
 	}
 
 	[Fact]
@@ -63,7 +63,7 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.Create(TokenCountingMethod.Custom, customCounter);
 
 		// Assert
-		counter.Should().BeSameAs(customCounter);
+		_ = counter.Should().BeSameAs(customCounter);
 	}
 
 	[Fact]
@@ -73,7 +73,7 @@ public class TokenCounterFactoryTests
 		var act = () => TokenCounterFactory.Create(TokenCountingMethod.Custom);
 
 		// Assert
-		act.Should().Throw<ArgumentException>()
+		_ = act.Should().Throw<ArgumentException>()
 			.WithMessage("*Custom token counter must be provided*");
 	}
 
@@ -84,7 +84,7 @@ public class TokenCounterFactoryTests
 		var act = () => TokenCounterFactory.Create(TokenCountingMethod.Claude);
 
 		// Assert
-		act.Should().Throw<NotSupportedException>()
+		_ = act.Should().Throw<NotSupportedException>()
 			.WithMessage("*Claude tokenization is not yet implemented*");
 	}
 
@@ -95,7 +95,7 @@ public class TokenCounterFactoryTests
 		var act = () => TokenCounterFactory.Create(TokenCountingMethod.Cohere);
 
 		// Assert
-		act.Should().Throw<NotSupportedException>()
+		_ = act.Should().Throw<NotSupportedException>()
 			.WithMessage("*Cohere tokenization is not yet implemented*");
 	}
 
@@ -113,7 +113,7 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.GetOrCreate(options);
 
 		// Assert
-		counter.Should().BeSameAs(customCounter);
+		_ = counter.Should().BeSameAs(customCounter);
 	}
 
 	[Fact]
@@ -129,7 +129,7 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.GetOrCreate(options);
 
 		// Assert
-		counter.Should().BeOfType<OpenAITokenCounter>();
+		_ = counter.Should().BeOfType<OpenAITokenCounter>();
 	}
 
 	[Fact]
@@ -142,7 +142,7 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.GetOrCreate(options);
 
 		// Assert
-		counter.Should().BeOfType<CharacterBasedTokenCounter>();
+		_ = counter.Should().BeOfType<CharacterBasedTokenCounter>();
 	}
 
 	[Fact]
@@ -152,7 +152,7 @@ public class TokenCounterFactoryTests
 		var act = () => TokenCounterFactory.GetOrCreate(null!);
 
 		// Assert
-		act.Should().Throw<ArgumentNullException>();
+		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Theory]
@@ -167,9 +167,9 @@ public class TokenCounterFactoryTests
 		var testText = "Hello, world!";
 
 		// Assert
-		counter.Should().NotBeNull();
+		_ = counter.Should().NotBeNull();
 		var tokenCount = counter.CountTokens(testText);
-		tokenCount.Should().BeGreaterThan(0);
+		_ = tokenCount.Should().BePositive();
 	}
 
 	[Fact]
@@ -187,7 +187,7 @@ public class TokenCounterFactoryTests
 		var counter = TokenCounterFactory.GetOrCreate(options);
 
 		// Assert
-		counter.Should().BeSameAs(customCounter);
-		counter.Should().NotBeOfType<OpenAITokenCounter>();
+		_ = counter.Should().BeSameAs(customCounter);
+		_ = counter.Should().NotBeOfType<OpenAITokenCounter>();
 	}
 }

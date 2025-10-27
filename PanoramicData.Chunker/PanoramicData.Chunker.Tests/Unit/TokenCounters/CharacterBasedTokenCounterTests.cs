@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using PanoramicData.Chunker.Infrastructure;
 
 namespace PanoramicData.Chunker.Tests.Unit.TokenCounters;
@@ -52,7 +53,7 @@ public class CharacterBasedTokenCounterTests
 		foreach (var batch in batches)
 		{
 			var tokenCount = _tokenCounter.CountTokens(batch);
-			Assert.True(tokenCount <= maxTokens);
+			_ = (tokenCount <= maxTokens).Should().BeTrue();
 		}
 	}
 
@@ -68,7 +69,7 @@ public class CharacterBasedTokenCounterTests
 		var batches = _tokenCounter.SplitIntoTokenBatches(text, maxTokens, overlap).ToList();
 
 		// Assert
-		Assert.True(batches.Count > 1);
+		_ = (batches.Count > 1).Should().BeTrue();
 		// Each batch (except first) should contain some content from the previous batch
 	}
 }

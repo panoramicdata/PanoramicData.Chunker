@@ -1,3 +1,5 @@
+using PanoramicData.Chunker.Models.LLM;
+
 namespace PanoramicData.Chunker.Models;
 
 /// <summary>
@@ -9,6 +11,11 @@ public class ChunkingResult
 	/// The generated chunks.
 	/// </summary>
 	public IReadOnlyList<ChunkerBase> Chunks { get; set; } = [];
+
+	/// <summary>
+	/// Enriched chunks with LLM-generated metadata (if enrichment was enabled).
+	/// </summary>
+	public IReadOnlyList<EnrichedChunk>? EnrichedChunks { get; set; }
 
 	/// <summary>
 	/// Statistical information about the chunking process.

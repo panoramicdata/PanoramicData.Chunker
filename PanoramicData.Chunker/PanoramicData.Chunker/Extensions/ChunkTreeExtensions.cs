@@ -145,7 +145,7 @@ public static class ChunkTreeExtensions
 			var current = chunk;
 			while (current != null)
 			{
-				includedIds.Add(current.Id);
+				_ = includedIds.Add(current.Id);
 				current = current.ParentId.HasValue && chunkDict.TryGetValue(current.ParentId.Value, out var parent)
 					? parent
 					: null;

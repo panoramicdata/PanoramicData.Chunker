@@ -194,7 +194,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 				// Update header stack
 				while (headerStack.Count > 0 && headerStack.Peek().Level >= heading.HeadingLevel)
 				{
-					headerStack.Pop();
+					_ = headerStack.Pop();
 				}
 
 				heading.ParentId = headerStack.Count > 0 ? headerStack.Peek().Id : null;

@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Extensions;
 using PanoramicData.Chunker.Models;
@@ -24,8 +24,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.ContentChunks().ToList();
 
 		// Assert
-		result.Should().HaveCount(3);
-		result.Should().AllBeAssignableTo<ContentChunk>();
+		_ = result.Should().HaveCount(3);
+		_ = result.Should().AllBeAssignableTo<ContentChunk>();
 	}
 
 	[Fact]
@@ -35,8 +35,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.StructuralChunks().ToList();
 
 		// Assert
-		result.Should().HaveCount(1);
-		result.Should().AllBeAssignableTo<StructuralChunk>();
+		_ = result.Should().ContainSingle();
+		_ = result.Should().AllBeAssignableTo<StructuralChunk>();
 	}
 
 	[Fact]
@@ -46,8 +46,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.OfSpecificType("Paragraph").ToList();
 
 		// Assert
-		result.Should().HaveCount(2);
-		result.Should().AllSatisfy(c => c.SpecificType.Should().Be("Paragraph"));
+		_ = result.Should().HaveCount(2);
+		_ = result.Should().AllSatisfy(c => c.SpecificType.Should().Be("Paragraph"));
 	}
 
 	[Fact]
@@ -57,8 +57,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.AtDepth(1).ToList();
 
 		// Assert
-		result.Should().HaveCount(3);
-		result.Should().AllSatisfy(c => c.Depth.Should().Be(1));
+		_ = result.Should().HaveCount(3);
+		_ = result.Should().AllSatisfy(c => c.Depth.Should().Be(1));
 	}
 
 	[Fact]
@@ -68,8 +68,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithinDepthRange(0, 1).ToList();
 
 		// Assert
-		result.Should().HaveCountGreaterThan(0);
-		result.Should().AllSatisfy(c => c.Depth.Should().BeInRange(0, 1));
+		_ = result.Should().HaveCountGreaterThan(0);
+		_ = result.Should().AllSatisfy(c => c.Depth.Should().BeInRange(0, 1));
 	}
 
 	[Fact]
@@ -79,8 +79,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.RootChunks().ToList();
 
 		// Assert
-		result.Should().HaveCount(1);
-		result.Should().AllSatisfy(c => c.ParentId.Should().BeNull());
+		_ = result.Should().ContainSingle();
+		_ = result.Should().AllSatisfy(c => c.ParentId.Should().BeNull());
 	}
 
 	[Fact]
@@ -90,11 +90,11 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.LeafChunks().ToList();
 
 		// Assert
-		result.Should().NotBeEmpty();
-		result.Should().AllSatisfy(c =>
+		_ = result.Should().NotBeEmpty();
+		_ = result.Should().AllSatisfy(c =>
 		{
 			var hasChildren = _testChunks.Any(x => x.ParentId == c.Id);
-			hasChildren.Should().BeFalse();
+			_ = hasChildren.Should().BeFalse();
 		});
 	}
 
@@ -108,8 +108,8 @@ public class ChunkQueryExtensionsTests
 		var children = parent.GetChildren(_testChunks).ToList();
 
 		// Assert
-		children.Should().HaveCount(3);
-		children.Should().AllSatisfy(c => c.ParentId.Should().Be(parent.Id));
+		_ = children.Should().HaveCount(3);
+		_ = children.Should().AllSatisfy(c => c.ParentId.Should().Be(parent.Id));
 	}
 
 	[Fact]
@@ -123,8 +123,8 @@ public class ChunkQueryExtensionsTests
 		var parent = child.GetParent(_testChunks);
 
 		// Assert
-		parent.Should().NotBeNull();
-		parent!.Id.Should().Be(expectedParent.Id);
+		_ = parent.Should().NotBeNull();
+		_ = parent!.Id.Should().Be(expectedParent.Id);
 	}
 
 	[Fact]
@@ -137,8 +137,8 @@ public class ChunkQueryExtensionsTests
 		var ancestors = leaf.GetAncestors(_testChunks).ToList();
 
 		// Assert
-		ancestors.Should().NotBeEmpty();
-		ancestors.Should().BeInDescendingOrder(a => a.Depth);
+		_ = ancestors.Should().NotBeEmpty();
+		_ = ancestors.Should().BeInDescendingOrder(a => a.Depth);
 	}
 
 	[Fact]
@@ -151,7 +151,7 @@ public class ChunkQueryExtensionsTests
 		var descendants = root.GetDescendants(_testChunks).ToList();
 
 		// Assert
-		descendants.Should().HaveCount(3);
+		_ = descendants.Should().HaveCount(3);
 	}
 
 	[Fact]
@@ -164,8 +164,8 @@ public class ChunkQueryExtensionsTests
 		var siblings = chunk.GetSiblings(_testChunks, includeSelf: false).ToList();
 
 		// Assert
-		siblings.Should().NotContain(chunk);
-		siblings.Should().AllSatisfy(s => s.ParentId.Should().Be(chunk.ParentId));
+		_ = siblings.Should().NotContain(chunk);
+		_ = siblings.Should().AllSatisfy(s => s.ParentId.Should().Be(chunk.ParentId));
 	}
 
 	[Fact]
@@ -178,7 +178,7 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithTag("test").ToList();
 
 		// Assert
-		result.Should().Contain(_testChunks[0]);
+		_ = result.Should().Contain(_testChunks[0]);
 	}
 
 	[Fact]
@@ -188,7 +188,7 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithMinTokens(10).ToList();
 
 		// Assert
-		result.Should().AllSatisfy(c => c.QualityMetrics!.TokenCount.Should().BeGreaterThanOrEqualTo(10));
+		_ = result.Should().AllSatisfy(c => c.QualityMetrics!.TokenCount.Should().BeGreaterThanOrEqualTo(10));
 	}
 
 	[Fact]
@@ -198,7 +198,7 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithMinSemanticCompleteness(0.9).ToList();
 
 		// Assert
-		result.Should().AllSatisfy(c => c.QualityMetrics!.SemanticCompleteness.Should().BeGreaterThanOrEqualTo(0.9));
+		_ = result.Should().AllSatisfy(c => c.QualityMetrics!.SemanticCompleteness.Should().BeGreaterThanOrEqualTo(0.9));
 	}
 
 	[Fact]
@@ -208,7 +208,7 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.OrderBySequence().ToList();
 
 		// Assert
-		result.Should().BeInAscendingOrder(c => c.SequenceNumber);
+		_ = result.Should().BeInAscendingOrder(c => c.SequenceNumber);
 	}
 
 	[Fact]
@@ -218,8 +218,8 @@ public class ChunkQueryExtensionsTests
 		var groups = _testChunks.GroupBySpecificType().ToList();
 
 		// Assert
-		groups.Should().NotBeEmpty();
-		groups.Should().AllSatisfy(g => g.Should().NotBeEmpty());
+		_ = groups.Should().NotBeEmpty();
+		_ = groups.Should().AllSatisfy(g => g.Should().NotBeEmpty());
 	}
 
 	[Fact]
@@ -229,10 +229,10 @@ public class ChunkQueryExtensionsTests
 		var stats = _testChunks.GetStatistics();
 
 		// Assert
-		stats.TotalChunks.Should().Be(_testChunks.Count);
-		stats.StructuralChunks.Should().Be(1);
-		stats.ContentChunks.Should().Be(3);
-		stats.MaxDepth.Should().BeGreaterThan(0);
+		_ = stats.TotalChunks.Should().Be(_testChunks.Count);
+		_ = stats.StructuralChunks.Should().Be(1);
+		_ = stats.ContentChunks.Should().Be(3);
+		_ = stats.MaxDepth.Should().BePositive();
 	}
 
 	[Fact]
@@ -242,8 +242,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.MarkdownSections().ToList();
 
 		// Assert
-		result.Should().HaveCount(1);
-		result.Should().AllBeOfType<MarkdownSectionChunk>();
+		_ = result.Should().ContainSingle();
+		_ = result.Should().AllBeOfType<MarkdownSectionChunk>();
 	}
 
 	[Fact]
@@ -257,8 +257,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.OnSheet("Sheet1").ToList();
 
 		// Assert
-		result.Should().Contain(_testChunks[0]);
-		result.Should().NotContain(_testChunks[1]);
+		_ = result.Should().Contain(_testChunks[0]);
+		_ = result.Should().NotContain(_testChunks[1]);
 	}
 
 	[Fact]
@@ -273,9 +273,9 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.InExternalHierarchy("Docs/API").ToList();
 
 		// Assert
-		result.Should().HaveCount(2);
-		result.Should().Contain(_testChunks[0]);
-		result.Should().Contain(_testChunks[1]);
+		_ = result.Should().HaveCount(2);
+		_ = result.Should().Contain(_testChunks[0]);
+		_ = result.Should().Contain(_testChunks[1]);
 	}
 
 	[Fact]
@@ -289,8 +289,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.FromSource("doc1").ToList();
 
 		// Assert
-		result.Should().Contain(_testChunks[0]);
-		result.Should().NotContain(_testChunks[1]);
+		_ = result.Should().Contain(_testChunks[0]);
+		_ = result.Should().NotContain(_testChunks[1]);
 	}
 
 	[Fact]
@@ -304,8 +304,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.InLanguage("en").ToList();
 
 		// Assert
-		result.Should().Contain(_testChunks[0]);
-		result.Should().NotContain(_testChunks[1]);
+		_ = result.Should().Contain(_testChunks[0]);
+		_ = result.Should().NotContain(_testChunks[1]);
 	}
 
 	[Fact]
@@ -319,8 +319,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithMinWords(10).ToList();
 
 		// Assert
-		result.Should().Contain(_testChunks[1]);
-		result.Should().NotContain(_testChunks[2]);
+		_ = result.Should().Contain(_testChunks[1]);
+		_ = result.Should().NotContain(_testChunks[2]);
 	}
 
 	[Fact]
@@ -334,8 +334,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithMinCharacters(50).ToList();
 
 		// Assert
-		result.Should().Contain(_testChunks[1]);
-		result.Should().NotContain(_testChunks[2]);
+		_ = result.Should().Contain(_testChunks[1]);
+		_ = result.Should().NotContain(_testChunks[2]);
 	}
 
 	[Fact]
@@ -349,8 +349,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithCompleteSentences().ToList();
 
 		// Assert
-		result.Should().Contain(_testChunks[1]);
-		result.Should().NotContain(_testChunks[2]);
+		_ = result.Should().Contain(_testChunks[1]);
+		_ = result.Should().NotContain(_testChunks[2]);
 	}
 
 	[Fact]
@@ -364,8 +364,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithCompleteTables().ToList();
 
 		// Assert
-		result.Should().Contain(_testChunks[1]);
-		result.Should().NotContain(_testChunks[2]);
+		_ = result.Should().Contain(_testChunks[1]);
+		_ = result.Should().NotContain(_testChunks[2]);
 	}
 
 	[Fact]
@@ -379,7 +379,7 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.ContainingText("important", ignoreCase: true).ToList();
 
 		// Assert
-		result.Should().Contain(para);
+		_ = result.Should().Contain(para);
 	}
 
 	[Fact]
@@ -393,7 +393,7 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.ContainingText("important", ignoreCase: false).ToList();
 
 		// Assert
-		result.Should().BeEmpty();
+		_ = result.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -407,7 +407,7 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithKeywords("api", "guide").ToList();
 
 		// Assert
-		result.Should().Contain(para);
+		_ = result.Should().Contain(para);
 	}
 
 	[Fact]
@@ -424,8 +424,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithAnnotations().ToList();
 
 		// Assert
-		result.Should().Contain(para);
-		result.Should().HaveCount(1);
+		_ = result.Should().Contain(para);
+		_ = result.Should().ContainSingle();
 	}
 
 	[Fact]
@@ -448,8 +448,8 @@ public class ChunkQueryExtensionsTests
 		var result = _testChunks.WithAnnotationType(AnnotationType.Bold).ToList();
 
 		// Assert
-		result.Should().Contain(para1);
-		result.Should().NotContain(para2);
+		_ = result.Should().Contain(para1);
+		_ = result.Should().NotContain(para2);
 	}
 
 	[Fact]
@@ -463,7 +463,7 @@ public class ChunkQueryExtensionsTests
 		var root = leaf.GetRoot(_testChunks);
 
 		// Assert
-		root.Should().Be(expectedRoot);
+		_ = root.Should().Be(expectedRoot);
 	}
 
 	[Fact]
@@ -476,7 +476,7 @@ public class ChunkQueryExtensionsTests
 		var result = root.GetRoot(_testChunks);
 
 		// Assert
-		result.Should().Be(root);
+		_ = result.Should().Be(root);
 	}
 
 	[Fact]
@@ -489,8 +489,8 @@ public class ChunkQueryExtensionsTests
 		var next = first.GetNext(_testChunks);
 
 		// Assert
-		next.Should().NotBeNull();
-		next!.SequenceNumber.Should().Be(first.SequenceNumber + 1);
+		_ = next.Should().NotBeNull();
+		_ = next!.SequenceNumber.Should().Be(first.SequenceNumber + 1);
 	}
 
 	[Fact]
@@ -503,7 +503,7 @@ public class ChunkQueryExtensionsTests
 		var next = last.GetNext(_testChunks);
 
 		// Assert
-		next.Should().BeNull();
+		_ = next.Should().BeNull();
 	}
 
 	[Fact]
@@ -516,8 +516,8 @@ public class ChunkQueryExtensionsTests
 		var previous = second.GetPrevious(_testChunks);
 
 		// Assert
-		previous.Should().NotBeNull();
-		previous!.SequenceNumber.Should().Be(second.SequenceNumber - 1);
+		_ = previous.Should().NotBeNull();
+		_ = previous!.SequenceNumber.Should().Be(second.SequenceNumber - 1);
 	}
 
 	[Fact]
@@ -530,7 +530,7 @@ public class ChunkQueryExtensionsTests
 		var previous = first.GetPrevious(_testChunks);
 
 		// Assert
-		previous.Should().BeNull();
+		_ = previous.Should().BeNull();
 	}
 
 	[Fact]
@@ -543,8 +543,8 @@ public class ChunkQueryExtensionsTests
 		var context = middle.GetContext(_testChunks, before: 1, after: 1, includeSelf: true).ToList();
 
 		// Assert
-		context.Should().HaveCount(3);
-		context.Should().Contain(middle);
+		_ = context.Should().HaveCount(3);
+		_ = context.Should().Contain(middle);
 	}
 
 	[Fact]
@@ -557,8 +557,8 @@ public class ChunkQueryExtensionsTests
 		var context = middle.GetContext(_testChunks, before: 1, after: 1, includeSelf: false).ToList();
 
 		// Assert
-		context.Should().HaveCount(2);
-		context.Should().NotContain(middle);
+		_ = context.Should().HaveCount(2);
+		_ = context.Should().NotContain(middle);
 	}
 
 	[Fact]
@@ -573,10 +573,10 @@ public class ChunkQueryExtensionsTests
 		var groups = _testChunks.GroupByPage().ToList();
 
 		// Assert
-		groups.Should().HaveCountGreaterThan(0);
+		_ = groups.Should().HaveCountGreaterThan(0);
 		var page1Group = groups.FirstOrDefault(g => g.Key == 1);
-		page1Group.Should().NotBeNull();
-		page1Group!.Should().HaveCount(2);
+		_ = page1Group.Should().NotBeNull();
+		_ = page1Group!.Should().HaveCount(2);
 	}
 
 	[Fact]
@@ -586,8 +586,8 @@ public class ChunkQueryExtensionsTests
 		var groups = _testChunks.GroupByType().ToList();
 
 		// Assert
-		groups.Should().NotBeEmpty();
-		groups.Should().AllSatisfy(g => g.Should().NotBeEmpty());
+		_ = groups.Should().NotBeEmpty();
+		_ = groups.Should().AllSatisfy(g => g.Should().NotBeEmpty());
 	}
 
 	private static List<ChunkerBase> CreateTestChunks()

@@ -1,31 +1,41 @@
+using PanoramicData.Chunker.Models.LLM;
+
 namespace PanoramicData.Chunker.Interfaces;
 
 /// <summary>
-/// Interface for LLM operations (summaries, keywords).
+/// Abstraction for LLM providers (Ollama, OpenAI, Azure, etc.).
 /// </summary>
 public interface ILlmProvider
 {
 	/// <summary>
-	/// Generate a summary of the content.
+	/// Generates text completion from a prompt.
 	/// </summary>
-	/// <param name="content">The content to summarize.</param>
-	/// <param name="maxTokens">Maximum length of summary in tokens.</param>
+	/// <param name="request">The LLM request.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	/// <returns>The generated summary.</returns>
-	Task<string> GenerateSummaryAsync(
-		string content,
-		int maxTokens = 100,
+	/// <returns>The LLM response.</returns>
+	Task<LLMResponse> GenerateAsync(
+		LLMRequest request,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
-	/// Extract keywords from the content.
+	/// Generates text completions for multiple prompts (batch).
 	/// </summary>
-	/// <param name="content">The content to analyze.</param>
-	/// <param name="maxKeywords">Maximum number of keywords to extract.</param>
+	/// <param name="requests">The LLM requests.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	/// <returns>List of extracted keywords.</returns>
-	Task<List<string>> ExtractKeywordsAsync(
-		string content,
-		int maxKeywords = 5,
+	/// <returns>The LLM responses.</returns>
+	Task<IEnumerable<LLMResponse>> GenerateBatchAsync(
+		IEnumerable<LLMRequest> requests,
 		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Checks if the LLM provider is available/reachable.
+	/// </summary>
+	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <returns>True if available, false otherwise.</returns>
+	Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Gets the name of the provider (e.g., "Ollama", "OpenAI").
+	/// </summary>
+	string ProviderName { get; }
 }

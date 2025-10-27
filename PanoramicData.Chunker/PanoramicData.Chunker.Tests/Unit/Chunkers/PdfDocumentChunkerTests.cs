@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Pdf;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -27,8 +27,8 @@ public class PdfDocumentChunkerTests
 		var chunker = new PdfDocumentChunker(_tokenCounter);
 
 		// Assert
-		chunker.Should().NotBeNull();
-		chunker.SupportedType.Should().Be(DocumentType.Pdf);
+		_ = chunker.Should().NotBeNull();
+		_ = chunker.SupportedType.Should().Be(DocumentType.Pdf);
 	}
 
 	[Fact]
@@ -36,7 +36,7 @@ public class PdfDocumentChunkerTests
 	{
 		// Arrange, Act & Assert
 		var act = () => new PdfDocumentChunker(null!);
-		act.Should().Throw<ArgumentNullException>();
+		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -46,7 +46,7 @@ public class PdfDocumentChunkerTests
 		var type = _chunker.SupportedType;
 
 		// Assert
-		type.Should().Be(DocumentType.Pdf);
+		_ = type.Should().Be(DocumentType.Pdf);
 	}
 
 	[Fact]
@@ -60,8 +60,8 @@ public class PdfDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeTrue();
-		stream.Position.Should().Be(0); // Should restore position
+		_ = result.Should().BeTrue();
+		_ = stream.Position.Should().Be(0); // Should restore position
 	}
 
 	[Fact]
@@ -75,7 +75,7 @@ public class PdfDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -88,7 +88,7 @@ public class PdfDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -102,7 +102,7 @@ public class PdfDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -115,7 +115,7 @@ public class PdfDocumentChunkerTests
 		var act = async () => await _chunker.ChunkAsync(null!, options);
 
 		// Assert
-		await act.Should().ThrowAsync<ArgumentNullException>();
+		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -128,7 +128,7 @@ public class PdfDocumentChunkerTests
 		var act = async () => await _chunker.ChunkAsync(stream, null!);
 
 		// Assert
-		await act.Should().ThrowAsync<ArgumentNullException>();
+		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -145,13 +145,13 @@ public class PdfDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Success.Should().BeTrue();
-			result.Chunks.Should().NotBeEmpty();
+			_ = result.Should().NotBeNull();
+			_ = result.Success.Should().BeTrue();
+			_ = result.Chunks.Should().NotBeEmpty();
 
 			// Should have document and page chunks
-			result.Chunks.OfType<PdfDocumentChunk>().Should().HaveCount(1);
-			result.Chunks.OfType<PdfPageChunk>().Should().NotBeEmpty();
+			_ = result.Chunks.OfType<PdfDocumentChunk>().Should().ContainSingle();
+			_ = result.Chunks.OfType<PdfPageChunk>().Should().NotBeEmpty();
 		}
 	}
 
@@ -167,9 +167,9 @@ public class PdfDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Should().NotBeNull();
-		result.Success.Should().BeFalse();
-		result.Warnings.Should().NotBeEmpty();
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeFalse();
+		_ = result.Warnings.Should().NotBeEmpty();
 	}
 
 	[Fact]
@@ -186,10 +186,10 @@ public class PdfDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Success.Should().BeTrue();
+			_ = result.Should().NotBeNull();
+			_ = result.Success.Should().BeTrue();
 			// Empty PDF should still have document and page chunks
-			result.Chunks.Should().NotBeEmpty();
+			_ = result.Chunks.Should().NotBeEmpty();
 		}
 	}
 
@@ -207,9 +207,9 @@ public class PdfDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.Statistics.Should().NotBeNull();
-			result.Statistics.TotalChunks.Should().BeGreaterThan(0);
-			result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+			_ = result.Statistics.Should().NotBeNull();
+			_ = result.Statistics.TotalChunks.Should().BePositive();
+			_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 		}
 	}
 
@@ -227,8 +227,8 @@ public class PdfDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.ValidationResult.Should().NotBeNull();
-			result.ValidationResult!.IsValid.Should().BeTrue();
+			_ = result.ValidationResult.Should().NotBeNull();
+			_ = result.ValidationResult!.IsValid.Should().BeTrue();
 		}
 	}
 
@@ -246,9 +246,9 @@ public class PdfDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.Chunks.Should().AllSatisfy(chunk =>
+			_ = result.Chunks.Should().AllSatisfy(chunk =>
 			{
-				chunk.QualityMetrics.Should().NotBeNull();
+				_ = chunk.QualityMetrics.Should().NotBeNull();
 			});
 		}
 	}
@@ -268,10 +268,10 @@ public class PdfDocumentChunkerTests
 
 			// Assert
 			var page = result.Chunks.OfType<PdfPageChunk>().FirstOrDefault();
-			page.Should().NotBeNull();
-			page!.PageNumber.Should().BeGreaterThan(0);
-			page.Width.Should().BeGreaterThan(0);
-			page.Height.Should().BeGreaterThan(0);
+			_ = page.Should().NotBeNull();
+			_ = page!.PageNumber.Should().BePositive();
+			_ = page.Width.Should().BePositive();
+			_ = page.Height.Should().BePositive();
 		}
 	}
 
@@ -290,9 +290,9 @@ public class PdfDocumentChunkerTests
 
 			// Assert
 			var doc = result.Chunks.OfType<PdfDocumentChunk>().FirstOrDefault();
-			doc.Should().NotBeNull();
-			doc!.PdfVersion.Should().NotBeNullOrEmpty();
-			doc.PageCount.Should().BeGreaterThan(0);
+			_ = doc.Should().NotBeNull();
+			_ = doc!.PdfVersion.Should().NotBeNullOrEmpty();
+			_ = doc.PageCount.Should().BePositive();
 		}
 	}
 
@@ -314,9 +314,9 @@ public class PdfDocumentChunkerTests
 			var pages = result.Chunks.OfType<PdfPageChunk>();
 
 			// All pages should be children of document
-			pages.Should().AllSatisfy(page =>
+			_ = pages.Should().AllSatisfy(page =>
 			{
-				page.ParentId.Should().Be(doc.Id);
+				_ = page.ParentId.Should().Be(doc.Id);
 			});
 		}
 	}

@@ -88,7 +88,7 @@ public class DefaultChunkValidator : IChunkValidator
 			return true;
 		}
 
-		visited.Add(chunk.Id);
+		_ = visited.Add(chunk.Id);
 
 		if (chunk.ParentId.HasValue && allChunks.TryGetValue(chunk.ParentId.Value, out var parent))
 		{

@@ -474,7 +474,7 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 			var text = GetShapeText(shape);
 			if (!string.IsNullOrWhiteSpace(text))
 			{
-				notesText.AppendLine(text);
+				_ = notesText.AppendLine(text);
 			}
 		}
 
@@ -595,11 +595,11 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 				var text = run.Text?.Text;
 				if (!string.IsNullOrEmpty(text))
 				{
-					sb.Append(text);
+					_ = sb.Append(text);
 				}
 			}
 
-			sb.AppendLine();
+			_ = sb.AppendLine();
 		}
 
 		return WhitespaceRegex().Replace(sb.ToString(), " ").Trim();
@@ -705,7 +705,7 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 						var text = run.Text?.Text;
 						if (!string.IsNullOrEmpty(text))
 						{
-							sb.Append(text);
+							_ = sb.Append(text);
 						}
 					}
 				}
@@ -724,20 +724,20 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 
 		if (headers.Count > 0)
 		{
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers);
+			_ = sb.AppendLine(" |");
 
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers.Select(_ => "---"));
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers.Select(_ => "---"));
+			_ = sb.AppendLine(" |");
 		}
 
 		foreach (var row in rows)
 		{
-			sb.Append("| ");
-			sb.AppendJoin(" | ", row);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", row);
+			_ = sb.AppendLine(" |");
 		}
 
 		return sb.ToString();

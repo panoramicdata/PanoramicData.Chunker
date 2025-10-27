@@ -14,7 +14,7 @@ public static class CsvTestFileGenerator
 	/// </summary>
 	public static void GenerateAllTestFiles()
 	{
-		Directory.CreateDirectory(_testDataPath);
+		_ = Directory.CreateDirectory(_testDataPath);
 
 		// If files already exist, skip generation
 		if (File.Exists(Path.Combine(_testDataPath, "simple.csv")))
@@ -97,11 +97,11 @@ Charlie,35,Tokyo";
 		var filePath = Path.Combine(_testDataPath, "large.csv");
 		var sb = new StringBuilder();
 
-		sb.AppendLine("ID,Name,Value,Date,Status");
+		_ = sb.AppendLine("ID,Name,Value,Date,Status");
 
 		for (var i = 1; i <= 1000; i++)
 		{
-			sb.AppendLine($"{i},Item {i},{i * 10.5:F2},2025-01-{(i % 28) + 1:D2},{(i % 3 == 0 ? "Active" : "Inactive")}");
+			_ = sb.AppendLine($"{i},Item {i},{i * 10.5:F2},2025-01-{(i % 28) + 1:D2},{(i % 3 == 0 ? "Active" : "Inactive")}");
 		}
 
 		File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);

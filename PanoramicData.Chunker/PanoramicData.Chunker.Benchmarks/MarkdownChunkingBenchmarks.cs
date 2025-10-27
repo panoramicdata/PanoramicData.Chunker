@@ -155,42 +155,42 @@ Thank you for reading.
 	private static string GenerateMediumMarkdown()
 	{
 		var sb = new StringBuilder();
-		
-		sb.AppendLine("# Complete Guide to Markdown");
-		sb.AppendLine();
-		sb.AppendLine("This is a comprehensive guide to Markdown syntax and features.");
-		sb.AppendLine();
+
+		_ = sb.AppendLine("# Complete Guide to Markdown");
+		_ = sb.AppendLine();
+		_ = sb.AppendLine("This is a comprehensive guide to Markdown syntax and features.");
+		_ = sb.AppendLine();
 
 		for (var i = 1; i <= 5; i++)
 		{
-			sb.AppendLine($"## Chapter {i}: Advanced Topics");
-			sb.AppendLine();
-			sb.AppendLine($"This chapter covers advanced topics in Markdown, including various formatting options and best practices for writing documentation.");
-			sb.AppendLine();
+			_ = sb.AppendLine($"## Chapter {i}: Advanced Topics");
+			_ = sb.AppendLine();
+			_ = sb.AppendLine($"This chapter covers advanced topics in Markdown, including various formatting options and best practices for writing documentation.");
+			_ = sb.AppendLine();
 
-			sb.AppendLine($"### Section {i}.1: Basics");
-			sb.AppendLine();
-			sb.AppendLine("Here are some important concepts to understand:");
-			sb.AppendLine();
-			sb.AppendLine("- Point one with detailed explanation");
-			sb.AppendLine("- Point two with examples");
-			sb.AppendLine("- Point three with code samples");
-			sb.AppendLine();
+			_ = sb.AppendLine($"### Section {i}.1: Basics");
+			_ = sb.AppendLine();
+			_ = sb.AppendLine("Here are some important concepts to understand:");
+			_ = sb.AppendLine();
+			_ = sb.AppendLine("- Point one with detailed explanation");
+			_ = sb.AppendLine("- Point two with examples");
+			_ = sb.AppendLine("- Point three with code samples");
+			_ = sb.AppendLine();
 
-			sb.AppendLine("```csharp");
-			sb.AppendLine("public class Example");
-			sb.AppendLine("{");
-			sb.AppendLine("    public string Property { get; set; }");
-			sb.AppendLine("}");
-			sb.AppendLine("```");
-			sb.AppendLine();
+			_ = sb.AppendLine("```csharp");
+			_ = sb.AppendLine("public class Example");
+			_ = sb.AppendLine("{");
+			_ = sb.AppendLine("    public string Property { get; set; }");
+			_ = sb.AppendLine("}");
+			_ = sb.AppendLine("```");
+			_ = sb.AppendLine();
 
-			sb.AppendLine($"### Section {i}.2: Advanced Concepts");
-			sb.AppendLine();
-			sb.AppendLine("More detailed content with multiple paragraphs.");
-			sb.AppendLine();
-			sb.AppendLine("Another paragraph with additional information.");
-			sb.AppendLine();
+			_ = sb.AppendLine($"### Section {i}.2: Advanced Concepts");
+			_ = sb.AppendLine();
+			_ = sb.AppendLine("More detailed content with multiple paragraphs.");
+			_ = sb.AppendLine();
+			_ = sb.AppendLine("Another paragraph with additional information.");
+			_ = sb.AppendLine();
 		}
 
 		return sb.ToString();
@@ -199,70 +199,70 @@ Thank you for reading.
 	private static string GenerateLargeMarkdown()
 	{
 		var sb = new StringBuilder();
-		
-		sb.AppendLine("# Technical Documentation");
-		sb.AppendLine();
-		sb.AppendLine("## Table of Contents");
-		sb.AppendLine();
+
+		_ = sb.AppendLine("# Technical Documentation");
+		_ = sb.AppendLine();
+		_ = sb.AppendLine("## Table of Contents");
+		_ = sb.AppendLine();
 
 		// Generate 20 chapters
 		for (var chapter = 1; chapter <= 20; chapter++)
 		{
-			sb.AppendLine($"## Chapter {chapter}: Topic {chapter}");
-			sb.AppendLine();
-			sb.AppendLine($"This is the introduction to chapter {chapter}. It contains important information about various aspects of the topic.");
-			sb.AppendLine();
+			_ = sb.AppendLine($"## Chapter {chapter}: Topic {chapter}");
+			_ = sb.AppendLine();
+			_ = sb.AppendLine($"This is the introduction to chapter {chapter}. It contains important information about various aspects of the topic.");
+			_ = sb.AppendLine();
 
 			// 5 sections per chapter
 			for (var section = 1; section <= 5; section++)
 			{
-				sb.AppendLine($"### Section {chapter}.{section}: Subtopic");
-				sb.AppendLine();
+				_ = sb.AppendLine($"### Section {chapter}.{section}: Subtopic");
+				_ = sb.AppendLine();
 				
 				// Multiple paragraphs
 				for (var para = 1; para <= 3; para++)
 				{
-					sb.AppendLine($"This is paragraph {para} of section {chapter}.{section}. It contains detailed explanations and examples to help understand the concept better.");
-					sb.AppendLine();
+					_ = sb.AppendLine($"This is paragraph {para} of section {chapter}.{section}. It contains detailed explanations and examples to help understand the concept better.");
+					_ = sb.AppendLine();
 				}
 
 				// Add code block
 				if (section % 2 == 0)
 				{
-					sb.AppendLine("```csharp");
-					sb.AppendLine($"// Example code for section {chapter}.{section}");
-					sb.AppendLine("public class Example");
-					sb.AppendLine("{");
-					sb.AppendLine("    public int Id { get; set; }");
-					sb.AppendLine($"    public string Name {{ get; set; }} = \"Section {chapter}.{section}\";");
-					sb.AppendLine("    ");
-					sb.AppendLine("    public void Process()");
-					sb.AppendLine("    {");
-					sb.AppendLine("        Console.WriteLine($\"Processing {Name}\");");
-					sb.AppendLine("    }");
-					sb.AppendLine("}");
-					sb.AppendLine("```");
-					sb.AppendLine();
+					_ = sb.AppendLine("```csharp");
+					_ = sb.AppendLine($"// Example code for section {chapter}.{section}");
+					_ = sb.AppendLine("public class Example");
+					_ = sb.AppendLine("{");
+					_ = sb.AppendLine("    public int Id { get; set; }");
+					_ = sb.AppendLine($"    public string Name {{ get; set; }} = \"Section {chapter}.{section}\";");
+					_ = sb.AppendLine("    ");
+					_ = sb.AppendLine("    public void Process()");
+					_ = sb.AppendLine("    {");
+					_ = sb.AppendLine("        Console.WriteLine($\"Processing {Name}\");");
+					_ = sb.AppendLine("    }");
+					_ = sb.AppendLine("}");
+					_ = sb.AppendLine("```");
+					_ = sb.AppendLine();
 				}
 
 				// Add list
-				sb.AppendLine("Key points:");
-				sb.AppendLine();
+				_ = sb.AppendLine("Key points:");
+				_ = sb.AppendLine();
 				for (var i = 1; i <= 5; i++)
 				{
-					sb.AppendLine($"- Point {i}: Important detail about the topic");
+					_ = sb.AppendLine($"- Point {i}: Important detail about the topic");
 				}
-				sb.AppendLine();
+				_ = sb.AppendLine();
 
 				// Add table occasionally
 				if (section == 3)
 				{
-					sb.AppendLine("| Feature | Description | Status |");
-					sb.AppendLine("|---------|-------------|--------|");
-					sb.AppendLine("| Feature A | Description of feature A | Complete |");
-					sb.AppendLine("| Feature B | Description of feature B | In Progress |");
-					sb.AppendLine("| Feature C | Description of feature C | Planned |");
-					sb.AppendLine();
+					_ = sb.AppendLine("| Feature | Description | Status |");
+					_ = sb.AppendLine("|---------|-------------|--------|");
+					_ = sb.AppendLine("| Feature A | Description of feature A | Complete |");
+					_ = sb.AppendLine("| Feature B | Description of feature B | In Progress |");
+					_ = sb.AppendLine("| Feature C | Description of feature C | Planned |");
+					_ = sb.AppendLine();
 				}
 			}
 		}
@@ -273,55 +273,55 @@ Thank you for reading.
 	private static string GenerateVeryLargeMarkdown()
 	{
 		var sb = new StringBuilder();
-		
-		sb.AppendLine("# Comprehensive Technical Reference");
-		sb.AppendLine();
-		sb.AppendLine("This document contains extensive technical documentation spanning multiple topics.");
-		sb.AppendLine();
+
+		_ = sb.AppendLine("# Comprehensive Technical Reference");
+		_ = sb.AppendLine();
+		_ = sb.AppendLine("This document contains extensive technical documentation spanning multiple topics.");
+		_ = sb.AppendLine();
 
 		// Generate 100 sections
 		for (var i = 1; i <= 100; i++)
 		{
-			sb.AppendLine($"## Section {i}: Component Documentation");
-			sb.AppendLine();
-			sb.AppendLine($"### Overview of Section {i}");
-			sb.AppendLine();
+			_ = sb.AppendLine($"## Section {i}: Component Documentation");
+			_ = sb.AppendLine();
+			_ = sb.AppendLine($"### Overview of Section {i}");
+			_ = sb.AppendLine();
 			
 			for (var para = 1; para <= 10; para++)
 			{
-				sb.AppendLine($"Paragraph {para}: This is detailed content for section {i}. It contains comprehensive information about the topic, including examples, best practices, and common pitfalls to avoid. The content is designed to be informative and practical for developers working with this technology.");
-				sb.AppendLine();
+				_ = sb.AppendLine($"Paragraph {para}: This is detailed content for section {i}. It contains comprehensive information about the topic, including examples, best practices, and common pitfalls to avoid. The content is designed to be informative and practical for developers working with this technology.");
+				_ = sb.AppendLine();
 			}
 
-			sb.AppendLine("### Code Examples");
-			sb.AppendLine();
-			sb.AppendLine("```csharp");
-			sb.AppendLine($"// Code example for section {i}");
-			sb.AppendLine("public class Component");
-			sb.AppendLine("{");
-			sb.AppendLine("    private readonly IService _service;");
-			sb.AppendLine("    ");
-			sb.AppendLine("    public Component(IService service)");
-			sb.AppendLine("    {");
-			sb.AppendLine("        _service = service;");
-			sb.AppendLine("    }");
-			sb.AppendLine("    ");
-			sb.AppendLine("    public async Task<Result> ProcessAsync()");
-			sb.AppendLine("    {");
-			sb.AppendLine("        var data = await _service.GetDataAsync();");
-			sb.AppendLine("        return Transform(data);");
-			sb.AppendLine("    }");
-			sb.AppendLine("}");
-			sb.AppendLine("```");
-			sb.AppendLine();
+			_ = sb.AppendLine("### Code Examples");
+			_ = sb.AppendLine();
+			_ = sb.AppendLine("```csharp");
+			_ = sb.AppendLine($"// Code example for section {i}");
+			_ = sb.AppendLine("public class Component");
+			_ = sb.AppendLine("{");
+			_ = sb.AppendLine("    private readonly IService _service;");
+			_ = sb.AppendLine("    ");
+			_ = sb.AppendLine("    public Component(IService service)");
+			_ = sb.AppendLine("    {");
+			_ = sb.AppendLine("        _service = service;");
+			_ = sb.AppendLine("    }");
+			_ = sb.AppendLine("    ");
+			_ = sb.AppendLine("    public async Task<Result> ProcessAsync()");
+			_ = sb.AppendLine("    {");
+			_ = sb.AppendLine("        var data = await _service.GetDataAsync();");
+			_ = sb.AppendLine("        return Transform(data);");
+			_ = sb.AppendLine("    }");
+			_ = sb.AppendLine("}");
+			_ = sb.AppendLine("```");
+			_ = sb.AppendLine();
 
-			sb.AppendLine("### Implementation Details");
-			sb.AppendLine();
+			_ = sb.AppendLine("### Implementation Details");
+			_ = sb.AppendLine();
 			for (var j = 1; j <= 5; j++)
 			{
-				sb.AppendLine($"- Implementation point {j} with detailed explanation");
+				_ = sb.AppendLine($"- Implementation point {j} with detailed explanation");
 			}
-			sb.AppendLine();
+			_ = sb.AppendLine();
 		}
 
 		return sb.ToString();

@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -38,10 +38,10 @@ public class HtmlDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Should().NotBeNull();
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
-		result.Statistics.Should().NotBeNull();
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
+		_ = result.Statistics.Should().NotBeNull();
 	}
 
 	[Fact]
@@ -55,7 +55,7 @@ public class HtmlDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeTrue();
+		_ = result.Should().BeTrue();
 	}
 
 	[Fact]
@@ -69,7 +69,7 @@ public class HtmlDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -97,10 +97,10 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<HtmlSectionChunk>().ToList();
-		sections.Should().HaveCount(3);
-		sections[0].HeadingLevel.Should().Be(1);
-		sections[1].HeadingLevel.Should().Be(2);
-		sections[2].HeadingLevel.Should().Be(3);
+		_ = sections.Should().HaveCount(3);
+		_ = sections[0].HeadingLevel.Should().Be(1);
+		_ = sections[1].HeadingLevel.Should().Be(2);
+		_ = sections[2].HeadingLevel.Should().Be(3);
 	}
 
 	[Fact]
@@ -125,10 +125,10 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var paragraphs = result.Chunks.OfType<HtmlParagraphChunk>().ToList();
-		paragraphs.Should().HaveCount(3);
-		paragraphs[0].Content.Should().Contain("First");
-		paragraphs[1].Content.Should().Contain("Second");
-		paragraphs[2].Content.Should().Contain("Third");
+		_ = paragraphs.Should().HaveCount(3);
+		_ = paragraphs[0].Content.Should().Contain("First");
+		_ = paragraphs[1].Content.Should().Contain("Second");
+		_ = paragraphs[2].Content.Should().Contain("Third");
 	}
 
 	[Fact]
@@ -155,8 +155,8 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
-		listItems.Should().HaveCount(3);
-		listItems.All(li => li.ListType == "ul").Should().BeTrue();
+		_ = listItems.Should().HaveCount(3);
+		_ = listItems.Should().OnlyContain(li => li.ListType == "ul");
 	}
 
 	[Fact]
@@ -187,8 +187,8 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
-		listItems.Should().Contain(li => li.NestingLevel == 0);
-		listItems.Should().Contain(li => li.NestingLevel == 1);
+		_ = listItems.Should().Contain(li => li.NestingLevel == 0);
+		_ = listItems.Should().Contain(li => li.NestingLevel == 1);
 	}
 
 	[Fact]
@@ -214,7 +214,7 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
-		listItems.All(li => li.ListType == "ol").Should().BeTrue();
+		_ = listItems.Should().OnlyContain(li => li.ListType == "ol");
 	}
 
 	[Fact]
@@ -237,9 +237,9 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var codeBlocks = result.Chunks.OfType<HtmlCodeBlockChunk>().ToList();
-		codeBlocks.Should().HaveCount(1);
-		codeBlocks[0].Language.Should().Be("csharp");
-		codeBlocks[0].HasCodeElement.Should().BeTrue();
+		_ = codeBlocks.Should().ContainSingle();
+		_ = codeBlocks[0].Language.Should().Be("csharp");
+		_ = codeBlocks[0].HasCodeElement.Should().BeTrue();
 	}
 
 	[Fact]
@@ -262,9 +262,9 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var blockquotes = result.Chunks.OfType<HtmlBlockquoteChunk>().ToList();
-		blockquotes.Should().HaveCount(1);
-		blockquotes[0].Content.Should().Contain("quote");
-		blockquotes[0].CiteUrl.Should().Be("https://example.com");
+		_ = blockquotes.Should().ContainSingle();
+		_ = blockquotes[0].Content.Should().Contain("quote");
+		_ = blockquotes[0].CiteUrl.Should().Be("https://example.com");
 	}
 
 	[Fact]
@@ -295,12 +295,12 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var tables = result.Chunks.OfType<HtmlTableChunk>().ToList();
-		tables.Should().HaveCount(1);
+		_ = tables.Should().ContainSingle();
 		var table = tables[0];
-		table.TableInfo.RowCount.Should().Be(2);
-		table.TableInfo.ColumnCount.Should().Be(2);
-		table.TableInfo.Headers.Should().Contain("Name");
-		table.TableInfo.Headers.Should().Contain("Age");
+		_ = table.TableInfo.RowCount.Should().Be(2);
+		_ = table.TableInfo.ColumnCount.Should().Be(2);
+		_ = table.TableInfo.Headers.Should().Contain("Name");
+		_ = table.TableInfo.Headers.Should().Contain("Age");
 	}
 
 	[Fact]
@@ -323,12 +323,12 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var images = result.Chunks.OfType<HtmlImageChunk>().ToList();
-		images.Should().HaveCount(1);
+		_ = images.Should().ContainSingle();
 		var image = images[0];
-		image.BinaryReference.Should().Be("test.jpg");
-		image.Caption.Should().Be("Test image");
-		image.Width.Should().Be(100);
-		image.Height.Should().Be(50);
+		_ = image.BinaryReference.Should().Be("test.jpg");
+		_ = image.Caption.Should().Be("Test image");
+		_ = image.Width.Should().Be(100);
+		_ = image.Height.Should().Be(50);
 	}
 
 	[Fact]
@@ -351,12 +351,12 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
-		paragraph.Should().NotBeNull();
-		paragraph!.Annotations.Should().NotBeNull();
+		_ = paragraph.Should().NotBeNull();
+		_ = paragraph!.Annotations.Should().NotBeNull();
 		var linkAnnotation = paragraph.Annotations!.FirstOrDefault(a => a.Type == AnnotationType.Link);
-		linkAnnotation.Should().NotBeNull();
-		linkAnnotation!.Attributes.Should().ContainKey("href");
-		linkAnnotation.Attributes!["href"].Should().Be("https://example.com");
+		_ = linkAnnotation.Should().NotBeNull();
+		_ = linkAnnotation!.Attributes.Should().ContainKey("href");
+		_ = linkAnnotation.Attributes!["href"].Should().Be("https://example.com");
 	}
 
 	[Fact]
@@ -379,10 +379,10 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
-		paragraph.Should().NotBeNull();
-		paragraph!.Annotations.Should().NotBeNull();
+		_ = paragraph.Should().NotBeNull();
+		_ = paragraph!.Annotations.Should().NotBeNull();
 		var boldAnnotation = paragraph.Annotations!.FirstOrDefault(a => a.Type == AnnotationType.Bold);
-		boldAnnotation.Should().NotBeNull();
+		_ = boldAnnotation.Should().NotBeNull();
 	}
 
 	[Fact]
@@ -405,10 +405,10 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
-		paragraph.Should().NotBeNull();
-		paragraph!.Annotations.Should().NotBeNull();
+		_ = paragraph.Should().NotBeNull();
+		_ = paragraph!.Annotations.Should().NotBeNull();
 		var italicAnnotation = paragraph.Annotations!.FirstOrDefault(a => a.Type == AnnotationType.Italic);
-		italicAnnotation.Should().NotBeNull();
+		_ = italicAnnotation.Should().NotBeNull();
 	}
 
 	[Fact]
@@ -431,10 +431,10 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
-		paragraph.Should().NotBeNull();
-		paragraph!.Annotations.Should().NotBeNull();
+		_ = paragraph.Should().NotBeNull();
+		_ = paragraph!.Annotations.Should().NotBeNull();
 		var codeAnnotation = paragraph.Annotations!.FirstOrDefault(a => a.Type == AnnotationType.Code);
-		codeAnnotation.Should().NotBeNull();
+		_ = codeAnnotation.Should().NotBeNull();
 	}
 
 	[Fact]
@@ -462,8 +462,8 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<HtmlSectionChunk>().ToList();
-		sections.Should().Contain(s => s.TagName == "article");
-		sections.Should().Contain(s => s.TagName == "section");
+		_ = sections.Should().Contain(s => s.TagName == "article");
+		_ = sections.Should().Contain(s => s.TagName == "section");
 	}
 
 	[Fact]
@@ -489,8 +489,8 @@ public class HtmlDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Chunks.OfType<ContentChunk>().Should().NotContain(c => c.Content.Contains("console.log"));
-		result.Chunks.OfType<ContentChunk>().Should().NotContain(c => c.Content.Contains("color: red"));
+		_ = result.Chunks.OfType<ContentChunk>().Should().NotContain(c => c.Content.Contains("console.log"));
+		_ = result.Chunks.OfType<ContentChunk>().Should().NotContain(c => c.Content.Contains("color: red"));
 	}
 
 	[Fact]
@@ -517,9 +517,9 @@ public class HtmlDocumentChunkerTests
 		// Assert
 		var h1 = result.Chunks.OfType<HtmlSectionChunk>().First(s => s.HeadingLevel == 1);
 		var h2 = result.Chunks.OfType<HtmlSectionChunk>().First(s => s.HeadingLevel == 2);
-		
-		h1.ParentId.Should().BeNull();
-		h2.ParentId.Should().Be(h1.Id);
+
+		_ = h1.ParentId.Should().BeNull();
+		_ = h2.ParentId.Should().Be(h1.Id);
 	}
 
 	[Fact]
@@ -541,11 +541,11 @@ public class HtmlDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Chunks.Should().AllSatisfy(chunk =>
+		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
-			chunk.Metadata.Should().NotBeNull();
-			chunk.Metadata.DocumentType.Should().Be("HTML");
-			chunk.SequenceNumber.Should().BeGreaterThanOrEqualTo(0);
+			_ = chunk.Metadata.Should().NotBeNull();
+			_ = chunk.Metadata.DocumentType.Should().Be("HTML");
+			_ = chunk.SequenceNumber.Should().BeGreaterThanOrEqualTo(0);
 		});
 	}
 
@@ -569,8 +569,8 @@ public class HtmlDocumentChunkerTests
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().First();
-		paragraph.QualityMetrics.Should().NotBeNull();
-		paragraph.QualityMetrics!.CharacterCount.Should().BeGreaterThan(0);
-		paragraph.QualityMetrics.WordCount.Should().BeGreaterThan(0);
+		_ = paragraph.QualityMetrics.Should().NotBeNull();
+		_ = paragraph.QualityMetrics!.CharacterCount.Should().BePositive();
+		_ = paragraph.QualityMetrics.WordCount.Should().BePositive();
 	}
 }

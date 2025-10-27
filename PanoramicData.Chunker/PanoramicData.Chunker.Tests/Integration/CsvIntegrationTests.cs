@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Csv;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Models;
@@ -29,26 +29,26 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		// Should have document chunk
 		var documents = result.Chunks.OfType<CsvDocumentChunk>().ToList();
-		documents.Should().HaveCount(1);
+		_ = documents.Should().ContainSingle();
 
 		var doc = documents[0];
-		doc.Delimiter.Should().Be(',');
-		doc.HasHeaderRow.Should().BeTrue();
-		doc.Headers.Should().Contain(["Name", "Age", "City"]);
-		doc.ColumnCount.Should().Be(3);
+		_ = doc.Delimiter.Should().Be(',');
+		_ = doc.HasHeaderRow.Should().BeTrue();
+		_ = doc.Headers.Should().Contain(["Name", "Age", "City"]);
+		_ = doc.ColumnCount.Should().Be(3);
 
 		// Should have row chunks
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
-		rows.Should().HaveCount(3); // 3 data rows
+		_ = rows.Should().HaveCount(3); // 3 data rows
 
-		rows[0].Fields.Should().Contain("Alice");
-		rows[1].Fields.Should().Contain("Bob");
-		rows[2].Fields.Should().Contain("Charlie");
+		_ = rows[0].Fields.Should().Contain("Alice");
+		_ = rows[1].Fields.Should().Contain("Bob");
+		_ = rows[2].Fields.Should().Contain("Charlie");
 	}
 
 	[Fact]
@@ -63,8 +63,8 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().BeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -79,15 +79,15 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
-		rows.Should().HaveCount(3);
+		_ = rows.Should().HaveCount(3);
 
 		// Check quoted fields are parsed correctly
-		rows[0].Fields[0].Should().Be("Premium Widget");
-		rows[0].Fields[1].Should().Contain("High-quality");
-		rows[0].HasQuotedFields.Should().BeTrue();
+		_ = rows[0].Fields[0].Should().Be("Premium Widget");
+		_ = rows[0].Fields[1].Should().Contain("High-quality");
+		_ = rows[0].HasQuotedFields.Should().BeTrue();
 	}
 
 	[Fact]
@@ -102,13 +102,13 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
-		doc.Delimiter.Should().Be('\t');
+		_ = doc.Delimiter.Should().Be('\t');
 
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
-		rows.Should().HaveCount(2);
+		_ = rows.Should().HaveCount(2);
 	}
 
 	[Fact]
@@ -123,10 +123,10 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
-		doc.Delimiter.Should().Be(';');
+		_ = doc.Delimiter.Should().Be(';');
 	}
 
 	[Fact]
@@ -141,10 +141,10 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
-		doc.Delimiter.Should().Be('|');
+		_ = doc.Delimiter.Should().Be('|');
 	}
 
 	[Fact]
@@ -161,13 +161,13 @@ public class CsvIntegrationTests
 		var processingTime = DateTime.UtcNow - startTime;
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
-		rows.Should().HaveCount(1000);
+		_ = rows.Should().HaveCount(1000);
 
 		// Should process 1000 rows reasonably fast (< 2 seconds)
-		processingTime.TotalSeconds.Should().BeLessThan(2);
+		_ = processingTime.TotalSeconds.Should().BeLessThan(2);
 	}
 
 	[Fact]
@@ -182,14 +182,14 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
-		doc.HasHeaderRow.Should().BeFalse();
-		doc.Headers.Should().BeEmpty();
+		_ = doc.HasHeaderRow.Should().BeFalse();
+		_ = doc.Headers.Should().BeEmpty();
 
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
-		rows.Should().HaveCount(3);
+		_ = rows.Should().HaveCount(3);
 	}
 
 	[Fact]
@@ -204,15 +204,15 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
-		doc.Headers.Should().Contain(["Text", "Number", "Date", "Boolean", "Currency"]);
+		_ = doc.Headers.Should().Contain(["Text", "Number", "Date", "Boolean", "Currency"]);
 
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
-		rows.Should().HaveCount(3);
-		rows[0].Fields.Should().Contain("Sample");
-		rows[0].Fields.Should().Contain("123.45");
+		_ = rows.Should().HaveCount(3);
+		_ = rows[0].Fields.Should().Contain("Sample");
+		_ = rows[0].Fields.Should().Contain("123.45");
 	}
 
 	[Fact]
@@ -227,14 +227,14 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		// Row chunks should have quality metrics
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
-		rows.Should().AllSatisfy(row =>
+		_ = rows.Should().AllSatisfy(row =>
 		{
-			row.QualityMetrics.Should().NotBeNull();
-			row.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
+			_ = row.QualityMetrics.Should().NotBeNull();
+			_ = row.QualityMetrics!.TokenCount.Should().BePositive();
 		});
 	}
 
@@ -250,16 +250,16 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().First();
 		var rows = result.Chunks.OfType<CsvRowChunk>().ToList();
 
 		// All rows should be children of document
-		rows.Should().AllSatisfy(row =>
+		_ = rows.Should().AllSatisfy(row =>
 		{
-			row.ParentId.Should().Be(doc.Id);
-			row.Depth.Should().BeGreaterThan(doc.Depth);
+			_ = row.ParentId.Should().Be(doc.Id);
+			_ = row.Depth.Should().BeGreaterThan(doc.Depth);
 		});
 	}
 
@@ -275,11 +275,11 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
-		result.Statistics.StructuralChunks.Should().Be(1); // Document chunk
-		result.Statistics.TableChunks.Should().Be(3); // 3 row chunks
-		result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
+		_ = result.Statistics.StructuralChunks.Should().Be(1); // Document chunk
+		_ = result.Statistics.TableChunks.Should().Be(3); // 3 row chunks
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 	}
 
 	[Fact]
@@ -294,8 +294,8 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.csv", options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 	}
 
 	[Fact]
@@ -311,9 +311,9 @@ public class CsvIntegrationTests
 
 		// Assert
 		var row = result.Chunks.OfType<CsvRowChunk>().First();
-		row.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
-		row.SerializedTable.Should().Contain("|");
-		row.SerializedTable.Should().Contain("---");
+		_ = row.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
+		_ = row.SerializedTable.Should().Contain("|");
+		_ = row.SerializedTable.Should().Contain("---");
 	}
 
 	[Fact]
@@ -331,8 +331,8 @@ public class CsvIntegrationTests
 		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
 
 		// Assert
-		result.ValidationResult.Should().NotBeNull();
-		result.ValidationResult!.IsValid.Should().BeTrue();
+		_ = result.ValidationResult.Should().NotBeNull();
+		_ = result.ValidationResult!.IsValid.Should().BeTrue();
 	}
 
 	[Fact]
@@ -350,9 +350,9 @@ public class CsvIntegrationTests
 		var row = result.Chunks.OfType<CsvRowChunk>().First();
 
 		// Content should have header context (Name: Alice, Age: 30, City: New York)
-		row.Content.Should().Contain("Name:");
-		row.Content.Should().Contain("Age:");
-		row.Content.Should().Contain("City:");
-		row.Content.Should().Contain("Alice");
+		_ = row.Content.Should().Contain("Name:");
+		_ = row.Content.Should().Contain("Age:");
+		_ = row.Content.Should().Contain("City:");
+		_ = row.Content.Should().Contain("Alice");
 	}
 }

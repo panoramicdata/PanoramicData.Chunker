@@ -1,9 +1,8 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Xlsx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using System.Text;
-using Xunit;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
@@ -28,8 +27,8 @@ public class XlsxDocumentChunkerTests
 		var chunker = new XlsxDocumentChunker(_tokenCounter);
 
 		// Assert
-		chunker.Should().NotBeNull();
-		chunker.SupportedType.Should().Be(DocumentType.Xlsx);
+		_ = chunker.Should().NotBeNull();
+		_ = chunker.SupportedType.Should().Be(DocumentType.Xlsx);
 	}
 
 	[Fact]
@@ -37,7 +36,7 @@ public class XlsxDocumentChunkerTests
 	{
 		// Arrange, Act & Assert
 		var act = () => new XlsxDocumentChunker(null!);
-		act.Should().Throw<ArgumentNullException>();
+		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -47,7 +46,7 @@ public class XlsxDocumentChunkerTests
 		var type = _chunker.SupportedType;
 
 		// Assert
-		type.Should().Be(DocumentType.Xlsx);
+		_ = type.Should().Be(DocumentType.Xlsx);
 	}
 
 	[Fact]
@@ -64,7 +63,7 @@ public class XlsxDocumentChunkerTests
 			var result = await _chunker.CanHandleAsync(stream);
 
 			// Assert
-			result.Should().BeTrue();
+			_ = result.Should().BeTrue();
 			// Note: OpenXML may consume the stream during detection, so we don't strictly check position restoration
 		}
 	}
@@ -80,7 +79,7 @@ public class XlsxDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -93,7 +92,7 @@ public class XlsxDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -106,7 +105,7 @@ public class XlsxDocumentChunkerTests
 		var act = async () => await _chunker.ChunkAsync(null!, options);
 
 		// Assert
-		await act.Should().ThrowAsync<ArgumentNullException>();
+		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -119,7 +118,7 @@ public class XlsxDocumentChunkerTests
 		var act = async () => await _chunker.ChunkAsync(stream, null!);
 
 		// Assert
-		await act.Should().ThrowAsync<ArgumentNullException>();
+		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -136,12 +135,12 @@ public class XlsxDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Success.Should().BeTrue();
-			result.Chunks.Should().NotBeEmpty();
-			
+			_ = result.Should().NotBeNull();
+			_ = result.Success.Should().BeTrue();
+			_ = result.Chunks.Should().NotBeEmpty();
+
 			// Should have at least document chunk
-			result.Chunks.OfType<XlsxWorksheetChunk>().Should().NotBeEmpty();
+			_ = result.Chunks.OfType<XlsxWorksheetChunk>().Should().NotBeEmpty();
 		}
 	}
 
@@ -157,9 +156,9 @@ public class XlsxDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Should().NotBeNull();
-		result.Success.Should().BeFalse();
-		result.Warnings.Should().NotBeEmpty();
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeFalse();
+		_ = result.Warnings.Should().NotBeEmpty();
 	}
 
 	[Fact]
@@ -176,8 +175,8 @@ public class XlsxDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Success.Should().BeTrue();
+			_ = result.Should().NotBeNull();
+			_ = result.Success.Should().BeTrue();
 			// Empty XLSX may still have structural chunks (document, worksheet)
 			// so we don't require it to be empty
 		}
@@ -197,9 +196,9 @@ public class XlsxDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.Statistics.Should().NotBeNull();
-			result.Statistics.TotalChunks.Should().BeGreaterThan(0);
-			result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+			_ = result.Statistics.Should().NotBeNull();
+			_ = result.Statistics.TotalChunks.Should().BePositive();
+			_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 		}
 	}
 
@@ -217,8 +216,8 @@ public class XlsxDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.ValidationResult.Should().NotBeNull();
-			result.ValidationResult!.IsValid.Should().BeTrue();
+			_ = result.ValidationResult.Should().NotBeNull();
+			_ = result.ValidationResult!.IsValid.Should().BeTrue();
 		}
 	}
 
@@ -236,9 +235,9 @@ public class XlsxDocumentChunkerTests
 			var result = await _chunker.ChunkAsync(stream, options);
 
 			// Assert
-			result.Chunks.Should().AllSatisfy(chunk =>
+			_ = result.Chunks.Should().AllSatisfy(chunk =>
 			{
-				chunk.QualityMetrics.Should().NotBeNull();
+				_ = chunk.QualityMetrics.Should().NotBeNull();
 			});
 		}
 	}

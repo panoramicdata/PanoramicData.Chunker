@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Extensions;
 using PanoramicData.Chunker.Models;
@@ -162,16 +162,16 @@ public class ChunkTreeExtensionsTests
 		var roots = _testChunks.BuildTree().ToList();
 
 		// Assert
-		roots.Should().HaveCount(2);
-		roots.Should().AllBeOfType<MarkdownSectionChunk>();
+		_ = roots.Should().HaveCount(2);
+		_ = roots.Should().AllBeOfType<MarkdownSectionChunk>();
 
 		var section1 = (MarkdownSectionChunk)roots[0];
-		section1.Children.Should().HaveCount(2);
-		section1.Children.Should().AllBeOfType<MarkdownParagraphChunk>();
+		_ = section1.Children.Should().HaveCount(2);
+		_ = section1.Children.Should().AllBeOfType<MarkdownParagraphChunk>();
 
 		var section2 = (MarkdownSectionChunk)roots[1];
-		section2.Children.Should().HaveCount(1);
-		section2.Children[0].Should().BeOfType<MarkdownSectionChunk>();
+		_ = section2.Children.Should().ContainSingle();
+		_ = section2.Children[0].Should().BeOfType<MarkdownSectionChunk>();
 	}
 
 	[Fact]
@@ -181,8 +181,8 @@ public class ChunkTreeExtensionsTests
 		var roots = _testChunks.BuildTree().ToList();
 
 		// Assert
-		roots.Should().HaveCount(2);
-		roots.Should().OnlyContain(c => !c.ParentId.HasValue);
+		_ = roots.Should().HaveCount(2);
+		_ = roots.Should().OnlyContain(c => !c.ParentId.HasValue);
 	}
 
 	[Fact]
@@ -195,7 +195,7 @@ public class ChunkTreeExtensionsTests
 		var roots = emptyList.BuildTree().ToList();
 
 		// Assert
-		roots.Should().BeEmpty();
+		_ = roots.Should().BeEmpty();
 	}
 
 	#endregion
@@ -212,7 +212,7 @@ public class ChunkTreeExtensionsTests
 		var flattened = roots.FlattenTree().ToList();
 
 		// Assert
-		flattened.Should().HaveCount(7);
+		_ = flattened.Should().HaveCount(7);
 	}
 
 	[Fact]
@@ -225,7 +225,7 @@ public class ChunkTreeExtensionsTests
 		var flattened = roots.FlattenTree().ToList();
 
 		// Assert
-		flattened.Should().BeInAscendingOrder(c => c.SequenceNumber);
+		_ = flattened.Should().BeInAscendingOrder(c => c.SequenceNumber);
 	}
 
 	[Fact]
@@ -238,7 +238,7 @@ public class ChunkTreeExtensionsTests
 		var flattened = emptyList.FlattenTree().ToList();
 
 		// Assert
-		flattened.Should().BeEmpty();
+		_ = flattened.Should().BeEmpty();
 	}
 
 	#endregion
@@ -257,10 +257,10 @@ public class ChunkTreeExtensionsTests
 		section1.TraverseDepthFirst(c => visited.Add(c.SpecificType));
 
 		// Assert
-		visited.Should().HaveCount(3);
-		visited[0].Should().Be("Section");
-		visited[1].Should().Be("Paragraph");
-		visited[2].Should().Be("Paragraph");
+		_ = visited.Should().HaveCount(3);
+		_ = visited[0].Should().Be("Section");
+		_ = visited[1].Should().Be("Paragraph");
+		_ = visited[2].Should().Be("Paragraph");
 	}
 
 	[Fact]
@@ -275,7 +275,7 @@ public class ChunkTreeExtensionsTests
 		section2.TraverseDepthFirst(c => visited.Add(c));
 
 		// Assert
-		visited.First().Should().Be(section2);
+		_ = visited.First().Should().Be(section2);
 	}
 
 	[Fact]
@@ -290,12 +290,12 @@ public class ChunkTreeExtensionsTests
 		section2.TraverseDepthFirst(c => visited.Add($"{c.SpecificType}-{c.SequenceNumber}"));
 
 		// Assert
-		visited.Should().HaveCount(4);
+		_ = visited.Should().HaveCount(4);
 		// Should visit: section2, subsection, code, para3
-		visited[0].Should().Be("Section-3");
-		visited[1].Should().Be("Subsection-4");
-		visited[2].Should().Be("Code-5");
-		visited[3].Should().Be("Paragraph-6");
+		_ = visited[0].Should().Be("Section-3");
+		_ = visited[1].Should().Be("Subsection-4");
+		_ = visited[2].Should().Be("Code-5");
+		_ = visited[3].Should().Be("Paragraph-6");
 	}
 
 	#endregion
@@ -314,11 +314,11 @@ public class ChunkTreeExtensionsTests
 		section2.TraverseBreadthFirst(c => visited.Add(c.SpecificType));
 
 		// Assert
-		visited.Should().HaveCount(4);
-		visited[0].Should().Be("Section"); // Root
-		visited[1].Should().Be("Subsection"); // Level 1
-		visited[2].Should().Be("Code"); // Level 2
-		visited[3].Should().Be("Paragraph"); // Level 2
+		_ = visited.Should().HaveCount(4);
+		_ = visited[0].Should().Be("Section"); // Root
+		_ = visited[1].Should().Be("Subsection"); // Level 1
+		_ = visited[2].Should().Be("Code"); // Level 2
+		_ = visited[3].Should().Be("Paragraph"); // Level 2
 	}
 
 	[Fact]
@@ -333,7 +333,7 @@ public class ChunkTreeExtensionsTests
 		section2.TraverseBreadthFirst(c => depths.Add(c.Depth));
 
 		// Assert
-		depths.Should().Equal(0, 1, 2, 2);
+		_ = depths.Should().Equal(0, 1, 2, 2);
 	}
 
 	#endregion
@@ -350,10 +350,10 @@ public class ChunkTreeExtensionsTests
 		var path = code.GetPathFromRoot(_testChunks);
 
 		// Assert
-		path.Should().HaveCount(3);
-		path[0].Should().BeOfType<MarkdownSectionChunk>(); // section2
-		path[1].Should().BeOfType<MarkdownSectionChunk>(); // subsection
-		path[2].Should().BeOfType<MarkdownCodeBlockChunk>(); // code
+		_ = path.Should().HaveCount(3);
+		_ = path[0].Should().BeOfType<MarkdownSectionChunk>(); // section2
+		_ = path[1].Should().BeOfType<MarkdownSectionChunk>(); // subsection
+		_ = path[2].Should().BeOfType<MarkdownCodeBlockChunk>(); // code
 	}
 
 	[Fact]
@@ -366,8 +366,8 @@ public class ChunkTreeExtensionsTests
 		var path = section1.GetPathFromRoot(_testChunks);
 
 		// Assert
-		path.Should().HaveCount(1);
-		path[0].Should().Be(section1);
+		_ = path.Should().ContainSingle();
+		_ = path.Should().HaveElementAt(0, section1);
 	}
 
 	[Fact]
@@ -380,7 +380,7 @@ public class ChunkTreeExtensionsTests
 		var path = para3.GetPathFromRoot(_testChunks);
 
 		// Assert
-		path.Should().BeInAscendingOrder(c => c.Depth);
+		_ = path.Should().BeInAscendingOrder(c => c.Depth);
 	}
 
 	#endregion
@@ -397,7 +397,7 @@ public class ChunkTreeExtensionsTests
 		var path = code.GetHierarchyPath(_testChunks);
 
 		// Assert
-		path.Should().Be("Section > Subsection > Code");
+		_ = path.Should().Be("Section > Subsection > Code");
 	}
 
 	[Fact]
@@ -410,7 +410,7 @@ public class ChunkTreeExtensionsTests
 		var path = code.GetHierarchyPath(_testChunks, " / ");
 
 		// Assert
-		path.Should().Be("Section / Subsection / Code");
+		_ = path.Should().Be("Section / Subsection / Code");
 	}
 
 	[Fact]
@@ -423,7 +423,7 @@ public class ChunkTreeExtensionsTests
 		var path = section1.GetHierarchyPath(_testChunks);
 
 		// Assert
-		path.Should().Be("Section");
+		_ = path.Should().Be("Section");
 	}
 
 	#endregion
@@ -437,10 +437,10 @@ public class ChunkTreeExtensionsTests
 		var filtered = _testChunks.FilterTreeByPredicate(c => c.SpecificType == "Code").ToList();
 
 		// Assert
-		filtered.Should().HaveCount(3); // section2, subsection, code
-		filtered.Should().Contain(c => c.SpecificType == "Code");
-		filtered.Should().Contain(c => c.SpecificType == "Section");
-		filtered.Should().Contain(c => c.SpecificType == "Subsection");
+		_ = filtered.Should().HaveCount(3); // section2, subsection, code
+		_ = filtered.Should().Contain(c => c.SpecificType == "Code");
+		_ = filtered.Should().Contain(c => c.SpecificType == "Section");
+		_ = filtered.Should().Contain(c => c.SpecificType == "Subsection");
 	}
 
 	[Fact]
@@ -450,7 +450,7 @@ public class ChunkTreeExtensionsTests
 		var filtered = _testChunks.FilterTreeByPredicate(c => c.SpecificType == "Code").ToList();
 
 		// Assert
-		filtered.Should().NotContain(c => c.SpecificType == "Paragraph");
+		_ = filtered.Should().NotContain(c => c.SpecificType == "Paragraph");
 	}
 
 	[Fact]
@@ -460,7 +460,7 @@ public class ChunkTreeExtensionsTests
 		var filtered = _testChunks.FilterTreeByPredicate(c => c.SpecificType == "NonExistent").ToList();
 
 		// Assert
-		filtered.Should().BeEmpty();
+		_ = filtered.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -470,7 +470,7 @@ public class ChunkTreeExtensionsTests
 		var filtered = _testChunks.FilterTreeByPredicate(c => c.SpecificType == "Paragraph").ToList();
 
 		// Assert
-		filtered.Should().HaveCountGreaterThan(3); // Multiple paragraphs and their ancestors
+		_ = filtered.Should().HaveCountGreaterThan(3); // Multiple paragraphs and their ancestors
 	}
 
 	#endregion
@@ -487,7 +487,7 @@ public class ChunkTreeExtensionsTests
 		var subtree = section2.CloneSubtree(_testChunks, includeDescendants: true);
 
 		// Assert
-		subtree.Should().HaveCount(4); // section2, subsection, code, para3
+		_ = subtree.Should().HaveCount(4); // section2, subsection, code, para3
 	}
 
 	[Fact]
@@ -500,8 +500,8 @@ public class ChunkTreeExtensionsTests
 		var subtree = section2.CloneSubtree(_testChunks, includeDescendants: false);
 
 		// Assert
-		subtree.Should().HaveCount(1);
-		subtree[0].Should().Be(section2);
+		_ = subtree.Should().ContainSingle();
+		_ = subtree.Should().HaveElementAt(0, section2);
 	}
 
 	[Fact]
@@ -514,8 +514,8 @@ public class ChunkTreeExtensionsTests
 		var subtree = code.CloneSubtree(_testChunks, includeDescendants: true);
 
 		// Assert
-		subtree.Should().HaveCount(1);
-		subtree[0].Should().Be(code);
+		_ = subtree.Should().ContainSingle();
+		_ = subtree.Should().HaveElementAt(0, code);
 	}
 
 	#endregion
@@ -532,7 +532,7 @@ public class ChunkTreeExtensionsTests
 		var count = section2.CountDescendants(_testChunks);
 
 		// Assert
-		count.Should().Be(3); // subsection, code, para3
+		_ = count.Should().Be(3); // subsection, code, para3
 	}
 
 	[Fact]
@@ -545,7 +545,7 @@ public class ChunkTreeExtensionsTests
 		var count = code.CountDescendants(_testChunks);
 
 		// Assert
-		count.Should().Be(0);
+		_ = count.Should().Be(0);
 	}
 
 	[Fact]
@@ -558,7 +558,7 @@ public class ChunkTreeExtensionsTests
 		var count = subsection.CountDescendants(_testChunks);
 
 		// Assert
-		count.Should().Be(2); // code, para3
+		_ = count.Should().Be(2); // code, para3
 	}
 
 	#endregion
@@ -575,7 +575,7 @@ public class ChunkTreeExtensionsTests
 		var hasDescendants = section1.HasDescendants(_testChunks);
 
 		// Assert
-		hasDescendants.Should().BeTrue();
+		_ = hasDescendants.Should().BeTrue();
 	}
 
 	[Fact]
@@ -588,7 +588,7 @@ public class ChunkTreeExtensionsTests
 		var hasDescendants = code.HasDescendants(_testChunks);
 
 		// Assert
-		hasDescendants.Should().BeFalse();
+		_ = hasDescendants.Should().BeFalse();
 	}
 
 	#endregion
@@ -606,7 +606,7 @@ public class ChunkTreeExtensionsTests
 		var isAncestor = section2.IsAncestorOf(code);
 
 		// Assert
-		isAncestor.Should().BeTrue();
+		_ = isAncestor.Should().BeTrue();
 	}
 
 	[Fact]
@@ -620,7 +620,7 @@ public class ChunkTreeExtensionsTests
 		var isAncestor = section1.IsAncestorOf(code);
 
 		// Assert
-		isAncestor.Should().BeFalse();
+		_ = isAncestor.Should().BeFalse();
 	}
 
 	[Fact]
@@ -633,7 +633,7 @@ public class ChunkTreeExtensionsTests
 		var isAncestor = section1.IsAncestorOf(section1);
 
 		// Assert
-		isAncestor.Should().BeFalse();
+		_ = isAncestor.Should().BeFalse();
 	}
 
 	#endregion
@@ -650,7 +650,7 @@ public class ChunkTreeExtensionsTests
 		var level = code.GetNestingLevel();
 
 		// Assert
-		level.Should().Be(2);
+		_ = level.Should().Be(2);
 	}
 
 	[Fact]
@@ -663,7 +663,7 @@ public class ChunkTreeExtensionsTests
 		var level = section1.GetNestingLevel();
 
 		// Assert
-		level.Should().Be(0);
+		_ = level.Should().Be(0);
 	}
 
 	#endregion
@@ -680,9 +680,9 @@ public class ChunkTreeExtensionsTests
 		var leaves = section2.GetLeafNodes(_testChunks).ToList();
 
 		// Assert
-		leaves.Should().HaveCount(2); // code, para3
-		leaves.Should().NotContain(c => c.SpecificType == "Section");
-		leaves.Should().NotContain(c => c.SpecificType == "Subsection");
+		_ = leaves.Should().HaveCount(2); // code, para3
+		_ = leaves.Should().NotContain(c => c.SpecificType == "Section");
+		_ = leaves.Should().NotContain(c => c.SpecificType == "Subsection");
 	}
 
 	[Fact]
@@ -695,8 +695,8 @@ public class ChunkTreeExtensionsTests
 		var leaves = code.GetLeafNodes(_testChunks).ToList();
 
 		// Assert
-		leaves.Should().HaveCount(1);
-		leaves[0].Should().Be(code);
+		_ = leaves.Should().ContainSingle();
+		_ = leaves.Should().HaveElementAt(0, code);
 	}
 
 	#endregion
@@ -710,8 +710,8 @@ public class ChunkTreeExtensionsTests
 		var pruned = _testChunks.PruneAtDepth(1).ToList();
 
 		// Assert
-		pruned.Should().HaveCount(5); // sections + direct children
-		pruned.Should().NotContain(c => c.Depth > 1);
+		_ = pruned.Should().HaveCount(5); // sections + direct children
+		_ = pruned.Should().NotContain(c => c.Depth > 1);
 	}
 
 	[Fact]
@@ -721,8 +721,8 @@ public class ChunkTreeExtensionsTests
 		var pruned = _testChunks.PruneAtDepth(0).ToList();
 
 		// Assert
-		pruned.Should().HaveCount(2);
-		pruned.Should().OnlyContain(c => c.Depth == 0);
+		_ = pruned.Should().HaveCount(2);
+		_ = pruned.Should().OnlyContain(c => c.Depth == 0);
 	}
 
 	[Fact]
@@ -732,7 +732,7 @@ public class ChunkTreeExtensionsTests
 		var pruned = _testChunks.PruneAtDepth(10).ToList();
 
 		// Assert
-		pruned.Should().HaveCount(_testChunks.Count);
+		_ = pruned.Should().HaveCount(_testChunks.Count);
 	}
 
 	#endregion
@@ -746,8 +746,8 @@ public class ChunkTreeExtensionsTests
 		var groups = _testChunks.GroupBySubtree();
 
 		// Assert
-		groups.Should().HaveCount(2);
-		groups.Keys.Should().OnlyContain(c => !c.ParentId.HasValue);
+		_ = groups.Should().HaveCount(2);
+		_ = groups.Keys.Should().OnlyContain(c => !c.ParentId.HasValue);
 	}
 
 	[Fact]
@@ -758,10 +758,10 @@ public class ChunkTreeExtensionsTests
 
 		// Assert
 		var section1Group = groups.First().Value;
-		section1Group.Should().HaveCount(3); // section1 + 2 paragraphs
+		_ = section1Group.Should().HaveCount(3); // section1 + 2 paragraphs
 
 		var section2Group = groups.Last().Value;
-		section2Group.Should().HaveCount(4); // section2 + subsection + code + para3
+		_ = section2Group.Should().HaveCount(4); // section2 + subsection + code + para3
 	}
 
 	[Fact]
@@ -774,7 +774,7 @@ public class ChunkTreeExtensionsTests
 		var groups = emptyList.GroupBySubtree();
 
 		// Assert
-		groups.Should().BeEmpty();
+		_ = groups.Should().BeEmpty();
 	}
 
 	#endregion
@@ -792,7 +792,7 @@ public class ChunkTreeExtensionsTests
 		var flattened = roots.FlattenTree().ToList();
 
 		// Assert
-		flattened.Should().HaveCount(originalCount);
+		_ = flattened.Should().HaveCount(originalCount);
 	}
 
 	[Fact]
@@ -811,10 +811,10 @@ public class ChunkTreeExtensionsTests
 		}
 
 		// Assert
-		visitedDepthFirst.Should().HaveCount(_testChunks.Count);
-		visitedBreadthFirst.Should().HaveCount(_testChunks.Count);
-		visitedDepthFirst.Should().OnlyHaveUniqueItems();
-		visitedBreadthFirst.Should().OnlyHaveUniqueItems();
+		_ = visitedDepthFirst.Should().HaveCount(_testChunks.Count);
+		_ = visitedBreadthFirst.Should().HaveCount(_testChunks.Count);
+		_ = visitedDepthFirst.Should().OnlyHaveUniqueItems();
+		_ = visitedBreadthFirst.Should().OnlyHaveUniqueItems();
 	}
 
 	[Fact]
@@ -829,8 +829,8 @@ public class ChunkTreeExtensionsTests
 		var descendantCount = section2.CountDescendants(_testChunks);
 
 		// Assert
-		filtered.Should().NotBeEmpty();
-		subtree.Should().HaveCount(descendantCount + 1); // +1 for the root itself
+		_ = filtered.Should().NotBeEmpty();
+		_ = subtree.Should().HaveCount(descendantCount + 1); // +1 for the root itself
 	}
 
 	#endregion
@@ -855,7 +855,7 @@ public class ChunkTreeExtensionsTests
 		singleNode.TraverseDepthFirst(_ => visitCount++);
 
 		// Assert
-		visitCount.Should().Be(1);
+		_ = visitCount.Should().Be(1);
 	}
 
 	[Fact]
@@ -876,8 +876,8 @@ public class ChunkTreeExtensionsTests
 		var path = orphan.GetPathFromRoot(_testChunks);
 
 		// Assert
-		path.Should().HaveCount(1);
-		path[0].Should().Be(orphan);
+		_ = path.Should().ContainSingle();
+		_ = path.Should().HaveElementAt(0, orphan);
 	}
 
 	[Fact]
@@ -887,7 +887,7 @@ public class ChunkTreeExtensionsTests
 		var filtered = _testChunks.FilterTreeByPredicate(_ => true).ToList();
 
 		// Assert
-		filtered.Should().HaveCount(_testChunks.Count);
+		_ = filtered.Should().HaveCount(_testChunks.Count);
 	}
 
 	[Fact]
@@ -897,7 +897,7 @@ public class ChunkTreeExtensionsTests
 		var pruned = _testChunks.PruneAtDepth(-1).ToList();
 
 		// Assert
-		pruned.Should().BeEmpty();
+		_ = pruned.Should().BeEmpty();
 	}
 
 	#endregion

@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -37,9 +37,9 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
-		result.Statistics.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
+		_ = result.Statistics.Should().NotBeNull();
 
 		_output.WriteLine($"Simple document results:");
 		_output.WriteLine($"  Total chunks: {result.Statistics.TotalChunks}");
@@ -71,8 +71,8 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		var sections = result.Chunks.OfType<DocxSectionChunk>().ToList();
 		var paragraphs = result.Chunks.OfType<DocxParagraphChunk>().ToList();
@@ -86,7 +86,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		_output.WriteLine($"  Tables: {tables.Count}");
 
 		// Verify hierarchy
-		result.Statistics.MaxDepth.Should().BeGreaterThan(0);
+		_ = result.Statistics.MaxDepth.Should().BePositive();
 	}
 
 	[Fact]
@@ -111,10 +111,10 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<DocxTableChunk>().ToList();
-		tables.Should().NotBeEmpty();
+		_ = tables.Should().NotBeEmpty();
 
 		foreach (var table in tables)
 		{
@@ -122,10 +122,10 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 			_output.WriteLine($"  Has header: {table.TableInfo?.HasHeaderRow}");
 			_output.WriteLine($"  Serialization format: {table.SerializationFormat}");
 
-			table.SerializedTable.Should().NotBeEmpty();
-			table.TableInfo.Should().NotBeNull();
-			table.TableInfo!.RowCount.Should().BeGreaterThan(0);
-			table.TableInfo.ColumnCount.Should().BeGreaterThan(0);
+			_ = table.SerializedTable.Should().NotBeEmpty();
+			_ = table.TableInfo.Should().NotBeNull();
+			_ = table.TableInfo!.RowCount.Should().BePositive();
+			_ = table.TableInfo.ColumnCount.Should().BePositive();
 		}
 	}
 
@@ -151,10 +151,10 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var listItems = result.Chunks.OfType<DocxListItemChunk>().ToList();
-		listItems.Should().NotBeEmpty();
+		_ = listItems.Should().NotBeEmpty();
 
 		_output.WriteLine($"List items: {listItems.Count}");
 
@@ -166,7 +166,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		}
 
 		// Verify list levels are reasonable
-		listItems.Max(li => li.ListLevel).Should().BeLessThan(10);
+		_ = listItems.Max(li => li.ListLevel).Should().BeLessThan(10);
 	}
 
 	[Fact]
@@ -191,20 +191,20 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		foreach (var chunk in result.Chunks)
 		{
-			chunk.QualityMetrics.Should().NotBeNull();
-			chunk.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
+			_ = chunk.QualityMetrics.Should().NotBeNull();
+			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
 
 			_output.WriteLine($"Chunk: {chunk.QualityMetrics.TokenCount} tokens");
 		}
 
 		// Verify no chunks exceed the limit
 		var maxTokens = options.MaxTokens;
-		result.Chunks.All(c => c.QualityMetrics!.TokenCount <= maxTokens).Should().BeTrue();
+		_ = result.Chunks.Should().OnlyContain(c => c.QualityMetrics!.TokenCount <= maxTokens);
 	}
 
 	[Fact]
@@ -231,8 +231,8 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		var duration = DateTime.UtcNow - startTime;
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		_output.WriteLine($"Large document results:");
 		_output.WriteLine($"  Total chunks: {result.Statistics.TotalChunks}");
@@ -240,7 +240,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		_output.WriteLine($"  Chunks per second: {result.Statistics.TotalChunks / duration.TotalSeconds:F2}");
 
 		// Performance assertion: should process reasonably fast
-		duration.Should().BeLessThan(TimeSpan.FromSeconds(30));
+		_ = duration.Should().BeLessThan(TimeSpan.FromSeconds(30));
 	}
 
 	[Fact]
@@ -265,7 +265,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var paragraphs = result.Chunks.OfType<DocxParagraphChunk>()
 			.Where(p => p.Annotations.Count > 0)

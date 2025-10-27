@@ -229,17 +229,17 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 			// Create key-value pairs for better context
 			for (var i = 0; i < Math.Min(fields.Count, headers.Count); i++)
 			{
-				contentBuilder.Append($"{headers[i]}: {fields[i]}");
+				_ = contentBuilder.Append($"{headers[i]}: {fields[i]}");
 				if (i < Math.Min(fields.Count, headers.Count) - 1)
 				{
-					contentBuilder.Append(", ");
+					_ = contentBuilder.Append(", ");
 				}
 			}
 		}
 		else
 		{
 			// Just join fields with commas
-			contentBuilder.AppendJoin(", ", fields);
+			_ = contentBuilder.AppendJoin(", ", fields);
 		}
 
 		var content = contentBuilder.ToString();
@@ -369,7 +369,7 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 				if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
 				{
 					// Escaped quote
-					currentField.Append('"');
+					_ = currentField.Append('"');
 					i++; // Skip next quote
 				}
 				else
@@ -382,11 +382,11 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 			{
 				// End of field
 				fields.Add(currentField.ToString().Trim());
-				currentField.Clear();
+				_ = currentField.Clear();
 			}
 			else
 			{
-				currentField.Append(ch);
+				_ = currentField.Append(ch);
 			}
 		}
 
@@ -403,20 +403,20 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 		if (hasHeader && headers.Count > 0)
 		{
 			// Header row
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers);
+			_ = sb.AppendLine(" |");
 
 			// Separator
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers.Select(_ => "---"));
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers.Select(_ => "---"));
+			_ = sb.AppendLine(" |");
 		}
 
 		// Data row
-		sb.Append("| ");
-		sb.AppendJoin(" | ", fields);
-		sb.AppendLine(" |");
+		_ = sb.Append("| ");
+		_ = sb.AppendJoin(" | ", fields);
+		_ = sb.AppendLine(" |");
 
 		return sb.ToString();
 	}

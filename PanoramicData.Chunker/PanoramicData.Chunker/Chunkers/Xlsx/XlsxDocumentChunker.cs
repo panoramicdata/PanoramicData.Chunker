@@ -394,8 +394,8 @@ public partial class XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<Xls
 
 				if (!string.IsNullOrWhiteSpace(value))
 				{
-					rowText.Append(value);
-					rowText.Append(" ");
+					_ = rowText.Append(value);
+					_ = rowText.Append(' ');
 				}
 			}
 
@@ -634,20 +634,20 @@ public partial class XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<Xls
 
 		if (headers.Count > 0)
 		{
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers);
+			_ = sb.AppendLine(" |");
 
-			sb.Append("| ");
-			sb.AppendJoin(" | ", headers.Select(_ => "---"));
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", headers.Select(_ => "---"));
+			_ = sb.AppendLine(" |");
 		}
 
 		foreach (var row in rows)
 		{
-			sb.Append("| ");
-			sb.AppendJoin(" | ", row);
-			sb.AppendLine(" |");
+			_ = sb.Append("| ");
+			_ = sb.AppendJoin(" | ", row);
+			_ = sb.AppendLine(" |");
 		}
 
 		return sb.ToString();

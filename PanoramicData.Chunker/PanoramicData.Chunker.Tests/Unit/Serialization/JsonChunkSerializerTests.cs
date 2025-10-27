@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Serialization;
@@ -40,10 +40,10 @@ public class JsonChunkSerializerTests
 		// Assert
 		stream.Position = 0;
 		var json = await new StreamReader(stream).ReadToEndAsync();
-		json.Should().NotBeNullOrEmpty();
-		json.Should().Contain("$type");
-		json.Should().Contain("MarkdownParagraph");
-		json.Should().Contain("Test content");
+		_ = json.Should().NotBeNullOrEmpty();
+		_ = json.Should().Contain("$type");
+		_ = json.Should().Contain("MarkdownParagraph");
+		_ = json.Should().Contain("Test content");
 	}
 
 	[Fact]
@@ -79,9 +79,9 @@ public class JsonChunkSerializerTests
 		// Assert
 		stream.Position = 0;
 		var json = await new StreamReader(stream).ReadToEndAsync();
-		json.Should().Contain("MarkdownSection");
-		json.Should().Contain("MarkdownParagraph");
-		json.Should().Contain("MarkdownCodeBlock");
+		_ = json.Should().Contain("MarkdownSection");
+		_ = json.Should().Contain("MarkdownParagraph");
+		_ = json.Should().Contain("MarkdownCodeBlock");
 	}
 
 	[Fact]
@@ -105,10 +105,10 @@ public class JsonChunkSerializerTests
 		var deserialized = await _serializer.DeserializeAsync(stream);
 
 		// Assert
-		deserialized.Should().HaveCount(1);
+		_ = deserialized.Should().ContainSingle();
 		var chunk = deserialized.First();
-		chunk.Should().BeOfType<MarkdownParagraphChunk>();
-		((MarkdownParagraphChunk)chunk).Content.Should().Be("Test content");
+		_ = chunk.Should().BeOfType<MarkdownParagraphChunk>();
+		_ = ((MarkdownParagraphChunk)chunk).Content.Should().Be("Test content");
 	}
 
 	[Fact]
@@ -140,9 +140,9 @@ public class JsonChunkSerializerTests
 
 		// Assert
 		var deserializedList = deserialized.ToList();
-		deserializedList.Should().HaveCount(2);
-		deserializedList[0].Id.Should().Be(parent.Id);
-		deserializedList[1].ParentId.Should().Be(parent.Id);
+		_ = deserializedList.Should().HaveCount(2);
+		_ = deserializedList[0].Id.Should().Be(parent.Id);
+		_ = deserializedList[1].ParentId.Should().Be(parent.Id);
 	}
 
 	[Fact]
@@ -162,9 +162,9 @@ public class JsonChunkSerializerTests
 		var json = _serializer.SerializeToString(chunks);
 
 		// Assert
-		json.Should().NotBeNullOrEmpty();
-		json.Should().Contain("$type");
-		json.Should().Contain("MarkdownParagraph");
+		_ = json.Should().NotBeNullOrEmpty();
+		_ = json.Should().Contain("$type");
+		_ = json.Should().Contain("MarkdownParagraph");
 	}
 
 	[Fact]
@@ -186,8 +186,8 @@ public class JsonChunkSerializerTests
 		var deserialized = _serializer.DeserializeFromString(json);
 
 		// Assert
-		deserialized.Should().HaveCount(1);
-		deserialized.First().Should().BeOfType<MarkdownParagraphChunk>();
+		_ = deserialized.Should().ContainSingle();
+		_ = deserialized.First().Should().BeOfType<MarkdownParagraphChunk>();
 	}
 
 	[Fact]
@@ -197,7 +197,7 @@ public class JsonChunkSerializerTests
 		var result = _serializer.DeserializeFromString("");
 
 		// Assert
-		result.Should().BeEmpty();
+		_ = result.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -230,10 +230,10 @@ public class JsonChunkSerializerTests
 		// Assert
 		stream.Position = 0;
 		var json = await new StreamReader(stream).ReadToEndAsync();
-		json.Should().Contain("chunks");
-		json.Should().Contain("statistics");
-		json.Should().Contain("success");
-		json.Should().Contain("totalChunks");
+		_ = json.Should().Contain("chunks");
+		_ = json.Should().Contain("statistics");
+		_ = json.Should().Contain("success");
+		_ = json.Should().Contain("totalChunks");
 	}
 
 	[Fact]
@@ -265,10 +265,10 @@ public class JsonChunkSerializerTests
 		var deserialized = await _serializer.DeserializeResultAsync(stream);
 
 		// Assert
-		deserialized.Should().NotBeNull();
-		deserialized!.Success.Should().BeTrue();
-		deserialized.Chunks.Should().HaveCount(1);
-		deserialized.Statistics.TotalChunks.Should().Be(1);
+		_ = deserialized.Should().NotBeNull();
+		_ = deserialized!.Success.Should().BeTrue();
+		_ = deserialized.Chunks.Should().ContainSingle();
+		_ = deserialized.Statistics.TotalChunks.Should().Be(1);
 	}
 
 	[Fact]
@@ -300,10 +300,10 @@ public class JsonChunkSerializerTests
 
 		// Assert
 		var chunk = deserialized.First();
-		chunk.QualityMetrics.Should().NotBeNull();
-		chunk.QualityMetrics!.TokenCount.Should().Be(10);
-		chunk.QualityMetrics.CharacterCount.Should().Be(50);
-		chunk.QualityMetrics.SemanticCompleteness.Should().Be(1.0);
+		_ = chunk.QualityMetrics.Should().NotBeNull();
+		_ = chunk.QualityMetrics!.TokenCount.Should().Be(10);
+		_ = chunk.QualityMetrics.CharacterCount.Should().Be(50);
+		_ = chunk.QualityMetrics.SemanticCompleteness.Should().Be(1.0);
 	}
 
 	[Fact]
@@ -336,10 +336,10 @@ public class JsonChunkSerializerTests
 
 		// Assert
 		var chunk = deserialized.First();
-		chunk.Metadata.Should().NotBeNull();
-		chunk.Metadata.DocumentType.Should().Be("Markdown");
-		chunk.Metadata.SourceId.Should().Be("doc123");
-		chunk.Metadata.Tags.Should().Contain("test");
+		_ = chunk.Metadata.Should().NotBeNull();
+		_ = chunk.Metadata.DocumentType.Should().Be("Markdown");
+		_ = chunk.Metadata.SourceId.Should().Be("doc123");
+		_ = chunk.Metadata.Tags.Should().Contain("test");
 	}
 
 	[Fact]
@@ -371,9 +371,9 @@ public class JsonChunkSerializerTests
 
 		// Assert
 		var chunk = deserialized.First() as MarkdownTableChunk;
-		chunk.Should().NotBeNull();
-		chunk!.TableInfo.ColumnCount.Should().Be(3);
-		chunk.ColumnAlignments.Should().HaveCount(3);
+		_ = chunk.Should().NotBeNull();
+		_ = chunk!.TableInfo.ColumnCount.Should().Be(3);
+		_ = chunk.ColumnAlignments.Should().HaveCount(3);
 	}
 
 	[Fact]
@@ -398,6 +398,6 @@ public class JsonChunkSerializerTests
 		// Assert
 		stream.Position = 0;
 		var json = await new StreamReader(stream).ReadToEndAsync();
-		json.Should().NotContain("markdownContent"); // Should be omitted
+		_ = json.Should().NotContain("markdownContent"); // Should be omitted
 	}
 }

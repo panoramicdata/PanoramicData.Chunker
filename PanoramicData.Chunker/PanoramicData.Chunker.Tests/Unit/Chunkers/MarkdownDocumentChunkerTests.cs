@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -32,7 +32,7 @@ public class MarkdownDocumentChunkerTests
 		var act = () => new MarkdownDocumentChunker(null!);
 
 		// Assert
-		act.Should().Throw<ArgumentNullException>();
+		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -42,7 +42,7 @@ public class MarkdownDocumentChunkerTests
 		var result = _chunker.SupportedType;
 
 		// Assert
-		result.Should().Be(DocumentType.Markdown);
+		_ = result.Should().Be(DocumentType.Markdown);
 	}
 
 	[Fact]
@@ -56,7 +56,7 @@ public class MarkdownDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeTrue();
+		_ = result.Should().BeTrue();
 	}
 
 	[Fact]
@@ -69,7 +69,7 @@ public class MarkdownDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -79,7 +79,7 @@ public class MarkdownDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(null!);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -93,14 +93,14 @@ public class MarkdownDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().HaveCount(1);
-		result.Chunks[0].Should().BeOfType<MarkdownSectionChunk>();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().ContainSingle();
+		_ = result.Chunks[0].Should().BeOfType<MarkdownSectionChunk>();
 
 		var section = result.Chunks[0] as MarkdownSectionChunk;
-		section!.HeadingLevel.Should().Be(1);
-		section.HeadingText.Should().Be("Test Header");
-		section.SpecificType.Should().Be("Heading1");
+		_ = section!.HeadingLevel.Should().Be(1);
+		_ = section.HeadingText.Should().Be("Test Header");
+		_ = section.SpecificType.Should().Be("Heading1");
 	}
 
 	[Fact]
@@ -120,27 +120,27 @@ Second paragraph.";
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().HaveCount(4); // H1, para1, H2, para2
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().HaveCount(4); // H1, para1, H2, para2
 
 		// Check hierarchy
 		var h1 = result.Chunks[0] as MarkdownSectionChunk;
-		h1.Should().NotBeNull();
-		h1!.HeadingLevel.Should().Be(1);
-		h1.ParentId.Should().BeNull();
+		_ = h1.Should().NotBeNull();
+		_ = h1!.HeadingLevel.Should().Be(1);
+		_ = h1.ParentId.Should().BeNull();
 
 		var para1 = result.Chunks[1] as MarkdownParagraphChunk;
-		para1.Should().NotBeNull();
-		para1!.ParentId.Should().Be(h1.Id);
+		_ = para1.Should().NotBeNull();
+		_ = para1!.ParentId.Should().Be(h1.Id);
 
 		var h2 = result.Chunks[2] as MarkdownSectionChunk;
-		h2.Should().NotBeNull();
-		h2!.HeadingLevel.Should().Be(2);
-		h2.ParentId.Should().Be(h1.Id);
+		_ = h2.Should().NotBeNull();
+		_ = h2!.HeadingLevel.Should().Be(2);
+		_ = h2.ParentId.Should().Be(h1.Id);
 
 		var para2 = result.Chunks[3] as MarkdownParagraphChunk;
-		para2.Should().NotBeNull();
-		para2!.ParentId.Should().Be(h2.Id);
+		_ = para2.Should().NotBeNull();
+		_ = para2!.ParentId.Should().Be(h2.Id);
 	}
 
 	[Fact]
@@ -158,12 +158,12 @@ Second paragraph.";
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.OfType<MarkdownListItemChunk>().Should().HaveCount(3);
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.OfType<MarkdownListItemChunk>().Should().HaveCount(3);
 
 		var items = result.Chunks.OfType<MarkdownListItemChunk>().ToList();
-		items[0].IsOrdered.Should().BeFalse();
-		items[0].Content.Should().Contain("Item 1");
+		_ = items[0].IsOrdered.Should().BeFalse();
+		_ = items[0].Content.Should().Contain("Item 1");
 	}
 
 	[Fact]
@@ -180,10 +180,10 @@ Second paragraph.";
 
 		// Assert
 		var items = result.Chunks.OfType<MarkdownListItemChunk>().ToList();
-		items.Should().HaveCount(3);
-		items[0].IsOrdered.Should().BeTrue();
-		items[0].ItemNumber.Should().Be(1);
-		items[1].ItemNumber.Should().Be(2);
+		_ = items.Should().HaveCount(3);
+		_ = items[0].IsOrdered.Should().BeTrue();
+		_ = items[0].ItemNumber.Should().Be(1);
+		_ = items[1].ItemNumber.Should().Be(2);
 	}
 
 	[Fact]
@@ -202,10 +202,10 @@ public class Test { }
 
 		// Assert
 		var codeChunk = result.Chunks.OfType<MarkdownCodeBlockChunk>().FirstOrDefault();
-		codeChunk.Should().NotBeNull();
-		codeChunk!.Language.Should().Be("csharp");
-		codeChunk.IsFenced.Should().BeTrue();
-		codeChunk.Content.Should().Contain("public class Test");
+		_ = codeChunk.Should().NotBeNull();
+		_ = codeChunk!.Language.Should().Be("csharp");
+		_ = codeChunk.IsFenced.Should().BeTrue();
+		_ = codeChunk.Content.Should().Contain("public class Test");
 	}
 
 	[Fact]
@@ -223,8 +223,8 @@ public class Test { }
 
 		// Assert
 		var quoteChunk = result.Chunks.OfType<MarkdownQuoteChunk>().FirstOrDefault();
-		quoteChunk.Should().NotBeNull();
-		quoteChunk!.Content.Should().Contain("This is a quote");
+		_ = quoteChunk.Should().NotBeNull();
+		_ = quoteChunk!.Content.Should().Contain("This is a quote");
 	}
 
 	[Fact]
@@ -244,11 +244,11 @@ public class Test { }
 
 		// Assert
 		var tableChunk = result.Chunks.OfType<MarkdownTableChunk>().FirstOrDefault();
-		tableChunk.Should().NotBeNull();
-		tableChunk!.TableInfo.ColumnCount.Should().Be(2);
-		tableChunk.TableInfo.RowCount.Should().Be(2);
-		tableChunk.TableInfo.Headers.Should().Contain("Col1");
-		tableChunk.TableInfo.Headers.Should().Contain("Col2");
+		_ = tableChunk.Should().NotBeNull();
+		_ = tableChunk!.TableInfo.ColumnCount.Should().Be(2);
+		_ = tableChunk.TableInfo.RowCount.Should().Be(2);
+		_ = tableChunk.TableInfo.Headers.Should().Contain("Col1");
+		_ = tableChunk.TableInfo.Headers.Should().Contain("Col2");
 	}
 
 	[Fact]
@@ -262,11 +262,11 @@ public class Test { }
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
 
 		// Assert
-		result.Chunks.Should().AllSatisfy(chunk =>
+		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
-			chunk.QualityMetrics.Should().NotBeNull();
-			chunk.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
-			chunk.QualityMetrics.CharacterCount.Should().BeGreaterThan(0);
+			_ = chunk.QualityMetrics.Should().NotBeNull();
+			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
+			_ = chunk.QualityMetrics.CharacterCount.Should().BePositive();
 		});
 	}
 
@@ -281,11 +281,11 @@ public class Test { }
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
 
 		// Assert
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.TotalChunks.Should().Be(2);
-		result.Statistics.StructuralChunks.Should().Be(1);
-		result.Statistics.ContentChunks.Should().Be(1);
-		result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().Be(2);
+		_ = result.Statistics.StructuralChunks.Should().Be(1);
+		_ = result.Statistics.ContentChunks.Should().Be(1);
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 	}
 
 	[Fact]
@@ -299,8 +299,8 @@ public class Test { }
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
 
 		// Assert
-		result.ValidationResult.Should().NotBeNull();
-		result.ValidationResult!.IsValid.Should().BeTrue();
+		_ = result.ValidationResult.Should().NotBeNull();
+		_ = result.ValidationResult!.IsValid.Should().BeTrue();
 	}
 
 	[Fact]
@@ -322,10 +322,10 @@ public class Test { }
 
 		// Assert
 		var paragraphs = result.Chunks.OfType<MarkdownParagraphChunk>().ToList();
-		paragraphs.Should().HaveCountGreaterThan(1);
+		_ = paragraphs.Should().HaveCountGreaterThan(1);
 		paragraphs.Should().AllSatisfy(p =>
 		{
-			p.QualityMetrics!.TokenCount.Should().BeLessOrEqualTo(options.MaxTokens);
+			p.QualityMetrics!.TokenCount.Should().BeLessThanOrEqualTo(options.MaxTokens);
 		});
 	}
 
@@ -340,8 +340,8 @@ public class Test { }
 		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
 
 		// Assert
-		result.Chunks.Select(c => c.SequenceNumber).Should().BeInAscendingOrder();
-		result.Chunks[0].SequenceNumber.Should().Be(0);
+		_ = result.Chunks.Select(c => c.SequenceNumber).Should().BeInAscendingOrder();
+		_ = result.Chunks[0].SequenceNumber.Should().Be(0);
 	}
 
 	[Fact]
@@ -359,12 +359,12 @@ public class Test { }
 		var h2 = result.Chunks[1];
 		var h3 = result.Chunks[2];
 
-		h1.Depth.Should().Be(0);
-		h2.Depth.Should().Be(1);
-		h3.Depth.Should().Be(2);
+		_ = h1.Depth.Should().Be(0);
+		_ = h2.Depth.Should().Be(1);
+		_ = h3.Depth.Should().Be(2);
 
-		h2.AncestorIds.Should().Contain(h1.Id);
-		h3.AncestorIds.Should().Contain(h1.Id);
-		h3.AncestorIds.Should().Contain(h2.Id);
+		_ = h2.AncestorIds.Should().Contain(h1.Id);
+		_ = h3.AncestorIds.Should().Contain(h1.Id);
+		_ = h3.AncestorIds.Should().Contain(h2.Id);
 	}
 }

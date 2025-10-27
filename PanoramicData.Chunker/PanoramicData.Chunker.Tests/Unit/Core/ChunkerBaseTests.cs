@@ -1,5 +1,5 @@
 using PanoramicData.Chunker.Models;
-using FluentAssertions;
+using AwesomeAssertions;
 
 namespace PanoramicData.Chunker.Tests.Unit.Core;
 
@@ -16,9 +16,9 @@ public class ChunkerBaseTests
 		var chunk2 = new TestContentChunk();
 
 		// Assert
-		chunk1.Id.Should().NotBe(Guid.Empty);
-		chunk2.Id.Should().NotBe(Guid.Empty);
-		chunk1.Id.Should().NotBe(chunk2.Id);
+		_ = chunk1.Id.Should().NotBe(Guid.Empty);
+		_ = chunk2.Id.Should().NotBe(Guid.Empty);
+		_ = chunk1.Id.Should().NotBe(chunk2.Id);
 	}
 
 	[Fact]
@@ -28,14 +28,14 @@ public class ChunkerBaseTests
 		var chunk = new TestContentChunk();
 
 		// Assert
-		chunk.Id.Should().NotBe(Guid.Empty);
-		chunk.ParentId.Should().BeNull();
-		chunk.SpecificType.Should().Be(string.Empty);
-		chunk.Metadata.Should().NotBeNull();
-		chunk.Depth.Should().Be(0);
-		chunk.SequenceNumber.Should().Be(0);
-		chunk.AncestorIds.Should().BeEmpty();
-		chunk.QualityMetrics.Should().BeNull();
+		_ = chunk.Id.Should().NotBe(Guid.Empty);
+		_ = chunk.ParentId.Should().BeNull();
+		_ = chunk.SpecificType.Should().Be(string.Empty);
+		_ = chunk.Metadata.Should().NotBeNull();
+		_ = chunk.Depth.Should().Be(0);
+		_ = chunk.SequenceNumber.Should().Be(0);
+		_ = chunk.AncestorIds.Should().BeEmpty();
+		_ = chunk.QualityMetrics.Should().BeNull();
 	}
 
 	[Fact]
@@ -45,8 +45,8 @@ public class ChunkerBaseTests
 		var chunk = new TestStructuralChunk();
 
 		// Assert
-		chunk.Children.Should().NotBeNull();
-		chunk.Children.Should().BeEmpty();
+		_ = chunk.Children.Should().NotBeNull();
+		_ = chunk.Children.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -60,7 +60,7 @@ public class ChunkerBaseTests
 		chunk.Content = content;
 
 		// Assert
-		chunk.Content.Should().Be(content);
+		_ = chunk.Content.Should().Be(content);
 	}
 
 	// Test helper classes

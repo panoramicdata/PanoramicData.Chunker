@@ -1,5 +1,5 @@
+using AwesomeAssertions;
 using PanoramicData.Chunker.Tests.Utilities;
-using Xunit;
 
 namespace PanoramicData.Chunker.Tests.Setup;
 
@@ -16,7 +16,7 @@ public class PdfTestFileGeneratorTests
 
 		// Assert - Verify files were created
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		Assert.True(Directory.Exists(testDataPath));
+		_ = Directory.Exists(testDataPath).Should().BeTrue();
 
 		var expectedFiles = new[]
 		{
@@ -32,7 +32,7 @@ public class PdfTestFileGeneratorTests
 		foreach (var file in expectedFiles)
 		{
 			var filePath = Path.Combine(testDataPath, file);
-			Assert.True(File.Exists(filePath), $"File {file} should exist");
+			_ = File.Exists(filePath).Should().BeTrue($"File {file} should exist");
 		}
 	}
 }

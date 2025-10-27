@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.PlainText;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -29,7 +29,7 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeTrue();
+		_ = result.Should().BeTrue();
 	}
 
 	[Fact]
@@ -43,7 +43,7 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -57,7 +57,7 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
@@ -70,7 +70,7 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse();
+		_ = result.Should().BeFalse();
 	}
 
 	#endregion
@@ -89,13 +89,13 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().HaveCount(1);
-		sections[0].HeadingText.Should().Be("Main Heading");
-		sections[0].HeadingLevel.Should().Be(1);
-		sections[0].HeadingType.Should().Be(HeadingHeuristic.Underlined);
-		sections[0].Confidence.Should().BeGreaterThan(0.9);
+		_ = sections.Should().ContainSingle();
+		_ = sections[0].HeadingText.Should().Be("Main Heading");
+		_ = sections[0].HeadingLevel.Should().Be(1);
+		_ = sections[0].HeadingType.Should().Be(HeadingHeuristic.Underlined);
+		_ = sections[0].Confidence.Should().BeGreaterThan(0.9);
 	}
 
 	[Fact]
@@ -111,9 +111,9 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().HaveCount(1);
-		sections[0].HeadingLevel.Should().Be(2);
-		sections[0].HeadingType.Should().Be(HeadingHeuristic.Underlined);
+		_ = sections.Should().ContainSingle();
+		_ = sections[0].HeadingLevel.Should().Be(2);
+		_ = sections[0].HeadingType.Should().Be(HeadingHeuristic.Underlined);
 	}
 
 	[Fact]
@@ -129,12 +129,12 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().HaveCount(2);
-		sections[0].HeadingText.Should().Be("Introduction");
-		sections[0].HeadingLevel.Should().Be(1);
-		sections[0].HeadingType.Should().Be(HeadingHeuristic.Numbered);
-		sections[1].HeadingText.Should().Be("Background");
-		sections[1].HeadingLevel.Should().Be(2);
+		_ = sections.Should().HaveCount(2);
+		_ = sections[0].HeadingText.Should().Be("Introduction");
+		_ = sections[0].HeadingLevel.Should().Be(1);
+		_ = sections[0].HeadingType.Should().Be(HeadingHeuristic.Numbered);
+		_ = sections[1].HeadingText.Should().Be("Background");
+		_ = sections[1].HeadingLevel.Should().Be(2);
 	}
 
 	[Fact]
@@ -150,8 +150,8 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().HaveCount(1);
-		sections[0].HeadingLevel.Should().Be(3); // 3 dots = level 3
+		_ = sections.Should().ContainSingle();
+		_ = sections[0].HeadingLevel.Should().Be(3); // 3 dots = level 3
 	}
 
 	[Fact]
@@ -167,10 +167,10 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().HaveCount(1);
-		sections[0].HeadingText.Should().Be("INTRODUCTION");
-		sections[0].HeadingLevel.Should().Be(1);
-		sections[0].HeadingType.Should().Be(HeadingHeuristic.AllCaps);
+		_ = sections.Should().ContainSingle();
+		_ = sections[0].HeadingText.Should().Be("INTRODUCTION");
+		_ = sections[0].HeadingLevel.Should().Be(1);
+		_ = sections[0].HeadingType.Should().Be(HeadingHeuristic.AllCaps);
 	}
 
 	[Fact]
@@ -186,10 +186,10 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().HaveCount(2);
-		sections[0].HeadingLevel.Should().Be(1);
-		sections[0].HeadingType.Should().Be(HeadingHeuristic.Prefixed);
-		sections[1].HeadingLevel.Should().Be(2);
+		_ = sections.Should().HaveCount(2);
+		_ = sections[0].HeadingLevel.Should().Be(1);
+		_ = sections[0].HeadingType.Should().Be(HeadingHeuristic.Prefixed);
+		_ = sections[1].HeadingLevel.Should().Be(2);
 	}
 
 	[Fact]
@@ -205,7 +205,7 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().BeEmpty(); // Should not detect "USA" as heading
+		_ = sections.Should().BeEmpty(); // Should not detect "USA" as heading
 	}
 
 	[Fact]
@@ -221,7 +221,7 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().BeEmpty();
+		_ = sections.Should().BeEmpty();
 	}
 
 	#endregion
@@ -241,10 +241,10 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var paragraphs = result.Chunks.OfType<PlainTextParagraphChunk>().ToList();
-		paragraphs.Should().HaveCount(3);
-		paragraphs[0].Content.Should().Contain("First");
-		paragraphs[1].Content.Should().Contain("Second");
-		paragraphs[2].Content.Should().Contain("Third");
+		_ = paragraphs.Should().HaveCount(3);
+		_ = paragraphs[0].Content.Should().Contain("First");
+		_ = paragraphs[1].Content.Should().Contain("Second");
+		_ = paragraphs[2].Content.Should().Contain("Third");
 	}
 
 	[Fact]
@@ -260,8 +260,8 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var paragraphs = result.Chunks.OfType<PlainTextParagraphChunk>().ToList();
-		paragraphs.Should().HaveCount(2);
-		paragraphs[0].Content.Should().Contain("multiple lines");
+		_ = paragraphs.Should().HaveCount(2);
+		_ = paragraphs[0].Content.Should().Contain("multiple lines");
 	}
 
 	[Fact]
@@ -277,7 +277,7 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var paragraphs = result.Chunks.OfType<PlainTextParagraphChunk>().ToList();
-		paragraphs.Should().HaveCount(1);
+		_ = paragraphs.Should().ContainSingle();
 	}
 
 	#endregion
@@ -297,12 +297,12 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
-		listItems.Should().HaveCount(3);
-		listItems.Should().AllSatisfy(item =>
+		_ = listItems.Should().HaveCount(3);
+		_ = listItems.Should().AllSatisfy(item =>
 		{
-			item.ListType.Should().Be("bullet");
-			item.Marker.Should().Be("-");
-			item.IsOrdered.Should().BeFalse();
+			_ = item.ListType.Should().Be("bullet");
+			_ = item.Marker.Should().Be("-");
+			_ = item.IsOrdered.Should().BeFalse();
 		});
 	}
 
@@ -319,11 +319,11 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
-		listItems.Should().HaveCount(3);
-		listItems.Should().AllSatisfy(item =>
+		_ = listItems.Should().HaveCount(3);
+		_ = listItems.Should().AllSatisfy(item =>
 		{
-			item.ListType.Should().Be("numbered");
-			item.IsOrdered.Should().BeTrue();
+			_ = item.ListType.Should().Be("numbered");
+			_ = item.IsOrdered.Should().BeTrue();
 		});
 	}
 
@@ -340,8 +340,8 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
-		listItems.Should().HaveCount(3);
-		listItems.Should().AllSatisfy(item => item.Marker.Should().Be("*"));
+		_ = listItems.Should().HaveCount(3);
+		_ = listItems.Should().AllSatisfy(item => item.Marker.Should().Be("*"));
 	}
 
 	[Fact]
@@ -357,8 +357,8 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
-		listItems.Should().HaveCount(3);
-		listItems.Should().AllSatisfy(item => item.Marker.Should().Be("•"));
+		_ = listItems.Should().HaveCount(3);
+		_ = listItems.Should().AllSatisfy(item => item.Marker.Should().Be("•"));
 	}
 
 	[Fact]
@@ -374,10 +374,10 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
-		listItems.Should().HaveCount(3);
-		listItems[0].NestingLevel.Should().Be(0);
-		listItems[1].NestingLevel.Should().Be(1); // 2 spaces = level 1
-		listItems[2].NestingLevel.Should().Be(2); // 4 spaces = level 2
+		_ = listItems.Should().HaveCount(3);
+		_ = listItems[0].NestingLevel.Should().Be(0);
+		_ = listItems[1].NestingLevel.Should().Be(1); // 2 spaces = level 1
+		_ = listItems[2].NestingLevel.Should().Be(2); // 4 spaces = level 2
 	}
 
 	#endregion
@@ -397,10 +397,10 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
-		codeBlocks.Should().HaveCount(1);
-		codeBlocks[0].IsFenced.Should().BeTrue();
-		codeBlocks[0].Language.Should().Be("csharp");
-		codeBlocks[0].Content.Should().Contain("public class Test");
+		_ = codeBlocks.Should().ContainSingle();
+		_ = codeBlocks[0].IsFenced.Should().BeTrue();
+		_ = codeBlocks[0].Language.Should().Be("csharp");
+		_ = codeBlocks[0].Content.Should().Contain("public class Test");
 	}
 
 	[Fact]
@@ -416,9 +416,9 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
-		codeBlocks.Should().HaveCount(1);
-		codeBlocks[0].IsFenced.Should().BeTrue();
-		codeBlocks[0].Language.Should().BeNull();
+		_ = codeBlocks.Should().ContainSingle();
+		_ = codeBlocks[0].IsFenced.Should().BeTrue();
+		_ = codeBlocks[0].Language.Should().BeNull();
 	}
 
 	[Fact]
@@ -434,9 +434,9 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
-		codeBlocks.Should().HaveCount(1);
-		codeBlocks[0].IsFenced.Should().BeFalse();
-		codeBlocks[0].IndentationLevel.Should().Be(4);
+		_ = codeBlocks.Should().ContainSingle();
+		_ = codeBlocks[0].IsFenced.Should().BeFalse();
+		_ = codeBlocks[0].IndentationLevel.Should().Be(4);
 	}
 
 	[Fact]
@@ -452,9 +452,9 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
-		codeBlocks.Should().HaveCount(1);
-		codeBlocks[0].CodeIndicators.Should().Contain("public");
-		codeBlocks[0].CodeIndicators.Should().Contain("class");
+		_ = codeBlocks.Should().ContainSingle();
+		_ = codeBlocks[0].CodeIndicators.Should().Contain("public");
+		_ = codeBlocks[0].CodeIndicators.Should().Contain("class");
 	}
 
 	#endregion
@@ -474,13 +474,13 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		sections.Should().HaveCount(2);
+		_ = sections.Should().HaveCount(2);
 		
 		var mainSection = sections.First(s => s.HeadingLevel == 1);
 		var subSection = sections.First(s => s.HeadingLevel == 2);
-		
-		mainSection.ParentId.Should().BeNull();
-		subSection.ParentId.Should().Be(mainSection.Id);
+
+		_ = mainSection.ParentId.Should().BeNull();
+		_ = subSection.ParentId.Should().Be(mainSection.Id);
 	}
 
 	[Fact]
@@ -497,8 +497,8 @@ public class PlainTextDocumentChunkerTests
 		// Assert
 		var section = result.Chunks.OfType<PlainTextSectionChunk>().First();
 		var paragraph = result.Chunks.OfType<PlainTextParagraphChunk>().First();
-		
-		paragraph.ParentId.Should().Be(section.Id);
+
+		_ = paragraph.ParentId.Should().Be(section.Id);
 	}
 
 	#endregion
@@ -518,10 +518,10 @@ public class PlainTextDocumentChunkerTests
 
 		// Assert
 		var chunk = result.Chunks.First();
-		chunk.QualityMetrics.Should().NotBeNull();
-		chunk.QualityMetrics!.CharacterCount.Should().BeGreaterThan(0);
-		chunk.QualityMetrics.WordCount.Should().BeGreaterThan(0);
-		chunk.QualityMetrics.TokenCount.Should().BeGreaterThan(0);
+		_ = chunk.QualityMetrics.Should().NotBeNull();
+		_ = chunk.QualityMetrics!.CharacterCount.Should().BePositive();
+		_ = chunk.QualityMetrics.WordCount.Should().BePositive();
+		_ = chunk.QualityMetrics.TokenCount.Should().BePositive();
 	}
 
 	#endregion
@@ -540,11 +540,11 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Chunks.Should().AllSatisfy(chunk =>
+		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
-			chunk.Metadata.Should().NotBeNull();
-			chunk.Metadata.DocumentType.Should().Be("PlainText");
-			chunk.SequenceNumber.Should().BeGreaterThanOrEqualTo(0);
+			_ = chunk.Metadata.Should().NotBeNull();
+			_ = chunk.Metadata.DocumentType.Should().Be("PlainText");
+			_ = chunk.SequenceNumber.Should().BeGreaterThanOrEqualTo(0);
 		});
 	}
 
@@ -564,11 +564,11 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.TotalChunks.Should().BeGreaterThan(0);
-		result.Statistics.StructuralChunks.Should().BeGreaterThan(0);
-		result.Statistics.ContentChunks.Should().BeGreaterThan(0);
-		result.Statistics.TotalTokens.Should().BeGreaterThan(0);
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().BePositive();
+		_ = result.Statistics.StructuralChunks.Should().BePositive();
+		_ = result.Statistics.ContentChunks.Should().BePositive();
+		_ = result.Statistics.TotalTokens.Should().BePositive();
 	}
 
 	#endregion
@@ -586,8 +586,8 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().BeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -601,8 +601,8 @@ public class PlainTextDocumentChunkerTests
 		var result = await _chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().BeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().BeEmpty();
 	}
 
 	#endregion

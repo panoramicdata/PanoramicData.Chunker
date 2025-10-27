@@ -167,4 +167,15 @@ public class ChunkingOptions
 	/// LLM provider for summaries and keywords.
 	/// </summary>
 	public ILlmProvider? LlmProvider { get; set; }
+
+	// LLM Enrichment (Phase 10)
+	/// <summary>
+	/// Enable LLM-based chunk enrichment.
+	/// </summary>
+	public bool EnableLLMEnrichment { get; set; } = false;
+
+	/// <summary>
+	/// LLM enrichment options.
+	/// </summary>
+	public LLMEnrichmentOptions? LLMEnrichmentOptions { get; set; }
 }

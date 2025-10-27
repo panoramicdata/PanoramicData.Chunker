@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Infrastructure.TokenCounters;
 
 namespace PanoramicData.Chunker.Tests.Unit.TokenCounters;
@@ -12,8 +12,8 @@ public class OpenAITokenCounterTests
 		var counter = new OpenAITokenCounter();
 
 		// Assert
-		counter.Should().NotBeNull();
-		counter.EncodingName.Should().Be("cl100k_base");
+		_ = counter.Should().NotBeNull();
+		_ = counter.EncodingName.Should().Be("cl100k_base");
 	}
 
 	[Fact]
@@ -23,8 +23,8 @@ public class OpenAITokenCounterTests
 		var counter = OpenAITokenCounter.ForGpt4();
 
 		// Assert
-		counter.Should().NotBeNull();
-		counter.EncodingName.Should().Be("cl100k_base");
+		_ = counter.Should().NotBeNull();
+		_ = counter.EncodingName.Should().Be("cl100k_base");
 	}
 
 	[Fact]
@@ -34,8 +34,8 @@ public class OpenAITokenCounterTests
 		var counter = OpenAITokenCounter.ForGpt3();
 
 		// Assert
-		counter.Should().NotBeNull();
-		counter.EncodingName.Should().Be("p50k_base");
+		_ = counter.Should().NotBeNull();
+		_ = counter.EncodingName.Should().Be("p50k_base");
 	}
 
 	[Fact]
@@ -45,8 +45,8 @@ public class OpenAITokenCounterTests
 		var counter = OpenAITokenCounter.ForGpt2();
 
 		// Assert
-		counter.Should().NotBeNull();
-		counter.EncodingName.Should().Be("r50k_base");
+		_ = counter.Should().NotBeNull();
+		_ = counter.EncodingName.Should().Be("r50k_base");
 	}
 
 	[Fact]
@@ -59,7 +59,7 @@ public class OpenAITokenCounterTests
 		var count = counter.CountTokens("");
 
 		// Assert
-		count.Should().Be(0);
+		_ = count.Should().Be(0);
 	}
 
 	[Fact]
@@ -72,7 +72,7 @@ public class OpenAITokenCounterTests
 		var count = counter.CountTokens(null!);
 
 		// Assert
-		count.Should().Be(0);
+		_ = count.Should().Be(0);
 	}
 
 	[Fact]
@@ -87,8 +87,8 @@ public class OpenAITokenCounterTests
 
 		// Assert
 		// "Hello, world!" is typically 4 tokens in CL100K: ["Hello", ",", " world", "!"]
-		count.Should().BeGreaterThan(0);
-		count.Should().BeLessThan(10); // Sanity check
+		_ = count.Should().BePositive();
+		_ = count.Should().BeLessThan(10); // Sanity check
 	}
 
 	[Theory]
@@ -104,8 +104,8 @@ public class OpenAITokenCounterTests
 		var count = counter.CountTokens(text);
 
 		// Assert
-		count.Should().BeGreaterThan(0);
-		count.Should().BeLessThan(text.Length); // Should be fewer tokens than characters
+		_ = count.Should().BePositive();
+		_ = count.Should().BeLessThan(text.Length); // Should be fewer tokens than characters
 	}
 
 	[Fact]
@@ -119,8 +119,8 @@ public class OpenAITokenCounterTests
 		var count = counter.CountTokens(longText);
 
 		// Assert
-		count.Should().BeGreaterThan(900); // Approximately 1000 words
-		count.Should().BeLessThan(1100); // Should be close to word count
+		_ = count.Should().BeGreaterThan(900); // Approximately 1000 words
+		_ = count.Should().BeLessThan(1100); // Should be close to word count
 	}
 
 	[Fact]
@@ -134,7 +134,7 @@ public class OpenAITokenCounterTests
 		var count = counter.CountTokens(text);
 
 		// Assert
-		count.Should().BeGreaterThan(0);
+		_ = count.Should().BePositive();
 	}
 
 	[Fact]
@@ -148,8 +148,8 @@ public class OpenAITokenCounterTests
 		var count = counter.CountTokens(code);
 
 		// Assert
-		count.Should().BeGreaterThan(0);
-		count.Should().BeLessThan(30); // Reasonable upper bound
+		_ = count.Should().BePositive();
+		_ = count.Should().BeLessThan(30); // Reasonable upper bound
 	}
 
 	[Fact]
@@ -164,7 +164,7 @@ public class OpenAITokenCounterTests
 		var asyncCount = await counter.CountTokensAsync(text);
 
 		// Assert
-		asyncCount.Should().Be(syncCount);
+		_ = asyncCount.Should().Be(syncCount);
 	}
 
 	[Fact]
@@ -179,7 +179,7 @@ public class OpenAITokenCounterTests
 		var count = await counter.CountTokensAsync(text, cts.Token);
 
 		// Assert
-		count.Should().BeGreaterThan(0);
+		_ = count.Should().BePositive();
 	}
 
 	[Fact]
@@ -193,8 +193,8 @@ public class OpenAITokenCounterTests
 		var batches = counter.SplitIntoTokenBatches(text, maxTokens: 100).ToList();
 
 		// Assert
-		batches.Should().HaveCount(1);
-		batches[0].Should().Be(text);
+		_ = batches.Should().ContainSingle();
+		_ = batches[0].Should().Be(text);
 	}
 
 	[Fact]
@@ -208,8 +208,8 @@ public class OpenAITokenCounterTests
 		var batches = counter.SplitIntoTokenBatches(text, maxTokens: 20).ToList();
 
 		// Assert
-		batches.Should().HaveCountGreaterThan(1);
-		batches.Should().OnlyContain(batch => !string.IsNullOrEmpty(batch));
+		_ = batches.Should().HaveCountGreaterThan(1);
+		_ = batches.Should().OnlyContain(batch => !string.IsNullOrEmpty(batch));
 	}
 
 	[Fact]
@@ -224,20 +224,20 @@ public class OpenAITokenCounterTests
 		var batches = counter.SplitIntoTokenBatches(text, maxTokens: 10, overlap: 3).ToList();
 
 		// Assert
-		batches.Should().HaveCountGreaterThan(1);
-		
+		_ = batches.Should().HaveCountGreaterThan(1);
+
 		// Check that consecutive batches have some overlap
 		for (var i = 0; i < batches.Count - 1; i++)
 		{
 			var current = batches[i];
 			var next = batches[i + 1];
-			
+
 			// At least some words should appear in both
 			var currentWords = current.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 			var nextWords = next.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 			var overlap = currentWords.Intersect(nextWords);
-			
-			overlap.Should().NotBeEmpty();
+
+			_ = overlap.Should().NotBeEmpty();
 		}
 	}
 
@@ -251,7 +251,7 @@ public class OpenAITokenCounterTests
 		var batches = counter.SplitIntoTokenBatches("", maxTokens: 100).ToList();
 
 		// Assert
-		batches.Should().BeEmpty();
+		_ = batches.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -265,7 +265,7 @@ public class OpenAITokenCounterTests
 		var act = () => counter.SplitIntoTokenBatches(text, maxTokens: 10, overlap: 10).ToList();
 
 		// Assert
-		act.Should().Throw<ArgumentException>()
+		_ = act.Should().Throw<ArgumentException>()
 			.WithMessage("*Overlap must be less than maxTokens*");
 	}
 
@@ -284,7 +284,7 @@ public class OpenAITokenCounterTests
 		foreach (var batch in batches)
 		{
 			var tokenCount = counter.CountTokens(batch);
-			tokenCount.Should().BeLessOrEqualTo(maxTokens);
+			tokenCount.Should().BeLessThanOrEqualTo(maxTokens);
 		}
 	}
 
@@ -301,7 +301,7 @@ public class OpenAITokenCounterTests
 
 		// Assert
 		// Combined length should be close to original (allowing for some token boundary effects)
-		combinedLength.Should().BeGreaterThanOrEqualTo((int)(text.Length * 0.9));
+		_ = combinedLength.Should().BeGreaterThanOrEqualTo((int)(text.Length * 0.9));
 	}
 
 	[Fact]
@@ -317,8 +317,8 @@ public class OpenAITokenCounterTests
 		var count3 = counter.CountTokens(text);
 
 		// Assert
-		count2.Should().Be(count1);
-		count3.Should().Be(count1);
+		_ = count2.Should().Be(count1);
+		_ = count3.Should().Be(count1);
 	}
 
 	[Theory]
@@ -331,9 +331,9 @@ public class OpenAITokenCounterTests
 		var counter = new OpenAITokenCounter(encoding);
 
 		// Assert
-		counter.Should().NotBeNull();
-		counter.EncodingName.Should().Be(encoding);
-		counter.CountTokens("Test").Should().BeGreaterThan(0);
+		_ = counter.Should().NotBeNull();
+		_ = counter.EncodingName.Should().Be(encoding);
+		_ = counter.CountTokens("Test").Should().BePositive();
 	}
 
 	[Fact]
@@ -352,13 +352,13 @@ public class OpenAITokenCounterTests
 
 		// Assert
 		// Different encodings may produce slightly different token counts
-		countGpt4.Should().BeGreaterThan(0);
-		countGpt3.Should().BeGreaterThan(0);
-		countGpt2.Should().BeGreaterThan(0);
-		
+		_ = countGpt4.Should().BePositive();
+		_ = countGpt3.Should().BePositive();
+		_ = countGpt2.Should().BePositive();
+
 		// They should all be in a reasonable range
-		countGpt4.Should().BeInRange(5, 20);
-		countGpt3.Should().BeInRange(5, 20);
-		countGpt2.Should().BeInRange(5, 20);
+		_ = countGpt4.Should().BeInRange(5, 20);
+		_ = countGpt3.Should().BeInRange(5, 20);
+		_ = countGpt2.Should().BeInRange(5, 20);
 	}
 }

@@ -210,7 +210,7 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 		// Manage header hierarchy stack
 		while (headerStack.Count > 0 && headerStack.Peek().Level >= heading.Level)
 		{
-			headerStack.Pop();
+			_ = headerStack.Pop();
 		}
 
 		if (headerStack.Count > 0)
@@ -526,19 +526,19 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 		{
 			if (child is LiteralInline literal)
 			{
-				text.Append(literal.Content);
+				_ = text.Append(literal.Content);
 			}
 			else if (child is LinkInline link && !link.IsImage)
 			{
-				text.Append(GetInlineText(link));
+				_ = text.Append(GetInlineText(link));
 			}
 			else if (child is ContainerInline container)
 			{
-				text.Append(GetInlineText(container));
+				_ = text.Append(GetInlineText(container));
 			}
 			else if (child is CodeInline code)
 			{
-				text.Append(code.Content);
+				_ = text.Append(code.Content);
 			}
 		}
 
@@ -616,13 +616,13 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 
 		if (block is LeafBlock leafBlock && leafBlock.Inline != null)
 		{
-			text.Append(GetInlineText(leafBlock.Inline));
+			_ = text.Append(GetInlineText(leafBlock.Inline));
 		}
 		else if (block is ContainerBlock container)
 		{
 			foreach (var child in container)
 			{
-				text.AppendLine(GetBlockText(child));
+				_ = text.AppendLine(GetBlockText(child));
 			}
 		}
 
@@ -644,10 +644,10 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 		for (var i = 0; i < lines.Length; i++)
 		{
 			var line = lines[i];
-			text.Append(line.Slice.ToString());
+			_ = text.Append(line.Slice.ToString());
 			if (i < lines.Length - 1)
 			{
-				text.AppendLine();
+				_ = text.AppendLine();
 			}
 		}
 
@@ -672,10 +672,10 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 	private static string SerializeTableToText(List<string> headers, List<List<string>> rows)
 	{
 		var text = new System.Text.StringBuilder();
-		text.AppendLine(string.Join(" | ", headers));
+		_ = text.AppendLine(string.Join(" | ", headers));
 		foreach (var row in rows)
 		{
-			text.AppendLine(string.Join(" | ", row));
+			_ = text.AppendLine(string.Join(" | ", row));
 		}
 		return text.ToString();
 	}
@@ -691,7 +691,7 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 		var md = new System.Text.StringBuilder();
 
 		// Headers
-		md.AppendLine($"| {string.Join(" | ", headers)} |");
+		_ = md.AppendLine($"| {string.Join(" | ", headers)} |");
 
 		// Separator with alignment
 		var separators = alignments.Count == headers.Count
@@ -704,12 +704,12 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 			})
 			: headers.Select(_ => "---");
 
-		md.AppendLine($"| {string.Join(" | ", separators)} |");
+		_ = md.AppendLine($"| {string.Join(" | ", separators)} |");
 
 		// Rows
 		foreach (var row in rows)
 		{
-			md.AppendLine($"| {string.Join(" | ", row)} |");
+			_ = md.AppendLine($"| {string.Join(" | ", row)} |");
 		}
 
 		return md.ToString();
@@ -773,11 +773,11 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 			{
 				// Create a new chunk
 				result.Add(CreateSplitChunk(chunk, currentText.ToString(), currentTokenCount));
-				currentText.Clear();
+				_ = currentText.Clear();
 				currentTokenCount = 0;
 			}
 
-			currentText.Append(sentence).Append(". ");
+			_ = currentText.Append(sentence).Append(". ");
 			currentTokenCount += sentenceTokens;
 		}
 

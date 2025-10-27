@@ -69,14 +69,14 @@ public static class ChunkConversionExtensions
 			if (includeHierarchy && chunk.Depth > 0)
 			{
 				var indent = new string(' ', chunk.Depth * 2);
-				sb.AppendLine($"{indent}{markdown}");
+				_ = sb.AppendLine($"{indent}{markdown}");
 			}
 			else
 			{
-				sb.AppendLine(markdown);
+				_ = sb.AppendLine(markdown);
 			}
 
-			sb.AppendLine();
+			_ = sb.AppendLine();
 		}
 
 		return sb.ToString().TrimEnd();
@@ -128,10 +128,10 @@ public static class ChunkConversionExtensions
 
 		if (wrapInDocument)
 		{
-			sb.AppendLine("<!DOCTYPE html>");
-			sb.AppendLine("<html>");
-			sb.AppendLine("<head><meta charset=\"utf-8\"><title>Document</title></head>");
-			sb.AppendLine("<body>");
+			_ = sb.AppendLine("<!DOCTYPE html>");
+			_ = sb.AppendLine("<html>");
+			_ = sb.AppendLine("<head><meta charset=\"utf-8\"><title>Document</title></head>");
+			_ = sb.AppendLine("<body>");
 		}
 
 		var chunkList = chunks.OrderBy(c => c.SequenceNumber).ToList();
@@ -141,14 +141,14 @@ public static class ChunkConversionExtensions
 			var html = chunk.ToHtml();
 			if (!string.IsNullOrWhiteSpace(html))
 			{
-				sb.AppendLine(html);
+				_ = sb.AppendLine(html);
 			}
 		}
 
 		if (wrapInDocument)
 		{
-			sb.AppendLine("</body>");
-			sb.AppendLine("</html>");
+			_ = sb.AppendLine("</body>");
+			_ = sb.AppendLine("</html>");
 		}
 
 		return sb.ToString();
@@ -160,7 +160,7 @@ public static class ChunkConversionExtensions
 	public static string ExtractAllText(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks)
 	{
 		var sb = new StringBuilder();
-		sb.AppendLine(chunk.ToPlainText());
+		_ = sb.AppendLine(chunk.ToPlainText());
 
 		var descendants = ChunkQueryExtensions.GetDescendants(chunk, allChunks);
 		foreach (var descendant in descendants.OrderBy(c => c.SequenceNumber))
@@ -168,7 +168,7 @@ public static class ChunkConversionExtensions
 			var text = descendant.ToPlainText();
 			if (!string.IsNullOrWhiteSpace(text))
 			{
-				sb.AppendLine(text);
+				_ = sb.AppendLine(text);
 			}
 		}
 
@@ -220,7 +220,7 @@ public static class ChunkConversionExtensions
 		var typeInfo = $"[{chunk.SpecificType}]";
 		var tokenInfo = chunk.QualityMetrics != null ? $" ({chunk.QualityMetrics.TokenCount} tokens)" : "";
 
-		sb.AppendLine($"{prefix}{typeInfo} {summary}{tokenInfo}");
+		_ = sb.AppendLine($"{prefix}{typeInfo} {summary}{tokenInfo}");
 
 		var children = allChunks.Where(c => c.ParentId == chunk.Id).OrderBy(c => c.SequenceNumber);
 		foreach (var child in children)
@@ -235,22 +235,22 @@ public static class ChunkConversionExtensions
 	private static string ConvertTableToHtml(MarkdownTableChunk table)
 	{
 		var sb = new StringBuilder();
-		sb.AppendLine("<table>");
+		_ = sb.AppendLine("<table>");
 
 		if (table.TableInfo?.Headers != null && table.TableInfo.Headers.Length > 0)
 		{
-			sb.AppendLine("<thead><tr>");
+			_ = sb.AppendLine("<thead><tr>");
 			foreach (var header in table.TableInfo.Headers)
 			{
-				sb.Append($"<th>{HtmlEncode(header)}</th>");
+				_ = sb.Append($"<th>{HtmlEncode(header)}</th>");
 			}
-			sb.AppendLine("</tr></thead>");
+			_ = sb.AppendLine("</tr></thead>");
 		}
 
-		sb.AppendLine("<tbody>");
+		_ = sb.AppendLine("<tbody>");
 		// Note: Row data would need to be extracted from SerializedTable or stored separately
-		sb.AppendLine("</tbody>");
-		sb.AppendLine("</table>");
+		_ = sb.AppendLine("</tbody>");
+		_ = sb.AppendLine("</table>");
 
 		return sb.ToString();
 	}

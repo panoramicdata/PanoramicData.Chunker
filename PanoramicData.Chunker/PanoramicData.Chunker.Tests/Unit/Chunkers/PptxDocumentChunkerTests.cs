@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Pptx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -34,7 +34,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var act = () => new PptxDocumentChunker(null!);
 
 		// Assert
-		act.Should().Throw<ArgumentNullException>()
+		_ = act.Should().Throw<ArgumentNullException>()
 			.WithParameterName("tokenCounter");
 	}
 
@@ -49,7 +49,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = chunker.SupportedType;
 
 		// Assert
-		result.Should().Be(DocumentType.Pptx);
+		_ = result.Should().Be(DocumentType.Pptx);
 	}
 
 	[Fact]
@@ -73,7 +73,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeTrue("PPTX chunker should handle .pptx files");
+		_ = result.Should().BeTrue("PPTX chunker should handle .pptx files");
 	}
 
 	[Fact]
@@ -88,7 +88,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.CanHandleAsync(stream);
 
 		// Assert
-		result.Should().BeFalse("PPTX chunker should reject non-PPTX content");
+		_ = result.Should().BeFalse("PPTX chunker should reject non-PPTX content");
 	}
 
 	[Fact]
@@ -113,21 +113,21 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 		_output.WriteLine($"Total chunks extracted: {result.Chunks.Count}");
 
 		var slides = result.Chunks.OfType<PptxSlideChunk>().ToList();
-		slides.Should().NotBeEmpty("simple.pptx should have at least one slide");
-		slides.Should().HaveCountGreaterThanOrEqualTo(3, "simple.pptx should have 3-5 slides");
-		slides.Should().HaveCountLessThanOrEqualTo(5, "simple.pptx should have 3-5 slides");
+		_ = slides.Should().NotBeEmpty("simple.pptx should have at least one slide");
+		_ = slides.Should().HaveCountGreaterThanOrEqualTo(3, "simple.pptx should have 3-5 slides");
+		_ = slides.Should().HaveCountLessThanOrEqualTo(5, "simple.pptx should have 3-5 slides");
 
 		_output.WriteLine($"Slide chunks: {slides.Count}");
 		foreach (var slide in slides)
 		{
 			_output.WriteLine($"  Slide {slide.SlideNumber}: {slide.Title ?? "(No title)"} ({slide.ShapeCount} shapes)");
-			slide.SlideNumber.Should().BeGreaterThan(0);
-			slide.ShapeCount.Should().BeGreaterThanOrEqualTo(0);
+			_ = slide.SlideNumber.Should().BePositive();
+			_ = slide.ShapeCount.Should().BeGreaterThanOrEqualTo(0);
 		}
 	}
 
@@ -153,7 +153,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var titles = result.Chunks.OfType<PptxTitleChunk>().ToList();
 		_output.WriteLine($"Title chunks extracted: {titles.Count}");
@@ -163,9 +163,9 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 			foreach (var title in titles)
 			{
 				_output.WriteLine($"  Slide {title.SlideNumber} Title: '{title.Content}'");
-				title.Content.Should().NotBeNullOrWhiteSpace("titles should have content");
-				title.SlideNumber.Should().BeGreaterThan(0);
-				title.SpecificType.Should().BeOneOf("title", "subtitle");
+				_ = title.Content.Should().NotBeNullOrWhiteSpace("titles should have content");
+				_ = title.SlideNumber.Should().BePositive();
+				_ = title.SpecificType.Should().BeOneOf("title", "subtitle");
 			}
 		}
 	}
@@ -192,7 +192,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var contents = result.Chunks.OfType<PptxContentChunk>().ToList();
 		_output.WriteLine($"Content chunks extracted: {contents.Count}");
@@ -205,8 +205,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 					? content.Content[..50] + "..." 
 					: content.Content;
 				_output.WriteLine($"  Slide {content.SlideNumber}: '{preview}'");
-				content.Content.Should().NotBeNullOrWhiteSpace();
-				content.SlideNumber.Should().BeGreaterThan(0);
+				_ = content.Content.Should().NotBeNullOrWhiteSpace();
+				_ = content.SlideNumber.Should().BePositive();
 			}
 		}
 	}
@@ -233,17 +233,17 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Chunks.Should().NotBeEmpty();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
 		var contentChunks = result.Chunks.OfType<ContentChunk>().ToList();
 		_output.WriteLine($"Content chunks with metrics: {contentChunks.Count}");
 
 		foreach (var chunk in contentChunks.Take(10))
 		{
-			chunk.QualityMetrics.Should().NotBeNull();
-			chunk.QualityMetrics!.TokenCount.Should().BeGreaterThan(0);
-			chunk.QualityMetrics.CharacterCount.Should().BeGreaterThan(0);
+			_ = chunk.QualityMetrics.Should().NotBeNull();
+			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
+			_ = chunk.QualityMetrics.CharacterCount.Should().BePositive();
 			_output.WriteLine($"  Chunk: {chunk.QualityMetrics.TokenCount} tokens, {chunk.QualityMetrics.CharacterCount} chars");
 		}
 	}
@@ -270,9 +270,9 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.MaxDepth.Should().BeGreaterThanOrEqualTo(0);
+		_ = result.Success.Should().BeTrue();
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.MaxDepth.Should().BeGreaterThanOrEqualTo(0);
 		_output.WriteLine($"Max hierarchy depth: {result.Statistics.MaxDepth}");
 
 		// Verify parent-child relationships
@@ -285,7 +285,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		foreach (var child in childChunks)
 		{
 			var parent = result.Chunks.FirstOrDefault(c => c.Id == child.ParentId);
-			parent.Should().NotBeNull($"child chunk {child.Id} should have valid parent");
+			_ = parent.Should().NotBeNull($"child chunk {child.Id} should have valid parent");
 		}
 	}
 
@@ -311,12 +311,12 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Statistics.Should().NotBeNull();
-		result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
-		result.Statistics.StructuralChunks.Should().BeGreaterThanOrEqualTo(0);
-		result.Statistics.ContentChunks.Should().BeGreaterThanOrEqualTo(0);
-		result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
-		result.Statistics.TotalTokens.Should().BeGreaterThan(0);
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
+		_ = result.Statistics.StructuralChunks.Should().BeGreaterThanOrEqualTo(0);
+		_ = result.Statistics.ContentChunks.Should().BeGreaterThanOrEqualTo(0);
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		_ = result.Statistics.TotalTokens.Should().BePositive();
 
 		_output.WriteLine("Statistics:");
 		_output.WriteLine($"  Total chunks: {result.Statistics.TotalChunks}");
@@ -351,22 +351,22 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var notes = result.Chunks.OfType<PptxNotesChunk>().ToList();
 		_output.WriteLine($"Notes chunks extracted: {notes.Count}");
 
 		if (notes.Count > 0)
 		{
-			notes.Should().NotBeEmpty("with-notes.pptx should contain speaker notes");
+			_ = notes.Should().NotBeEmpty("with-notes.pptx should contain speaker notes");
 
 			foreach (var note in notes)
 			{
 				_output.WriteLine($"  Slide {note.SlideNumber} Notes ({note.NotesLength} chars): '{note.Content[..Math.Min(50, note.Content.Length)]}'...");
-				note.Content.Should().NotBeNullOrWhiteSpace("notes should have content");
-				note.SlideNumber.Should().BeGreaterThan(0);
-				note.NotesLength.Should().BeGreaterThan(0);
-				note.SpecificType.Should().Be("notes");
+				_ = note.Content.Should().NotBeNullOrWhiteSpace("notes should have content");
+				_ = note.SlideNumber.Should().BePositive();
+				_ = note.NotesLength.Should().BePositive();
+				_ = note.SpecificType.Should().Be("notes");
 			}
 		}
 		else
@@ -398,23 +398,23 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<PptxTableChunk>().ToList();
 		_output.WriteLine($"Table chunks extracted: {tables.Count}");
 
 		if (tables.Count > 0)
 		{
-			tables.Should().NotBeEmpty("with-tables.pptx should contain tables");
+			_ = tables.Should().NotBeEmpty("with-tables.pptx should contain tables");
 
 			foreach (var table in tables)
 			{
 				_output.WriteLine($"  Slide {table.SlideNumber} Table: {table.TableInfo?.RowCount} rows × {table.TableInfo?.ColumnCount} columns");
-				table.SerializedTable.Should().NotBeNullOrWhiteSpace("table should be serialized");
-				table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
-				table.TableInfo.Should().NotBeNull();
-				table.TableInfo!.RowCount.Should().BeGreaterThan(0);
-				table.TableInfo.ColumnCount.Should().BeGreaterThan(0);
+				_ = table.SerializedTable.Should().NotBeNullOrWhiteSpace("table should be serialized");
+				_ = table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
+				_ = table.TableInfo.Should().NotBeNull();
+				_ = table.TableInfo!.RowCount.Should().BePositive();
+				_ = table.TableInfo.ColumnCount.Should().BePositive();
 
 				if (table.TableInfo.HasHeaderRow)
 				{
@@ -451,21 +451,21 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 
 		var images = result.Chunks.OfType<PptxImageChunk>().ToList();
 		_output.WriteLine($"Image chunks detected: {images.Count}");
 
 		if (images.Count > 0)
 		{
-			images.Should().NotBeEmpty("with-images.pptx should contain images");
+			_ = images.Should().NotBeEmpty("with-images.pptx should contain images");
 
 			foreach (var image in images)
 			{
 				_output.WriteLine($"  Slide {image.SlideNumber} {image.VisualType}: {image.BinaryReference}");
-				image.VisualType.Should().NotBeNullOrWhiteSpace();
-				image.BinaryReference.Should().NotBeNullOrWhiteSpace();
-				image.SpecificType.Should().Be(image.VisualType);
+				_ = image.VisualType.Should().NotBeNullOrWhiteSpace();
+				_ = image.BinaryReference.Should().NotBeNullOrWhiteSpace();
+				_ = image.SpecificType.Should().Be(image.VisualType);
 
 				if (image.IsChart)
 				{
@@ -501,8 +501,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
-		result.ValidationResult.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		_ = result.ValidationResult.Should().NotBeNull();
 		
 		_output.WriteLine($"Validation result: {(result.ValidationResult!.IsValid ? "? Valid" : "? Invalid")}");
 		_output.WriteLine($"Validation issues: {result.ValidationResult.Issues.Count}");
@@ -515,7 +515,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 			}
 		}
 
-		result.ValidationResult.Issues.Should().NotContain(i => i.Severity == ValidationSeverity.Error, 
+		_ = result.ValidationResult.Issues.Should().NotContain(i => i.Severity == ValidationSeverity.Error,
 			"there should be no error-level validation issues");
 	}
 
@@ -542,12 +542,12 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue("empty presentation should not cause errors");
+		_ = result.Success.Should().BeTrue("empty presentation should not cause errors");
 		_output.WriteLine($"Chunks extracted from empty presentation: {result.Chunks.Count}");
 		_output.WriteLine($"Processing time: {result.Statistics.ProcessingTime.TotalMilliseconds}ms");
 
 		// Empty presentation may have 0 chunks or 1 empty slide
-		result.Chunks.Count.Should().BeLessThanOrEqualTo(1, "empty presentation should have 0 or 1 chunks");
+		_ = result.Chunks.Count.Should().BeLessThanOrEqualTo(1, "empty presentation should have 0 or 1 chunks");
 	}
 
 	[Fact]
@@ -573,7 +573,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await chunker.ChunkAsync(stream, options);
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 		_output.WriteLine($"Complex presentation chunks: {result.Chunks.Count}");
 
 		var slides = result.Chunks.OfType<PptxSlideChunk>().Count();
@@ -590,8 +590,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		_output.WriteLine($"  Images: {images}");
 		_output.WriteLine($"  Notes: {notes}");
 
-		slides.Should().BeGreaterThan(0, "complex.pptx should have slides");
-		(titles + contents + tables + images + notes).Should().BeGreaterThan(0, "complex.pptx should have content");
+		_ = slides.Should().BePositive("complex.pptx should have slides");
+		_ = (titles + contents + tables + images + notes).Should().BePositive("complex.pptx should have content");
 	}
 
 	[Fact]
@@ -620,7 +620,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var duration = DateTime.UtcNow - startTime;
 
 		// Assert
-		result.Success.Should().BeTrue();
+		_ = result.Success.Should().BeTrue();
 		_output.WriteLine($"Large presentation processed:");
 		_output.WriteLine($"  File size: {fileSize / 1024}KB");
 		_output.WriteLine($"  Total chunks: {result.Chunks.Count}");
@@ -629,7 +629,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		_output.WriteLine($"  Chunks/second: {result.Chunks.Count / duration.TotalSeconds:F2}");
 
 		// Performance assertions
-		duration.Should().BeLessThan(TimeSpan.FromSeconds(20), "large presentation should process in under 20 seconds");
-		result.Chunks.Count.Should().BeGreaterThan(50, "large.pptx should have many chunks");
+		_ = duration.Should().BeLessThan(TimeSpan.FromSeconds(20), "large presentation should process in under 20 seconds");
+		_ = result.Chunks.Count.Should().BeGreaterThan(50, "large.pptx should have many chunks");
 	}
 }

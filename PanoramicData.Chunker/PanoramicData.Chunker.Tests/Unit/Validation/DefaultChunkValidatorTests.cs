@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Models;
 
@@ -23,8 +24,8 @@ public class DefaultChunkValidatorTests
 		var result = await _validator.ValidateAsync(chunks);
 
 		// Assert
-		Assert.True(result.IsValid);
-		Assert.Empty(result.Issues);
+		_ = result.IsValid.Should().BeTrue();
+		_ = result.Issues.Should().BeEmpty();
 	}
 
 	[Fact]
