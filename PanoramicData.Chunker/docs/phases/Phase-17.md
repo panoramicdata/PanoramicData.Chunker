@@ -1,4 +1,4 @@
-﻿# Phase 17: Enhanced Developer Experience
+# Phase 17: Image Description
 
 [← Back to Master Plan](../MasterPlan.md)
 
@@ -15,8 +15,8 @@
 
 ## Objective
 
-Improve developer experience with NuGet packaging, sample applications, interactive tools, and comprehensive documentation portal.
+Integrate AI-powered image description using Azure Computer Vision and/or OpenAI Vision.
 
 ---
 
-[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: Additional Formats ←](Phase-16.md) | [Next Phase: PDF Advanced →](Phase-18.md)
+[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: PDF Basic ←](Phase-16.md) | [Next Phase: LLM Integration →](Phase-18.md)

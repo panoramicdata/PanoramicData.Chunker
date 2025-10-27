@@ -1,4 +1,4 @@
-﻿# Phase 18: Advanced PDF Features (OCR)
+# Phase 18: Semantic Chunking
 
 [← Back to Master Plan](../MasterPlan.md)
 
@@ -10,14 +10,13 @@
 |-----------|-------|
 | **Phase Number** | 18 |
 | **Status** | 📅 **PENDING** |
-| **Dependencies** | Phase 9 (PDF Basic) |
 
 ---
 
 ## Objective
 
-Add OCR support for scanned PDFs using Tesseract, Azure Computer Vision, or cloud OCR services.
+Implement semantic chunking strategy using embeddings to detect natural semantic boundaries.
 
 ---
 
-[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: Developer Experience ←](Phase-17.md) | [Next Phase: Production Hardening →](Phase-19.md)
+[← Back to Master Plan](../MasterPlan.md) | [Previous Phase: LLM Integration ←](Phase-10.md) | [Next Phase: Performance →](Phase-19.md)

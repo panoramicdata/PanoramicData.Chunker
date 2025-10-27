@@ -8,7 +8,7 @@
 | **Date Created** | January 2025 |
 | **Status** | Draft |
 | **Storage Strategy** | PostgreSQL + Apache AGE |
-| **Implementation Phases** | [Phase 21-26](../MasterPlan.md#knowledge-graph-phases-extended-roadmap) |
+| **Implementation Phases** | [Phase 11-26](../MasterPlan.md#knowledge-graph-phases-extended-roadmap) |
 
 ---
 
@@ -58,7 +58,7 @@ This specification adopts **PostgreSQL with Apache AGE extension** as the primar
 - **Cost Effective**: No additional infrastructure required
 - **Production Ready**: Battle-tested PostgreSQL reliability
 
-> **Implementation Note**: See [Phase 21-26 in Master Plan](../MasterPlan.md#knowledge-graph-phases-extended-roadmap) for the phased rollout strategy.
+> **Implementation Note**: See [Phase 11-26 in Master Plan](../MasterPlan.md#knowledge-graph-phases-extended-roadmap) for the phased rollout strategy.
 
 ---
 
