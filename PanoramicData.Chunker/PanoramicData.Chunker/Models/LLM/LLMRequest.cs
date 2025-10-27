@@ -1,9 +1,9 @@
-namespace PanoramicData.Chunker.Models.LLM;
+namespace PanoramicData.Chunker.Models.Llm;
 
 /// <summary>
 /// Represents a request to an LLM provider.
 /// </summary>
-public record LLMRequest
+public record LlmRequest
 {
 	/// <summary>
 	/// The prompt to send to the LLM.

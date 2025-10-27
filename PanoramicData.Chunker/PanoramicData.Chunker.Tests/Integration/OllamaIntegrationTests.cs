@@ -6,7 +6,7 @@ using PanoramicData.Chunker.LLM;
 using PanoramicData.Chunker.LLM.Caching;
 using PanoramicData.Chunker.LLM.Providers;
 using PanoramicData.Chunker.Models;
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Integration;
@@ -29,7 +29,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		}
 	}
 
-	[Fact(Skip = "Requires Ollama running locally")]
+	[Fact]
 	public async Task RealOllama_GenerateAsync_ShouldProduceResponse()
 	{
 		// Skip if Ollama not available
@@ -45,10 +45,10 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 			BaseUrl = "http://localhost:11434",
 			DefaultModel = "llama3"
 		};
-		var logger = new Mock<ILogger<OllamaLLMProvider>>().Object;
-		var provider = new OllamaLLMProvider(options, logger);
+		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
+		var provider = new OllamaLlmProvider(options, logger);
 
-		var request = new LLMRequest
+		var request = new LlmRequest
 		{
 			Prompt = "What is 2+2? Answer in one word.",
 			Model = "llama3",
@@ -70,7 +70,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		_output.WriteLine($"Duration: {response.Duration.TotalMilliseconds}ms");
 	}
 
-	[Fact(Skip = "Requires Ollama running locally")]
+	[Fact]
 	public async Task RealOllama_EnrichChunk_ShouldGenerateSummary()
 	{
 		// Skip if Ollama not available
@@ -90,9 +90,9 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 			SummaryMaxWords = 20
 		};
 
-		var llmProvider = new OllamaLLMProvider(
+		var llmProvider = new OllamaLlmProvider(
 			ollamaOptions,
-			new Mock<ILogger<OllamaLLMProvider>>().Object);
+			new Mock<ILogger<OllamaLlmProvider>>().Object);
 
 		var enricher = new ChunkEnricher(
 			llmProvider,
@@ -122,7 +122,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		_output.WriteLine($"Tokens: {enriched.TokensUsed}");
 	}
 
-	[Fact(Skip = "Requires Ollama running locally")]
+	[Fact]
 	public async Task RealOllama_ExtractKeywords_ShouldReturnKeywords()
 	{
 		// Skip if Ollama not available
@@ -141,9 +141,9 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 			MaxKeywords = 5
 		};
 
-		var llmProvider = new OllamaLLMProvider(
+		var llmProvider = new OllamaLlmProvider(
 			ollamaOptions,
-			new Mock<ILogger<OllamaLLMProvider>>().Object);
+			new Mock<ILogger<OllamaLlmProvider>>().Object);
 
 		var enricher = new ChunkEnricher(
 			llmProvider,
@@ -170,7 +170,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		_output.WriteLine($"Keywords: {string.Join(", ", enriched.Keywords)}");
 	}
 
-	[Fact(Skip = "Requires Ollama running locally")]
+	[Fact]
 	public async Task RealOllama_BatchEnrichment_ShouldProcessMultipleChunks()
 	{
 		// Skip if Ollama not available
@@ -188,9 +188,9 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 			MaxConcurrency = 2
 		};
 
-		var llmProvider = new OllamaLLMProvider(
+		var llmProvider = new OllamaLlmProvider(
 			ollamaOptions,
-			new Mock<ILogger<OllamaLLMProvider>>().Object);
+			new Mock<ILogger<OllamaLlmProvider>>().Object);
 
 		var enricher = new ChunkEnricher(
 			llmProvider,
@@ -219,7 +219,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		}
 	}
 
-	[Fact(Skip = "Requires Ollama running locally")]
+	[Fact]
 	public async Task RealOllama_CacheEfficiency_ShouldReuseResults()
 	{
 		// Skip if Ollama not available
@@ -238,9 +238,9 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 			EnableSummarization = true
 		};
 
-		var llmProvider = new OllamaLLMProvider(
+		var llmProvider = new OllamaLlmProvider(
 			ollamaOptions,
-			new Mock<ILogger<OllamaLLMProvider>>().Object);
+			new Mock<ILogger<OllamaLlmProvider>>().Object);
 
 		var enricher = new ChunkEnricher(
 			llmProvider,

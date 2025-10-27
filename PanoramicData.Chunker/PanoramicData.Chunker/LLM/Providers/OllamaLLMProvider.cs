@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces;
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 using System.Diagnostics;
 using System.Net.Http.Json;
 
@@ -10,21 +10,21 @@ namespace PanoramicData.Chunker.LLM.Providers;
 /// <summary>
 /// Ollama LLM provider implementation.
 /// </summary>
-public class OllamaLLMProvider : ILlmProvider
+public class OllamaLlmProvider : ILlmProvider
 {
 	private readonly HttpClient _httpClient;
 	private readonly OllamaOptions _options;
-	private readonly ILogger<OllamaLLMProvider> _logger;
+	private readonly ILogger<OllamaLlmProvider> _logger;
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="OllamaLLMProvider"/> class.
+	/// Initializes a new instance of the <see cref="OllamaLlmProvider"/> class.
 	/// </summary>
 	/// <param name="options">Ollama configuration options.</param>
 	/// <param name="logger">Logger instance.</param>
 	/// <param name="httpClient">Optional HTTP client (for testing).</param>
-	public OllamaLLMProvider(
+	public OllamaLlmProvider(
 		OllamaOptions options,
-		ILogger<OllamaLLMProvider> logger,
+		ILogger<OllamaLlmProvider> logger,
 		HttpClient? httpClient = null)
 	{
 		_options = options ?? throw new ArgumentNullException(nameof(options));
@@ -36,8 +36,8 @@ public class OllamaLLMProvider : ILlmProvider
 	public string ProviderName => "Ollama";
 
 	/// <inheritdoc/>
-	public async Task<LLMResponse> GenerateAsync(
-		LLMRequest request,
+	public async Task<LlmResponse> GenerateAsync(
+		LlmRequest request,
 		CancellationToken cancellationToken = default)
 	{
 		var stopwatch = Stopwatch.StartNew();
@@ -73,7 +73,7 @@ public class OllamaLLMProvider : ILlmProvider
 				stopwatch.ElapsedMilliseconds,
 				request.Model);
 
-			return new LLMResponse
+			return new LlmResponse
 			{
 				Text = result?.Response ?? string.Empty,
 				Model = request.Model,
@@ -87,7 +87,7 @@ public class OllamaLLMProvider : ILlmProvider
 			stopwatch.Stop();
 			_logger.LogError(ex, "Ollama generation failed for model {Model}", request.Model);
 
-			return new LLMResponse
+			return new LlmResponse
 			{
 				Text = string.Empty,
 				Model = request.Model,
@@ -100,12 +100,12 @@ public class OllamaLLMProvider : ILlmProvider
 	}
 
 	/// <inheritdoc/>
-	public async Task<IEnumerable<LLMResponse>> GenerateBatchAsync(
-		IEnumerable<LLMRequest> requests,
+	public async Task<IEnumerable<LlmResponse>> GenerateBatchAsync(
+		IEnumerable<LlmRequest> requests,
 		CancellationToken cancellationToken = default)
 	{
 		// Process sequentially for now (Ollama doesn't have native batch API)
-		var responses = new List<LLMResponse>();
+		var responses = new List<LlmResponse>();
 
 		foreach (var request in requests)
 		{

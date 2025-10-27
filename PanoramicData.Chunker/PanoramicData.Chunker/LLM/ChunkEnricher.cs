@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.Models;
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -153,7 +153,7 @@ public class ChunkEnricher(
 				["max_words"] = _options.SummaryMaxWords.ToString()
 			});
 
-			var request = new LLMRequest
+			var request = new LlmRequest
 			{
 				Prompt = prompt,
 				Model = _options.Model,
@@ -190,7 +190,7 @@ public class ChunkEnricher(
 				["max_keywords"] = _options.MaxKeywords.ToString()
 			});
 
-			var request = new LLMRequest
+			var request = new LlmRequest
 			{
 				Prompt = prompt,
 				Model = _options.Model,
@@ -234,7 +234,7 @@ public class ChunkEnricher(
 				["content"] = content
 			});
 
-			var request = new LLMRequest
+			var request = new LlmRequest
 			{
 				Prompt = prompt,
 				Model = _options.Model,

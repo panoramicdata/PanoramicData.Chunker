@@ -1,4 +1,4 @@
-namespace PanoramicData.Chunker.Models.LLM;
+namespace PanoramicData.Chunker.Models.Llm;
 
 /// <summary>
 /// Represents an enriched chunk with LLM-generated metadata.

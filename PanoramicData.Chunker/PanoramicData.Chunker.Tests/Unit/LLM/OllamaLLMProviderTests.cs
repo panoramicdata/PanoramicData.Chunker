@@ -4,7 +4,7 @@ using Moq;
 using Moq.Protected;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.LLM.Providers;
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 using System.Net;
 using System.Text.Json;
 using Xunit.Abstractions;
@@ -20,8 +20,8 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 	{
 		// Arrange
 		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLLMProvider>>().Object;
-		var provider = new OllamaLLMProvider(options, logger);
+		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
+		var provider = new OllamaLlmProvider(options, logger);
 
 		// Act & Assert
 		_ = provider.ProviderName.Should().Be("Ollama");
@@ -52,10 +52,10 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 
 		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
 		var options = new OllamaOptions { BaseUrl = "http://localhost:11434" };
-		var logger = new Mock<ILogger<OllamaLLMProvider>>().Object;
-		var provider = new OllamaLLMProvider(options, logger, httpClient);
+		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
+		var provider = new OllamaLlmProvider(options, logger, httpClient);
 
-		var request = new LLMRequest
+		var request = new LlmRequest
 		{
 			Prompt = "Test prompt",
 			Model = "llama3",
@@ -98,10 +98,10 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 
 		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
 		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLLMProvider>>().Object;
-		var provider = new OllamaLLMProvider(options, logger, httpClient);
+		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
+		var provider = new OllamaLlmProvider(options, logger, httpClient);
 
-		var request = new LLMRequest
+		var request = new LlmRequest
 		{
 			Prompt = "Test",
 			Model = "llama3"
@@ -131,7 +131,7 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 				"SendAsync",
 				ItExpr.IsAny<HttpRequestMessage>(),
 				ItExpr.IsAny<CancellationToken>())
-			.ReturnsAsync(new HttpResponseMessage
+			.ReturnsAsync(() => new HttpResponseMessage
 			{
 				StatusCode = HttpStatusCode.OK,
 				Content = new StringContent(JsonSerializer.Serialize(new
@@ -145,14 +145,14 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 
 		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
 		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLLMProvider>>().Object;
-		var provider = new OllamaLLMProvider(options, logger, httpClient);
+		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
+		var provider = new OllamaLlmProvider(options, logger, httpClient);
 
 		var requests = new[]
 		{
-			new LLMRequest { Prompt = "Prompt 1", Model = "llama3" },
-			new LLMRequest { Prompt = "Prompt 2", Model = "llama3" },
-			new LLMRequest { Prompt = "Prompt 3", Model = "llama3" }
+			new LlmRequest { Prompt = "Prompt 1", Model = "llama3" },
+			new LlmRequest { Prompt = "Prompt 2", Model = "llama3" },
+			new LlmRequest { Prompt = "Prompt 3", Model = "llama3" }
 		};
 
 		// Act
@@ -184,8 +184,8 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 
 		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
 		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLLMProvider>>().Object;
-		var provider = new OllamaLLMProvider(options, logger, httpClient);
+		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
+		var provider = new OllamaLlmProvider(options, logger, httpClient);
 
 		// Act
 		var result = await provider.IsAvailableAsync();
@@ -211,8 +211,8 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 
 		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
 		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLLMProvider>>().Object;
-		var provider = new OllamaLLMProvider(options, logger, httpClient);
+		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
+		var provider = new OllamaLlmProvider(options, logger, httpClient);
 
 		// Act
 		var result = await provider.IsAvailableAsync();
@@ -227,10 +227,10 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 	public void Constructor_WithNullOptions_ShouldThrow()
 	{
 		// Arrange
-		var logger = new Mock<ILogger<OllamaLLMProvider>>().Object;
+		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
 
 		// Act & Assert
-		var act = () => new OllamaLLMProvider(null!, logger);
+		var act = () => new OllamaLlmProvider(null!, logger);
 		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
@@ -241,7 +241,7 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 		var options = new OllamaOptions();
 
 		// Act & Assert
-		var act = () => new OllamaLLMProvider(options, null!);
+		var act = () => new OllamaLlmProvider(options, null!);
 		_ = act.Should().Throw<ArgumentNullException>();
 	}
 }

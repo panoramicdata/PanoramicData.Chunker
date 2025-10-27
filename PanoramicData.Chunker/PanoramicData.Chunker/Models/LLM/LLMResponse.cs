@@ -1,9 +1,9 @@
-namespace PanoramicData.Chunker.Models.LLM;
+namespace PanoramicData.Chunker.Models.Llm;
 
 /// <summary>
 /// Represents a response from an LLM provider.
 /// </summary>
-public record LLMResponse
+public record LlmResponse
 {
 	/// <summary>
 	/// The generated text.

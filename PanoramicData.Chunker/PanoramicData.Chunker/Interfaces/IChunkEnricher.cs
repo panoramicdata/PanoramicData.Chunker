@@ -1,5 +1,5 @@
 using PanoramicData.Chunker.Models;
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 
 namespace PanoramicData.Chunker.Interfaces;
 

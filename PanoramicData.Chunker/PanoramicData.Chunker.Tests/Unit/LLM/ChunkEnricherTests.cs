@@ -6,7 +6,7 @@ using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.LLM;
 using PanoramicData.Chunker.LLM.Caching;
 using PanoramicData.Chunker.Models;
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.LLM;
@@ -34,16 +34,16 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 	private static ILlmProvider CreateMockLlmProvider()
 	{
 		var mock = new Mock<ILlmProvider>();
-		_ = mock.Setup(p => p.GenerateAsync(It.IsAny<LLMRequest>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((LLMRequest req, CancellationToken _) =>
+		_ = mock.Setup(p => p.GenerateAsync(It.IsAny<LlmRequest>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync((LlmRequest req, CancellationToken _) =>
 			{
 				// Simulate different responses based on prompt content
-				var text = req.Prompt.Contains("Summarize") ? "This is a summary" :
-						   req.Prompt.Contains("Extract") && req.Prompt.Contains("keywords") ? "keyword1, keyword2, keyword3" :
-						   req.Prompt.Contains("entities") ? "[{\"text\":\"John Doe\",\"type\":\"Person\"}]" :
+				var text = req.Prompt.Contains("Summarize", StringComparison.OrdinalIgnoreCase) ? "This is a summary" :
+						 req.Prompt.Contains("Extract", StringComparison.OrdinalIgnoreCase) && req.Prompt.Contains("keywords", StringComparison.OrdinalIgnoreCase) ? "keyword1, keyword2, keyword3" :
+						   req.Prompt.Contains("entities", StringComparison.OrdinalIgnoreCase) ? "[{\"text\":\"John Doe\",\"type\":\"Person\"}]" :
 						   "Response";
 
-				return new LLMResponse
+				return new LlmResponse
 				{
 					Text = text,
 					Model = req.Model,
@@ -212,8 +212,8 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 	{
 		// Arrange
 		var mockProvider = new Mock<ILlmProvider>();
-		_ = mockProvider.Setup(p => p.GenerateAsync(It.IsAny<LLMRequest>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new LLMResponse
+		_ = mockProvider.Setup(p => p.GenerateAsync(It.IsAny<LlmRequest>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new LlmResponse
 			{
 				Text = string.Empty,
 				Model = "test",
@@ -238,7 +238,7 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 		_ = result.Summary.Should().BeEmpty();
 		_ = result.TokensUsed.Should().Be(0);
 
-		_output.WriteLine("Handled failed LLM call gracefully");
+		_output.WriteLine("Handled failed Llm call gracefully");
 	}
 
 	[Fact]

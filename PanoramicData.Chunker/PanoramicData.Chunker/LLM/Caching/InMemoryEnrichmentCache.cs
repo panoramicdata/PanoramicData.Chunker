@@ -1,5 +1,5 @@
 using PanoramicData.Chunker.Interfaces;
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 using System.Collections.Concurrent;
 
 namespace PanoramicData.Chunker.LLM.Caching;

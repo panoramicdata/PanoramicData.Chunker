@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using PanoramicData.Chunker.LLM.Caching;
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.LLM;

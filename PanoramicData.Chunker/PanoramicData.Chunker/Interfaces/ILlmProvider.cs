@@ -1,4 +1,4 @@
-using PanoramicData.Chunker.Models.LLM;
+using PanoramicData.Chunker.Models.Llm;
 
 namespace PanoramicData.Chunker.Interfaces;
 
@@ -13,8 +13,8 @@ public interface ILlmProvider
 	/// <param name="request">The LLM request.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>The LLM response.</returns>
-	Task<LLMResponse> GenerateAsync(
-		LLMRequest request,
+	Task<LlmResponse> GenerateAsync(
+		LlmRequest request,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -23,8 +23,8 @@ public interface ILlmProvider
 	/// <param name="requests">The LLM requests.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>The LLM responses.</returns>
-	Task<IEnumerable<LLMResponse>> GenerateBatchAsync(
-		IEnumerable<LLMRequest> requests,
+	Task<IEnumerable<LlmResponse>> GenerateBatchAsync(
+		IEnumerable<LlmRequest> requests,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
