@@ -1,5 +1,9 @@
 Blockquote
 Chunker
+Cooccurrence
+Cypher
+Deduplicate
+Deduplication
 Deserialize
 Deserializer
 Docx
@@ -11,4 +15,5 @@ Ollama
 Pptx
 Serializer
 Subtree
+Validator
 Xlsx

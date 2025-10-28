@@ -178,4 +178,15 @@ public class ChunkingOptions
 	/// LLM enrichment options.
 	/// </summary>
 	public LLMEnrichmentOptions? LLMEnrichmentOptions { get; set; }
+
+	// Knowledge Graph (Phase 11)
+	/// <summary>
+	/// Enable knowledge graph extraction from chunks.
+	/// </summary>
+	public bool EnableKnowledgeGraph { get; set; } = false;
+
+	/// <summary>
+	/// Knowledge graph extraction options.
+	/// </summary>
+	public KnowledgeGraphOptions? KnowledgeGraphOptions { get; set; }
 }

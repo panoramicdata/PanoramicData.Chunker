@@ -1,4 +1,5 @@
 using PanoramicData.Chunker.Models.Llm;
+using PanoramicData.Chunker.Models.KnowledgeGraph;
 
 namespace PanoramicData.Chunker.Models;
 
@@ -16,6 +17,11 @@ public class ChunkingResult
 	/// Enriched chunks with LLM-generated metadata (if enrichment was enabled).
 	/// </summary>
 	public IReadOnlyList<EnrichedChunk>? EnrichedChunks { get; set; }
+
+	/// <summary>
+	/// Knowledge graph extracted from the chunks (if extraction was enabled).
+	/// </summary>
+	public KnowledgeGraphResult? KnowledgeGraph { get; set; }
 
 	/// <summary>
 	/// Statistical information about the chunking process.

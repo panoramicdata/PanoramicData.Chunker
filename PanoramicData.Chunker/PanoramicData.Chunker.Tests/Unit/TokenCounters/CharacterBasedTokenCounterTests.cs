@@ -21,7 +21,7 @@ public class CharacterBasedTokenCounterTests
 		var tokens = _tokenCounter.CountTokens(text);
 
 		// Assert
-		Assert.Equal(expectedTokens, tokens);
+		tokens.Should().Be(expectedTokens);
 	}
 
 	[Fact]
@@ -35,7 +35,7 @@ public class CharacterBasedTokenCounterTests
 		var asyncResult = await _tokenCounter.CountTokensAsync(text);
 
 		// Assert
-		Assert.Equal(syncResult, asyncResult);
+		asyncResult.Should().Be(syncResult);
 	}
 
 	[Fact]
@@ -49,7 +49,7 @@ public class CharacterBasedTokenCounterTests
 		var batches = _tokenCounter.SplitIntoTokenBatches(text, maxTokens, 0).ToList();
 
 		// Assert
-		Assert.NotEmpty(batches);
+		batches.Should().NotBeEmpty();
 		foreach (var batch in batches)
 		{
 			var tokenCount = _tokenCounter.CountTokens(batch);

@@ -237,7 +237,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		_output.WriteLine($"Large document results:");
 		_output.WriteLine($"  Total chunks: {result.Statistics.TotalChunks}");
 		_output.WriteLine($"  Processing time: {duration.TotalMilliseconds}ms");
-		_output.WriteLine($"  Chunks per second: {result.Statistics.TotalChunks / duration.TotalSeconds:F2}");
+		_output.WriteLine($"  Chunks per second: {result.Statistics.TotalChunks / Math.Max(duration.TotalSeconds, 0.001):F2}");
 
 		// Performance assertion: should process reasonably fast
 		_ = duration.Should().BeLessThan(TimeSpan.FromSeconds(30));
@@ -268,7 +268,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		_ = result.Success.Should().BeTrue();
 
 		var paragraphs = result.Chunks.OfType<DocxParagraphChunk>()
-			.Where(p => p.Annotations.Count > 0)
+			.Where(p => p.Annotations?.Count > 0)
 			.ToList();
 
 		_output.WriteLine($"Paragraphs with annotations: {paragraphs.Count}");
@@ -276,11 +276,14 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		foreach (var paragraph in paragraphs.Take(5))
 		{
 			_output.WriteLine($"  Paragraph: {paragraph.Content[..Math.Min(50, paragraph.Content.Length)]}...");
-			_output.WriteLine($"  Annotations: {paragraph.Annotations.Count}");
+			_output.WriteLine($"  Annotations: {paragraph.Annotations?.Count ?? 0}");
 
-			foreach (var annotation in paragraph.Annotations.Take(3))
+			if (paragraph.Annotations != null)
 			{
-				_output.WriteLine($"    - {annotation.Type}");
+				foreach (var annotation in paragraph.Annotations.Take(3))
+				{
+					_output.WriteLine($"    - {annotation.Type}");
+				}
 			}
 		}
 	}

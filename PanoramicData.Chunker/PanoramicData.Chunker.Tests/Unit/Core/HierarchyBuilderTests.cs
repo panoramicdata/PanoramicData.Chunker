@@ -23,9 +23,9 @@ public class HierarchyBuilderTests
 		HierarchyBuilder.BuildHierarchy(chunks);
 
 		// Assert
-		Assert.Equal(0, root.Depth);
-		Assert.Equal(1, child1.Depth);
-		Assert.Equal(2, child2.Depth);
+		root.Depth.Should().Be(0);
+		child1.Depth.Should().Be(1);
+		child2.Depth.Should().Be(2);
 	}
 
 	[Fact]
@@ -43,11 +43,11 @@ public class HierarchyBuilderTests
 
 		// Assert
 		_ = root.AncestorIds.Should().BeEmpty();
-		_ = Assert.Single(child1.AncestorIds);
-		Assert.Equal(root.Id, child1.AncestorIds[0]);
-		Assert.Equal(2, child2.AncestorIds.Length);
-		Assert.Equal(root.Id, child2.AncestorIds[0]);
-		Assert.Equal(child1.Id, child2.AncestorIds[1]);
+		child1.AncestorIds.Should().ContainSingle();
+		child1.AncestorIds[0].Should().Be(root.Id);
+		child2.AncestorIds.Should().HaveCount(2);
+		child2.AncestorIds[0].Should().Be(root.Id);
+		child2.AncestorIds[1].Should().Be(child1.Id);
 	}
 
 	[Fact]
@@ -64,9 +64,9 @@ public class HierarchyBuilderTests
 		HierarchyBuilder.PopulateChildren(chunks);
 
 		// Assert
-		Assert.Equal(2, root.Children.Count);
+		root.Children.Should().HaveCount(2);
 		_ = root.Children.Should().Contain(child1);
-		Assert.Contains(child2, root.Children);
+		root.Children.Should().Contain(child2);
 	}
 
 	[Fact]
@@ -82,8 +82,8 @@ public class HierarchyBuilderTests
 		var roots = HierarchyBuilder.GetRootChunks(chunks).ToList();
 
 		// Assert
-		_ = Assert.Single(roots);
-		Assert.Contains(root, roots);
+		roots.Should().ContainSingle();
+		roots.Should().Contain(root);
 	}
 
 	[Fact]
@@ -100,10 +100,10 @@ public class HierarchyBuilderTests
 		var leaves = HierarchyBuilder.GetLeafChunks(chunks).ToList();
 
 		// Assert
-		Assert.Equal(2, leaves.Count);
-		Assert.Contains(child1, leaves);
-		Assert.Contains(child2, leaves);
-		Assert.DoesNotContain(root, leaves);
+		leaves.Should().HaveCount(2);
+		leaves.Should().Contain(child1);
+		leaves.Should().Contain(child2);
+		leaves.Should().NotContain(root);
 	}
 
 	// Test helper classes

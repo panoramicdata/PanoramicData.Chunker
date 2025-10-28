@@ -24,7 +24,7 @@ namespace PanoramicData.Chunker.Chunkers.Html;
 public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<HtmlDocumentChunker>? logger = null) : IDocumentChunker
 {
 	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
-	private readonly HtmlParser _parser = new HtmlParser();
+	private readonly HtmlParser _parser = new();
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
 	private readonly Stack<(int level, Guid id)> _headingStack = new();
@@ -279,7 +279,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			ParentId = parentId,
 			TagName = tagName,
 			HeadingLevel = GetHeadingLevel(tagName),
-			CssClasses = element.ClassList.ToList(),
+			CssClasses = [.. element.ClassList],
 			ElementId = element.Id,
 			Role = element.GetAttribute("role"),
 			SequenceNumber = _sequenceNumber++,
@@ -332,7 +332,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			{
 				Content = text,
 				HtmlContent = element.InnerHtml,
-				CssClasses = element.ClassList.ToList(),
+				CssClasses = [.. element.ClassList],
 				ElementId = element.Id
 			},
 			"blockquote" => new HtmlBlockquoteChunk
@@ -340,7 +340,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 				Content = text,
 				HtmlContent = element.InnerHtml,
 				CiteUrl = element.GetAttribute("cite"),
-				CssClasses = element.ClassList.ToList(),
+				CssClasses = [.. element.ClassList],
 				ElementId = element.Id
 			},
 			"pre" => CreateCodeBlockChunk(element, text),
@@ -349,7 +349,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			{
 				Content = text,
 				HtmlContent = element.InnerHtml,
-				CssClasses = element.ClassList.ToList(),
+				CssClasses = [.. element.ClassList],
 				ElementId = element.Id
 			},
 			_ => new HtmlParagraphChunk
@@ -411,7 +411,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			HtmlContent = element.InnerHtml,
 			Language = language,
 			HasCodeElement = hasCodeElement,
-			CssClasses = element.ClassList.ToList(),
+			CssClasses = [.. element.ClassList],
 			ElementId = element.Id
 		};
 	}
@@ -445,7 +445,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			HtmlContent = element.InnerHtml,
 			ListType = listType,
 			NestingLevel = nestingLevel,
-			CssClasses = element.ClassList.ToList(),
+			CssClasses = [.. element.ClassList],
 			ElementId = element.Id
 		};
 	}
@@ -475,7 +475,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 		if (bodyRowsList.Count == 0)
 		{
 			// If no tbody, get all rows except the first one (which we used for headers)
-			bodyRowsList = table.QuerySelectorAll("tr").Skip(1).ToList();
+			bodyRowsList = [.. table.QuerySelectorAll("tr").Skip(1)];
 		}
 
 		foreach (var row in bodyRowsList)
@@ -503,7 +503,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			HtmlContent = element.OuterHtml,
 			Caption = caption,
 			Summary = summary,
-			CssClasses = element.ClassList.ToList(),
+			CssClasses = [.. element.ClassList],
 			ElementId = element.Id,
 			ParentId = parentId,
 			SequenceNumber = _sequenceNumber++,
@@ -581,7 +581,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			Title = title,
 			Width = width,
 			Height = height,
-			CssClasses = element.ClassList.ToList(),
+			CssClasses = [.. element.ClassList],
 			ElementId = element.Id,
 			SequenceNumber = _sequenceNumber++,
 			SpecificType = "image",

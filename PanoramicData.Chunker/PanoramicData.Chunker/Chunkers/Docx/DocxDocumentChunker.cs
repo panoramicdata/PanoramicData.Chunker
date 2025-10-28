@@ -398,7 +398,7 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 		if (hasHeaderRow)
 		{
 			headers = ExtractRowCells(rows[0]);
-			dataRows = rows.Skip(1).ToList();
+			dataRows = [.. rows.Skip(1)];
 		}
 
 		// Extract data rows

@@ -237,7 +237,7 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 			var placeholderType = GetPlaceholderType(shape);
 
 			// Skip title (already processed)
-			if (placeholderType == "title" || placeholderType == "ctrTitle")
+			if (placeholderType is "title" or "ctrTitle")
 			{
 				continue;
 			}
@@ -392,7 +392,7 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 		if (hasFirstRowHeader && rows.Count > 0)
 		{
 			headers = ExtractTableRowCells(rows[0]);
-			dataRows = rows.Skip(1).ToList();
+			dataRows = [.. rows.Skip(1)];
 		}
 
 		// Extract data rows

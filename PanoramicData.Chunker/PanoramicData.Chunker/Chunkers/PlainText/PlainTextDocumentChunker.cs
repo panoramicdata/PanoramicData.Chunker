@@ -471,7 +471,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	/// <summary>
 	/// Detects list items.
 	/// </summary>
-	private PlainTextListItemChunk? DetectListItem(string line, string? previousLine, ChunkerBase? previousChunk)
+	private static PlainTextListItemChunk? DetectListItem(string line, string? previousLine, ChunkerBase? previousChunk)
 	{
 		var trimmed = line.TrimStart();
 		var indentLevel = line.Length - trimmed.Length;
@@ -562,7 +562,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	/// <summary>
 	/// Detects code blocks.
 	/// </summary>
-	private PlainTextCodeBlockChunk? DetectCodeBlock(string[] lines, ref int index)
+	private static PlainTextCodeBlockChunk? DetectCodeBlock(string[] lines, ref int index)
 	{
 		var line = lines[index];
 
@@ -579,7 +579,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	/// <summary>
 	/// Detects fenced code blocks (```).
 	/// </summary>
-	private PlainTextCodeBlockChunk? DetectFencedCodeBlock(string[] lines, ref int index)
+	private static PlainTextCodeBlockChunk? DetectFencedCodeBlock(string[] lines, ref int index)
 	{
 		var startLine = lines[index].Trim();
 		if (!startLine.StartsWith("```"))
@@ -623,7 +623,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	/// <summary>
 	/// Detects indented code blocks.
 	/// </summary>
-	private PlainTextCodeBlockChunk? DetectIndentedCodeBlock(string[] lines, ref int index)
+	private static PlainTextCodeBlockChunk? DetectIndentedCodeBlock(string[] lines, ref int index)
 	{
 		var line = lines[index];
 		var indent = GetIndentation(line);
@@ -686,7 +686,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	/// <summary>
 	/// Detects paragraphs.
 	/// </summary>
-	private PlainTextParagraphChunk? DetectParagraph(string[] lines, ref int index)
+	private static PlainTextParagraphChunk? DetectParagraph(string[] lines, ref int index)
 	{
 		var paragraphLines = new List<string>();
 		var startIndex = index;
@@ -825,7 +825,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	{
 		OutputFormat.Flat => chunks,
 		OutputFormat.Hierarchical => BuildHierarchicalStructure(chunks),
-		OutputFormat.LeavesOnly => chunks.Where(c => c is ContentChunk).ToList(),
+		OutputFormat.LeavesOnly => [.. chunks.Where(c => c is ContentChunk)],
 		_ => chunks
 	};
 
@@ -841,7 +841,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 		}
 
 		// Return only root chunks
-		return flatChunks.Where(c => c.ParentId == null).ToList();
+		return [.. flatChunks.Where(c => c.ParentId == null)];
 	}
 
 	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()

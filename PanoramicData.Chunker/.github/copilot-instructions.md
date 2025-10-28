@@ -6,7 +6,7 @@
 
 1. **Update Existing Documentation**
    - Update `docs/MasterPlan.md` when phase status changes
- - Update individual phase files in `docs/phases/Phase-XX.md` as work progresses
+   - Update individual phase files in `docs/phases/Phase-XX.md` as work progresses
    - Keep phase documentation in sync with implementation
 
 2. **Maintain Project Status**
@@ -41,11 +41,11 @@
 docs/
 ??? MasterPlan.md       ? Project-level status, all phases summary
 ??? phases/
-?   ??? Phase-00.md         ? Foundation
-?   ??? Phase-01.md         ? Markdown (include implementation, tests, results)
-?   ??? Phase-02.md         ? HTML
+?   ??? Phase-00.md      ? Foundation
+?   ??? Phase-01.md  ? Markdown (include implementation, tests, results)
+?   ??? Phase-02.md  ? HTML
 ?   ??? ...
-?   ??? Phase-20.md         ? Release
+?   ??? Phase-20.md     ? Release
 ??? other specialized docs only when necessary
 ```
 
@@ -95,6 +95,57 @@ Each phase file (`Phase-XX.md`) should contain:
    - Update "Current Phase"
    - Note the phase as "In Progress" in the summary table
 
+## Testing Standards
+
+### Test Assertion Style
+
+**ALWAYS use FluentAssertions, NEVER use `Assert.XXX`**
+
+? **WRONG** - Do not use xUnit Assert syntax:
+```csharp
+Assert.Equal(expected, actual);
+Assert.Single(collection);
+Assert.NotEmpty(collection);
+Assert.True(condition);
+Assert.NotNull(value);
+```
+
+? **CORRECT** - Use FluentAssertions:
+```csharp
+actual.Should().Be(expected);
+collection.Should().ContainSingle();
+collection.Should().NotBeEmpty();
+condition.Should().BeTrue();
+value.Should().NotBeNull();
+```
+
+### Common Conversions
+
+| xUnit Assert | FluentAssertions |
+|--------------|------------------|
+| `Assert.Equal(expected, actual)` | `actual.Should().Be(expected)` |
+| `Assert.NotEqual(expected, actual)` | `actual.Should().NotBe(expected)` |
+| `Assert.True(condition)` | `condition.Should().BeTrue()` |
+| `Assert.False(condition)` | `condition.Should().BeFalse()` |
+| `Assert.Null(value)` | `value.Should().BeNull()` |
+| `Assert.NotNull(value)` | `value.Should().NotBeNull()` |
+| `Assert.Empty(collection)` | `collection.Should().BeEmpty()` |
+| `Assert.NotEmpty(collection)` | `collection.Should().NotBeEmpty()` |
+| `Assert.Single(collection)` | `collection.Should().ContainSingle()` |
+| `Assert.Contains(item, collection)` | `collection.Should().Contain(item)` |
+| `Assert.DoesNotContain(item, collection)` | `collection.Should().NotContain(item)` |
+| `Assert.All(collection, predicate)` | `collection.Should().AllSatisfy(predicate)` |
+| `Assert.Throws<T>()` | `act.Should().Throw<T>()` |
+| `Assert.ThrowsAsync<T>()` | `await act.Should().ThrowAsync<T>()` |
+
+### Why FluentAssertions?
+
+- More readable and expressive assertions
+- Better error messages
+- Consistent fluent API
+- Eliminates FAA0002 analyzer warnings
+- Industry best practice for .NET testing
+
 ## Code Quality Standards
 
 - Zero compilation errors
@@ -103,6 +154,7 @@ Each phase file (`Phase-XX.md`) should contain:
 - >80% code coverage
 - XML docs on all public APIs
 - Follow established patterns from prior phases
+- **Use FluentAssertions for all test assertions**
 
 ## Naming Conventions
 
@@ -110,14 +162,6 @@ Each phase file (`Phase-XX.md`) should contain:
 - Chunk types: `{Type}{Purpose}Chunk` (e.g., `PptxSlideChunk`, `PptxTitleChunk`)
 - Test classes: `{ClassName}Tests` (e.g., `PptxDocumentChunkerTests`)
 - Test methods: `{MethodName}_Should{ExpectedBehavior}_When{Condition}`
-
-## Testing Standards
-
-- Write tests before or alongside implementation
-- Use FluentAssertions for assertions
-- Provide detailed test output via ITestOutputHelper
-- Tests should skip gracefully when test files are missing
-- Include edge cases (empty files, large files, invalid content)
 
 ## Performance Targets
 
@@ -135,4 +179,7 @@ Each phase file (`Phase-XX.md`) should contain:
 
 ---
 
-**Remember**: Update `docs/MasterPlan.md` and `docs/phases/Phase-XX.md` as you go. Don't create separate summary files unless specifically requested for external documentation purposes.
+**Remember**: 
+1. Update `docs/MasterPlan.md` and `docs/phases/Phase-XX.md` as you go
+2. **ALWAYS use FluentAssertions, NEVER use `Assert.XXX`**
+3. Don't create separate summary files unless specifically requested for external documentation purposes

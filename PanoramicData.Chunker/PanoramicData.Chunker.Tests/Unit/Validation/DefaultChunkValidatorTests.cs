@@ -44,10 +44,10 @@ public class DefaultChunkValidatorTests
 		var result = await _validator.ValidateAsync(chunks);
 
 		// Assert
-		Assert.False(result.IsValid);
-		Assert.True(result.HasOrphanedChunks);
-		Assert.NotEmpty(result.Issues);
-		Assert.Contains(result.Issues, i => i.Code == "ORPHANED_CHUNK");
+		result.IsValid.Should().BeFalse();
+		result.HasOrphanedChunks.Should().BeTrue();
+		result.Issues.Should().NotBeEmpty();
+		result.Issues.Should().Contain(i => i.Code == "ORPHANED_CHUNK");
 	}
 
 	[Fact]
@@ -64,8 +64,8 @@ public class DefaultChunkValidatorTests
 		var result = await _validator.ValidateAsync(chunks);
 
 		// Assert
-		Assert.False(result.IsValid);
-		Assert.True(result.HasCircularReferences);
+		result.IsValid.Should().BeFalse();
+		result.HasCircularReferences.Should().BeTrue();
 	}
 
 	[Fact]
@@ -86,9 +86,9 @@ public class DefaultChunkValidatorTests
 		var result = await _validator.ValidateAsync(chunks);
 
 		// Assert
-		Assert.False(result.IsValid);
-		Assert.True(result.HasInvalidHierarchy);
-		Assert.Contains(result.Issues, i => i.Code == "DEPTH_MISMATCH");
+		result.IsValid.Should().BeFalse();
+		result.HasInvalidHierarchy.Should().BeTrue();
+		result.Issues.Should().Contain(i => i.Code == "DEPTH_MISMATCH");
 	}
 
 	// Test helper classes
