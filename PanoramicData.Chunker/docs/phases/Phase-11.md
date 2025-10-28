@@ -192,7 +192,7 @@ Establish the foundational data models, interfaces, and basic entity extraction 
 2. For each chunk:
    a. Find all entities appearing in chunk
    b. For each entity pair:
-  - Create "mentions" relationship
+      - Create "mentions" relationship
       - Weight based on proximity
       - Track chunk as evidence
 3. Aggregate relationships across chunks
@@ -324,10 +324,10 @@ if (result.KnowledgeGraph?.Success == true)
     
     // Find keyword entities
     var keywords = graph.Entities
-      .Where(e => e.Type == EntityType.Keyword)
+        .Where(e => e.Type == EntityType.Keyword)
         .OrderByDescending(e => e.Frequency)
-    .Take(10)
-        .ToList();
+   .Take(10)
+   .ToList();
     
     foreach (var keyword in keywords)
     {
