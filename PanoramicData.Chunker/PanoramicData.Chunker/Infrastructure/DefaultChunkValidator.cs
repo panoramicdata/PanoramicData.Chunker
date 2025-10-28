@@ -13,7 +13,7 @@ public class DefaultChunkValidator : IChunkValidator
 	/// </summary>
 	public Task<ValidationResult> ValidateAsync(
 		IEnumerable<ChunkerBase> chunks,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		var result = new ValidationResult();
 		var chunkList = chunks.ToList();

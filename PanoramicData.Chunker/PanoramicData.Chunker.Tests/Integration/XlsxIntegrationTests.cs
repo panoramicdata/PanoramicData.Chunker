@@ -8,14 +8,9 @@ namespace PanoramicData.Chunker.Tests.Integration;
 /// <summary>
 /// Integration tests for XLSX document chunking.
 /// </summary>
-public class XlsxIntegrationTests
+public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly string _testDataPath;
-
-	public XlsxIntegrationTests()
-	{
-		_testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Xlsx");
-	}
+	private readonly string _testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Xlsx");
 
 	[Fact]
 	public async Task ChunkAsync_SimpleSpreadsheet_ShouldExtractTable()
@@ -26,7 +21,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -57,7 +52,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -73,7 +68,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -100,7 +95,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -124,7 +119,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -150,7 +145,7 @@ public class XlsxIntegrationTests
 
 		// Act
 		var startTime = DateTime.UtcNow;
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 		var processingTime = DateTime.UtcNow - startTime;
 
 		// Assert
@@ -178,7 +173,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -198,7 +193,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -222,7 +217,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -247,7 +242,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -269,7 +264,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Statistics.Should().NotBeNull();
@@ -288,7 +283,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act - Use auto-detect
-		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.xlsx", options);
+		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.xlsx", options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -304,7 +299,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		var table = result.Chunks.OfType<XlsxTableChunk>().First();
@@ -322,7 +317,7 @@ public class XlsxIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
@@ -348,7 +343,7 @@ public class XlsxIntegrationTests
 		};
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
 
 		// Assert
 		_ = result.ValidationResult.Should().NotBeNull();

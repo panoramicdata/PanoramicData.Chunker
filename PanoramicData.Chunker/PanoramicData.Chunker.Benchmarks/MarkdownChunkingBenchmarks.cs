@@ -70,7 +70,7 @@ public class MarkdownChunkingBenchmarks
 	public async Task<ChunkingResult> ChunkSmallDocument()
 	{
 		_smallDocumentStream.Position = 0;
-		return await _chunker.ChunkAsync(_smallDocumentStream, _defaultOptions);
+		return await _chunker.ChunkAsync(_smallDocumentStream, _defaultOptions, CancellationToken.None);
 	}
 
 	#endregion
@@ -81,14 +81,14 @@ public class MarkdownChunkingBenchmarks
 	public async Task<ChunkingResult> ChunkMediumDocument()
 	{
 		_mediumDocumentStream.Position = 0;
-		return await _chunker.ChunkAsync(_mediumDocumentStream, _defaultOptions);
+		return await _chunker.ChunkAsync(_mediumDocumentStream, _defaultOptions, CancellationToken.None);
 	}
 
 	[Benchmark(Description = "Medium Document with Large Chunks")]
 	public async Task<ChunkingResult> ChunkMediumDocumentLargeChunks()
 	{
 		_mediumDocumentStream.Position = 0;
-		return await _chunker.ChunkAsync(_mediumDocumentStream, _largeChunkOptions);
+		return await _chunker.ChunkAsync(_mediumDocumentStream, _largeChunkOptions, CancellationToken.None);
 	}
 
 	#endregion
@@ -99,7 +99,7 @@ public class MarkdownChunkingBenchmarks
 	public async Task<ChunkingResult> ChunkLargeDocument()
 	{
 		_largeDocumentStream.Position = 0;
-		return await _chunker.ChunkAsync(_largeDocumentStream, _defaultOptions);
+		return await _chunker.ChunkAsync(_largeDocumentStream, _defaultOptions, CancellationToken.None);
 	}
 
 	[Benchmark(Description = "Large Document with Validation")]
@@ -113,7 +113,7 @@ public class MarkdownChunkingBenchmarks
 			Strategy = _defaultOptions.Strategy,
 			ValidateChunks = true
 		};
-		return await _chunker.ChunkAsync(_largeDocumentStream, options);
+		return await _chunker.ChunkAsync(_largeDocumentStream, options, CancellationToken.None);
 	}
 
 	#endregion
@@ -124,7 +124,7 @@ public class MarkdownChunkingBenchmarks
 	public async Task<ChunkingResult> ChunkVeryLargeDocument()
 	{
 		_veryLargeDocumentStream.Position = 0;
-		return await _chunker.ChunkAsync(_veryLargeDocumentStream, _defaultOptions);
+		return await _chunker.ChunkAsync(_veryLargeDocumentStream, _defaultOptions, CancellationToken.None);
 	}
 
 	#endregion
@@ -218,7 +218,7 @@ Thank you for reading.
 			{
 				_ = sb.AppendLine($"### Section {chapter}.{section}: Subtopic");
 				_ = sb.AppendLine();
-				
+
 				// Multiple paragraphs
 				for (var para = 1; para <= 3; para++)
 				{
@@ -286,7 +286,7 @@ Thank you for reading.
 			_ = sb.AppendLine();
 			_ = sb.AppendLine($"### Overview of Section {i}");
 			_ = sb.AppendLine();
-			
+
 			for (var para = 1; para <= 10; para++)
 			{
 				_ = sb.AppendLine($"Paragraph {para}: This is detailed content for section {i}. It contains comprehensive information about the topic, including examples, best practices, and common pitfalls to avoid. The content is designed to be informative and practical for developers working with this technology.");

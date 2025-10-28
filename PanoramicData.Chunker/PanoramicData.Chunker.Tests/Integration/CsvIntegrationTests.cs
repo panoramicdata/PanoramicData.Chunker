@@ -8,14 +8,9 @@ namespace PanoramicData.Chunker.Tests.Integration;
 /// <summary>
 /// Integration tests for CSV document chunking.
 /// </summary>
-public class CsvIntegrationTests
+public class CsvIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly string _testDataPath;
-
-	public CsvIntegrationTests()
-	{
-		_testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Csv");
-	}
+	private readonly string _testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Csv");
 
 	[Fact]
 	public async Task ChunkAsync_SimpleCsv_ShouldExtractRows()
@@ -26,7 +21,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -60,7 +55,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -76,7 +71,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -99,7 +94,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -120,7 +115,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -138,7 +133,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -157,7 +152,7 @@ public class CsvIntegrationTests
 
 		// Act
 		var startTime = DateTime.UtcNow;
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 		var processingTime = DateTime.UtcNow - startTime;
 
 		// Assert
@@ -179,7 +174,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -201,7 +196,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -224,7 +219,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -247,7 +242,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -272,7 +267,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.Statistics.Should().NotBeNull();
@@ -291,7 +286,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act - Use auto-detect
-		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.csv", options);
+		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.csv", options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -307,7 +302,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		var row = result.Chunks.OfType<CsvRowChunk>().First();
@@ -328,7 +323,7 @@ public class CsvIntegrationTests
 		};
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		_ = result.ValidationResult.Should().NotBeNull();
@@ -344,7 +339,7 @@ public class CsvIntegrationTests
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Csv, options, CancellationToken);
 
 		// Assert
 		var row = result.Chunks.OfType<CsvRowChunk>().First();

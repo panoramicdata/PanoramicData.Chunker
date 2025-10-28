@@ -38,7 +38,7 @@ public class OllamaLlmProvider : ILlmProvider
 	/// <inheritdoc/>
 	public async Task<LlmResponse> GenerateAsync(
 		LlmRequest request,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		var stopwatch = Stopwatch.StartNew();
 
@@ -102,7 +102,7 @@ public class OllamaLlmProvider : ILlmProvider
 	/// <inheritdoc/>
 	public async Task<IEnumerable<LlmResponse>> GenerateBatchAsync(
 		IEnumerable<LlmRequest> requests,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		// Process sequentially for now (Ollama doesn't have native batch API)
 		var responses = new List<LlmResponse>();
@@ -117,7 +117,7 @@ public class OllamaLlmProvider : ILlmProvider
 	}
 
 	/// <inheritdoc/>
-	public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
+	public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
 	{
 		try
 		{

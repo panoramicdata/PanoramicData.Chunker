@@ -9,7 +9,7 @@ namespace PanoramicData.Chunker.Tests.Integration;
 /// <summary>
 /// Integration tests for token counting across different document types.
 /// </summary>
-public class TokenCountingIntegrationTests
+public class TokenCountingIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 {
 	[Fact]
 	public async Task MarkdownChunking_WithOpenAITokenCounter_ShouldCountTokensAccurately()
@@ -42,7 +42,7 @@ public class Test {
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -90,7 +90,7 @@ public class Test {
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Html, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Html, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -138,10 +138,10 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 
 		// Act
 		using var stream1 = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-		var charResult = await DocumentChunker.ChunkAsync(stream1, DocumentType.Markdown, charOptions);
+		var charResult = await DocumentChunker.ChunkAsync(stream1, DocumentType.Markdown, charOptions, CancellationToken);
 
 		using var stream2 = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-		var openAIResult = await DocumentChunker.ChunkAsync(stream2, DocumentType.Markdown, openAIOptions);
+		var openAIResult = await DocumentChunker.ChunkAsync(stream2, DocumentType.Markdown, openAIOptions, CancellationToken);
 
 		// Assert
 		_ = charResult.Success.Should().BeTrue();
@@ -153,10 +153,10 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		// Both counters should produce positive token counts
 		_ = charResult.Statistics.TotalTokens.Should().BePositive("character-based counter should work");
 		_ = openAIResult.Statistics.TotalTokens.Should().BePositive("OpenAI counter should work");
-		
+
 		// Token counts typically differ, but may occasionally be similar
 		// Just verify both are in a reasonable range (within 50% of each other)
-		var ratio = (double)Math.Max(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens) / 
+		var ratio = (double)Math.Max(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens) /
 					Math.Min(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens);
 		_ = ratio.Should().BeLessThan(2.0, "token counts should be within 2x of each other");
 	}
@@ -171,7 +171,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -198,7 +198,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -212,7 +212,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		// Arrange
 		var longText = string.Join("\n\n", Enumerable.Range(1, 50)
 			.Select(i => $"This is sentence number {i} with enough content to test token counting."));
-		
+
 		var markdown = $"# Large Document\n\n{longText}";
 
 		var options = new ChunkingOptions
@@ -225,7 +225,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -258,7 +258,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -290,7 +290,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -316,7 +316,7 @@ Third paragraph.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
 
 		// Assert
 		_ = result.Statistics.TotalTokens.Should().BePositive();

@@ -1,5 +1,6 @@
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
+using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.Models;
 
 namespace PanoramicData.Chunker;
@@ -21,7 +22,7 @@ public static class DocumentChunker
 	public static async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		DocumentType type,
-		CancellationToken cancellationToken = default) => await ChunkAsync(documentStream, type, new ChunkingOptions(), cancellationToken);
+		CancellationToken cancellationToken) => await ChunkAsync(documentStream, type, new ChunkingOptions(), cancellationToken);
 
 	/// <summary>
 	/// Chunk a document from a stream with custom options.
@@ -35,7 +36,7 @@ public static class DocumentChunker
 		Stream documentStream,
 		DocumentType type,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		var chunker = _factory.GetChunker(type);
 		return await chunker.ChunkAsync(documentStream, options, cancellationToken);
@@ -50,8 +51,8 @@ public static class DocumentChunker
 	/// <returns>Chunking result with chunks and statistics.</returns>
 	public static async Task<ChunkingResult> ChunkFileAsync(
 		string filePath,
-		ChunkingOptions? options = null,
-		CancellationToken cancellationToken = default)
+		ChunkingOptions? options,
+		CancellationToken cancellationToken)
 	{
 		options ??= new ChunkingOptions();
 
@@ -62,11 +63,11 @@ public static class DocumentChunker
 		}
 
 		await using var fileStream = File.OpenRead(filePath);
-		var chunker = _factory.GetChunkerForStream(fileStream, filePath);
-		
+		var chunker = await _factory.GetChunkerForStreamAsync(fileStream, filePath, cancellationToken);
+
 		// Reset stream position
 		fileStream.Position = 0;
-		
+
 		return await chunker.ChunkAsync(fileStream, options, cancellationToken);
 	}
 
@@ -80,19 +81,19 @@ public static class DocumentChunker
 	/// <returns>Chunking result with chunks and statistics.</returns>
 	public static async Task<ChunkingResult> ChunkAutoDetectAsync(
 		Stream documentStream,
-		string? fileNameHint = null,
-		ChunkingOptions? options = null,
-		CancellationToken cancellationToken = default)
+		string? fileNameHint,
+		ChunkingOptions? options,
+		CancellationToken cancellationToken)
 	{
 		options ??= new ChunkingOptions();
-		var chunker = _factory.GetChunkerForStream(documentStream, fileNameHint);
-		
+		var chunker = await _factory.GetChunkerForStreamAsync(documentStream, fileNameHint, cancellationToken);
+
 		// Reset stream position if possible
 		if (documentStream.CanSeek)
 		{
 			documentStream.Position = 0;
 		}
-		
+
 		return await chunker.ChunkAsync(documentStream, options, cancellationToken);
 	}
 
@@ -106,5 +107,5 @@ public static class DocumentChunker
 	/// Register a custom document chunker.
 	/// </summary>
 	/// <param name="chunker">The chunker to register.</param>
-	public static void RegisterChunker(Interfaces.IDocumentChunker chunker) => _factory.RegisterChunker(chunker);
+	public static void RegisterChunker(IDocumentChunker chunker) => _factory.RegisterChunker(chunker);
 }

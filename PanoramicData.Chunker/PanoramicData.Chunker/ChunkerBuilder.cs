@@ -1,8 +1,8 @@
+using Microsoft.Extensions.Logging;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.Models;
-using Microsoft.Extensions.Logging;
 
 namespace PanoramicData.Chunker;
 
@@ -215,7 +215,7 @@ public class ChunkerBuilder
 	/// </summary>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>Chunking result.</returns>
-	public async Task<ChunkingResult> ChunkAsync(CancellationToken cancellationToken = default)
+	public async Task<ChunkingResult> ChunkAsync(CancellationToken cancellationToken)
 	{
 		if (_filePath != null)
 		{

@@ -29,7 +29,7 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 	/// <summary>
 	/// Validates if the stream contains a valid Markdown document.
 	/// </summary>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default)
+	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		if (documentStream == null || !documentStream.CanRead)
 		{
@@ -73,7 +73,7 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 	public async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(documentStream);
 		ArgumentNullException.ThrowIfNull(options);

@@ -14,7 +14,7 @@ namespace PanoramicData.Chunker.KnowledgeGraph.Extractors;
 /// <param name="maxKeywords">Maximum number of keywords to extract per chunk.</param>
 /// <param name="minWordLength">Minimum word length to consider.</param>
 /// <param name="minConfidence">Minimum confidence score for extraction.</param>
-public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLength = 3, double minConfidence = 0.3) : IEntityExtractor
+public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLength = 3, double minConfidence = 0.0) : IEntityExtractor
 {
 	private static readonly HashSet<string> _stopWords = new(StringComparer.OrdinalIgnoreCase)
 	{
@@ -44,7 +44,7 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 	/// <inheritdoc/>
 	public async Task<List<Entity>> ExtractEntitiesAsync(
 		IEnumerable<ChunkerBase> chunks,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		var chunkList = chunks.ToList();
 		if (chunkList.Count == 0)
@@ -146,7 +146,7 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 	/// <inheritdoc/>
 	public async Task<List<Entity>> ExtractEntitiesAsync(
 		ChunkerBase chunk,
-		CancellationToken cancellationToken = default) => await ExtractEntitiesAsync([chunk], cancellationToken);
+		CancellationToken cancellationToken) => await ExtractEntitiesAsync([chunk], cancellationToken);
 
 	private Dictionary<string, int> CalculateTermFrequencies(List<ChunkerBase> chunks)
 	{

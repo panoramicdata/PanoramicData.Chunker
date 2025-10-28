@@ -15,7 +15,7 @@ public interface ILlmProvider
 	/// <returns>The LLM response.</returns>
 	Task<LlmResponse> GenerateAsync(
 		LlmRequest request,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Generates text completions for multiple prompts (batch).
@@ -25,14 +25,14 @@ public interface ILlmProvider
 	/// <returns>The LLM responses.</returns>
 	Task<IEnumerable<LlmResponse>> GenerateBatchAsync(
 		IEnumerable<LlmRequest> requests,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Checks if the LLM provider is available/reachable.
 	/// </summary>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>True if available, false otherwise.</returns>
-	Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);
+	Task<bool> IsAvailableAsync(CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Gets the name of the provider (e.g., "Ollama", "OpenAI").

@@ -12,7 +12,7 @@ public interface IGraphStore
 	/// </summary>
 	/// <param name="graph">The knowledge graph to save.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task SaveGraphAsync(Graph graph, CancellationToken cancellationToken = default);
+	Task SaveGraphAsync(Graph graph, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Loads a knowledge graph from storage by ID.
@@ -20,7 +20,7 @@ public interface IGraphStore
 	/// <param name="graphId">The graph ID.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>The knowledge graph, or null if not found.</returns>
-	Task<Graph?> LoadGraphAsync(Guid graphId, CancellationToken cancellationToken = default);
+	Task<Graph?> LoadGraphAsync(Guid graphId, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Loads a knowledge graph from storage by name.
@@ -28,14 +28,14 @@ public interface IGraphStore
 	/// <param name="name">The graph name.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>The knowledge graph, or null if not found.</returns>
-	Task<Graph?> LoadGraphByNameAsync(string name, CancellationToken cancellationToken = default);
+	Task<Graph?> LoadGraphByNameAsync(string name, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Deletes a knowledge graph from storage.
 	/// </summary>
 	/// <param name="graphId">The graph ID.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task DeleteGraphAsync(Guid graphId, CancellationToken cancellationToken = default);
+	Task DeleteGraphAsync(Guid graphId, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Checks if a knowledge graph exists in storage.
@@ -43,14 +43,14 @@ public interface IGraphStore
 	/// <param name="graphId">The graph ID.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>True if the graph exists.</returns>
-	Task<bool> GraphExistsAsync(Guid graphId, CancellationToken cancellationToken = default);
+	Task<bool> GraphExistsAsync(Guid graphId, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Lists all knowledge graphs in storage.
 	/// </summary>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>List of graph metadata.</returns>
-	Task<List<GraphMetadata>> ListGraphsAsync(CancellationToken cancellationToken = default);
+	Task<List<GraphMetadata>> ListGraphsAsync(CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Saves an entity to storage.
@@ -58,7 +58,7 @@ public interface IGraphStore
 	/// <param name="graphId">The graph ID.</param>
 	/// <param name="entity">The entity to save.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task SaveEntityAsync(Guid graphId, Entity entity, CancellationToken cancellationToken = default);
+	Task SaveEntityAsync(Guid graphId, Entity entity, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Saves a relationship to storage.
@@ -66,7 +66,7 @@ public interface IGraphStore
 	/// <param name="graphId">The graph ID.</param>
 	/// <param name="relationship">The relationship to save.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task SaveRelationshipAsync(Guid graphId, Relationship relationship, CancellationToken cancellationToken = default);
+	Task SaveRelationshipAsync(Guid graphId, Relationship relationship, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Queries entities by type.
@@ -75,7 +75,7 @@ public interface IGraphStore
 	/// <param name="entityType">The entity type.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>List of matching entities.</returns>
-	Task<List<Entity>> QueryEntitiesByTypeAsync(Guid graphId, EntityType entityType, CancellationToken cancellationToken = default);
+	Task<List<Entity>> QueryEntitiesByTypeAsync(Guid graphId, EntityType entityType, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Queries relationships by type.
@@ -84,5 +84,5 @@ public interface IGraphStore
 	/// <param name="relationshipType">The relationship type.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>List of matching relationships.</returns>
-	Task<List<Relationship>> QueryRelationshipsByTypeAsync(Guid graphId, RelationshipType relationshipType, CancellationToken cancellationToken = default);
+	Task<List<Relationship>> QueryRelationshipsByTypeAsync(Guid graphId, RelationshipType relationshipType, CancellationToken cancellationToken);
 }

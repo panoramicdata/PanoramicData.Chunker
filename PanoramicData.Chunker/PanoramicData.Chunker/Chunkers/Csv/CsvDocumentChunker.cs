@@ -26,7 +26,7 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 	public DocType SupportedType => DocType.Csv;
 
 	/// <inheritdoc/>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default)
+	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -73,7 +73,7 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 	public async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(documentStream);
 		ArgumentNullException.ThrowIfNull(options);

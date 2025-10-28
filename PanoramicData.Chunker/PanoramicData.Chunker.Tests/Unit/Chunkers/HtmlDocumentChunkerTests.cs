@@ -7,11 +7,11 @@ using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
-public class HtmlDocumentChunkerTests
+public class HtmlDocumentChunkerTests : BaseTest
 {
 	private readonly HtmlDocumentChunker _chunker;
 
-	public HtmlDocumentChunkerTests()
+	public HtmlDocumentChunkerTests(ITestOutputHelper output) : base(output)
 	{
 		var tokenCounter = new CharacterBasedTokenCounter();
 		_chunker = new HtmlDocumentChunker(tokenCounter);
@@ -35,7 +35,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -52,7 +52,7 @@ public class HtmlDocumentChunkerTests
 		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeTrue();
@@ -66,7 +66,7 @@ public class HtmlDocumentChunkerTests
 		var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -93,7 +93,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var sections = result.Chunks.OfType<HtmlSectionChunk>().ToList();
@@ -121,7 +121,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var paragraphs = result.Chunks.OfType<HtmlParagraphChunk>().ToList();
@@ -151,7 +151,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
@@ -183,7 +183,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
@@ -210,7 +210,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
@@ -233,7 +233,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var codeBlocks = result.Chunks.OfType<HtmlCodeBlockChunk>().ToList();
@@ -258,7 +258,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var blockquotes = result.Chunks.OfType<HtmlBlockquoteChunk>().ToList();
@@ -291,7 +291,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var tables = result.Chunks.OfType<HtmlTableChunk>().ToList();
@@ -319,7 +319,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var images = result.Chunks.OfType<HtmlImageChunk>().ToList();
@@ -347,7 +347,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
@@ -375,7 +375,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
@@ -401,7 +401,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
@@ -427,7 +427,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
@@ -458,7 +458,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var sections = result.Chunks.OfType<HtmlSectionChunk>().ToList();
@@ -486,7 +486,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Chunks.OfType<ContentChunk>().Should().NotContain(c => c.Content.Contains("console.log"));
@@ -512,7 +512,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var h1 = result.Chunks.OfType<HtmlSectionChunk>().First(s => s.HeadingLevel == 1);
@@ -538,7 +538,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
@@ -565,7 +565,7 @@ public class HtmlDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().First();

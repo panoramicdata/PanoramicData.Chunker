@@ -8,14 +8,9 @@ namespace PanoramicData.Chunker.Tests.Unit.Serialization;
 /// <summary>
 /// Tests for JsonChunkSerializer.
 /// </summary>
-public class JsonChunkSerializerTests
+public class JsonChunkSerializerTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly JsonChunkSerializer _serializer;
-
-	public JsonChunkSerializerTests()
-	{
-		_serializer = new JsonChunkSerializer();
-	}
+	private readonly JsonChunkSerializer _serializer = new();
 
 	[Fact]
 	public async Task SerializeAsync_WithSingleChunk_ShouldProduceValidJson()
@@ -35,11 +30,11 @@ public class JsonChunkSerializerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		await _serializer.SerializeAsync(chunks, stream);
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
 
 		// Assert
 		stream.Position = 0;
-		var json = await new StreamReader(stream).ReadToEndAsync();
+		var json = await new StreamReader(stream).ReadToEndAsync(CancellationToken);
 		_ = json.Should().NotBeNullOrEmpty();
 		_ = json.Should().Contain("$type");
 		_ = json.Should().Contain("MarkdownParagraph");
@@ -74,11 +69,11 @@ public class JsonChunkSerializerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		await _serializer.SerializeAsync(chunks, stream);
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
 
 		// Assert
 		stream.Position = 0;
-		var json = await new StreamReader(stream).ReadToEndAsync();
+		var json = await new StreamReader(stream).ReadToEndAsync(CancellationToken);
 		_ = json.Should().Contain("MarkdownSection");
 		_ = json.Should().Contain("MarkdownParagraph");
 		_ = json.Should().Contain("MarkdownCodeBlock");
@@ -98,11 +93,11 @@ public class JsonChunkSerializerTests
 		};
 
 		using var stream = new MemoryStream();
-		await _serializer.SerializeAsync(original, stream);
+		await _serializer.SerializeAsync(original, stream, CancellationToken);
 		stream.Position = 0;
 
 		// Act
-		var deserialized = await _serializer.DeserializeAsync(stream);
+		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
 
 		// Assert
 		_ = deserialized.Should().ContainSingle();
@@ -134,9 +129,9 @@ public class JsonChunkSerializerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		await _serializer.SerializeAsync(chunks, stream);
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
 		stream.Position = 0;
-		var deserialized = await _serializer.DeserializeAsync(stream);
+		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
 
 		// Assert
 		var deserializedList = deserialized.ToList();
@@ -225,11 +220,11 @@ public class JsonChunkSerializerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		await _serializer.SerializeResultAsync(result, stream);
+		await _serializer.SerializeResultAsync(result, stream, CancellationToken);
 
 		// Assert
 		stream.Position = 0;
-		var json = await new StreamReader(stream).ReadToEndAsync();
+		var json = await new StreamReader(stream).ReadToEndAsync(CancellationToken);
 		_ = json.Should().Contain("chunks");
 		_ = json.Should().Contain("statistics");
 		_ = json.Should().Contain("success");
@@ -258,11 +253,11 @@ public class JsonChunkSerializerTests
 		};
 
 		using var stream = new MemoryStream();
-		await _serializer.SerializeResultAsync(original, stream);
+		await _serializer.SerializeResultAsync(original, stream, CancellationToken);
 		stream.Position = 0;
 
 		// Act
-		var deserialized = await _serializer.DeserializeResultAsync(stream);
+		var deserialized = await _serializer.DeserializeResultAsync(stream, CancellationToken);
 
 		// Assert
 		_ = deserialized.Should().NotBeNull();
@@ -294,9 +289,9 @@ public class JsonChunkSerializerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		await _serializer.SerializeAsync(chunks, stream);
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
 		stream.Position = 0;
-		var deserialized = await _serializer.DeserializeAsync(stream);
+		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
 
 		// Assert
 		var chunk = deserialized.First();
@@ -330,9 +325,9 @@ public class JsonChunkSerializerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		await _serializer.SerializeAsync(chunks, stream);
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
 		stream.Position = 0;
-		var deserialized = await _serializer.DeserializeAsync(stream);
+		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
 
 		// Assert
 		var chunk = deserialized.First();
@@ -365,9 +360,9 @@ public class JsonChunkSerializerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		await _serializer.SerializeAsync(chunks, stream);
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
 		stream.Position = 0;
-		var deserialized = await _serializer.DeserializeAsync(stream);
+		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
 
 		// Assert
 		var chunk = deserialized.First() as MarkdownTableChunk;
@@ -393,11 +388,11 @@ public class JsonChunkSerializerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		await _serializer.SerializeAsync(chunks, stream);
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
 
 		// Assert
 		stream.Position = 0;
-		var json = await new StreamReader(stream).ReadToEndAsync();
+		var json = await new StreamReader(stream).ReadToEndAsync(CancellationToken);
 		_ = json.Should().NotContain("markdownContent"); // Should be omitted
 	}
 }

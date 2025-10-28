@@ -9,12 +9,12 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// <summary>
 /// Unit tests for PdfDocumentChunker.
 /// </summary>
-public class PdfDocumentChunkerTests
+public class PdfDocumentChunkerTests : BaseTest
 {
 	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly PdfDocumentChunker _chunker;
 
-	public PdfDocumentChunkerTests()
+	public PdfDocumentChunkerTests(ITestOutputHelper output) : base(output)
 	{
 		_tokenCounter = new CharacterBasedTokenCounter();
 		_chunker = new PdfDocumentChunker(_tokenCounter);
@@ -57,7 +57,7 @@ public class PdfDocumentChunkerTests
 		using var stream = new MemoryStream(pdfSignature);
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeTrue();
@@ -72,7 +72,7 @@ public class PdfDocumentChunkerTests
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -85,7 +85,7 @@ public class PdfDocumentChunkerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -99,7 +99,7 @@ public class PdfDocumentChunkerTests
 		using var stream = new MemoryStream(content);
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -112,7 +112,7 @@ public class PdfDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var act = async () => await _chunker.ChunkAsync(null!, options);
+		var act = async () => await _chunker.ChunkAsync(null!, options, CancellationToken);
 
 		// Assert
 		_ = await act.Should().ThrowAsync<ArgumentNullException>();
@@ -125,7 +125,7 @@ public class PdfDocumentChunkerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		var act = async () => await _chunker.ChunkAsync(stream, null!);
+		var act = async () => await _chunker.ChunkAsync(stream, null!, CancellationToken);
 
 		// Assert
 		_ = await act.Should().ThrowAsync<ArgumentNullException>();
@@ -142,7 +142,7 @@ public class PdfDocumentChunkerTests
 			var options = new ChunkingOptions();
 
 			// Act
-			var result = await _chunker.ChunkAsync(stream, options);
+			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -164,7 +164,7 @@ public class PdfDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -183,7 +183,7 @@ public class PdfDocumentChunkerTests
 			var options = new ChunkingOptions();
 
 			// Act
-			var result = await _chunker.ChunkAsync(stream, options);
+			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 			// Assert
 			_ = result.Should().NotBeNull();
@@ -204,7 +204,7 @@ public class PdfDocumentChunkerTests
 			var options = new ChunkingOptions();
 
 			// Act
-			var result = await _chunker.ChunkAsync(stream, options);
+			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 			// Assert
 			_ = result.Statistics.Should().NotBeNull();
@@ -224,7 +224,7 @@ public class PdfDocumentChunkerTests
 			var options = new ChunkingOptions { ValidateChunks = true };
 
 			// Act
-			var result = await _chunker.ChunkAsync(stream, options);
+			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 			// Assert
 			_ = result.ValidationResult.Should().NotBeNull();
@@ -243,7 +243,7 @@ public class PdfDocumentChunkerTests
 			var options = new ChunkingOptions();
 
 			// Act
-			var result = await _chunker.ChunkAsync(stream, options);
+			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 			// Assert
 			_ = result.Chunks.Should().AllSatisfy(chunk =>
@@ -264,7 +264,7 @@ public class PdfDocumentChunkerTests
 			var options = new ChunkingOptions();
 
 			// Act
-			var result = await _chunker.ChunkAsync(stream, options);
+			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 			// Assert
 			var page = result.Chunks.OfType<PdfPageChunk>().FirstOrDefault();
@@ -286,7 +286,7 @@ public class PdfDocumentChunkerTests
 			var options = new ChunkingOptions();
 
 			// Act
-			var result = await _chunker.ChunkAsync(stream, options);
+			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 			// Assert
 			var doc = result.Chunks.OfType<PdfDocumentChunk>().FirstOrDefault();
@@ -307,7 +307,7 @@ public class PdfDocumentChunkerTests
 			var options = new ChunkingOptions();
 
 			// Act
-			var result = await _chunker.ChunkAsync(stream, options);
+			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 			// Assert
 			var doc = result.Chunks.OfType<PdfDocumentChunk>().First();

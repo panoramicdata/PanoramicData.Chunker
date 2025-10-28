@@ -6,17 +6,14 @@ using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Infrastructure.TokenCounters;
 using PanoramicData.Chunker.Models;
 using System.Text;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
 /// <summary>
 /// Unit tests for DocxDocumentChunker.
 /// </summary>
-public class DocxDocumentChunkerTests(ITestOutputHelper output)
+public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly ITestOutputHelper _output = output;
-
 	[Fact]
 	public void Constructor_ShouldThrowArgumentNullException_WhenTokenCounterIsNull()
 	{
@@ -58,7 +55,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.CanHandleAsync(stream);
+		var result = await chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeTrue();
@@ -73,7 +70,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("This is plain text"));
 
 		// Act
-		var result = await chunker.CanHandleAsync(stream);
+		var result = await chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -101,7 +98,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -140,7 +137,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -174,7 +171,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -209,7 +206,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -276,7 +273,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -304,7 +301,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Statistics.Should().NotBeNull();
@@ -339,7 +336,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -365,7 +362,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -401,7 +398,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -438,7 +435,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();

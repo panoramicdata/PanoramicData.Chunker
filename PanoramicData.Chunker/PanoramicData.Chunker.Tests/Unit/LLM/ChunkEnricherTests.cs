@@ -7,14 +7,11 @@ using PanoramicData.Chunker.LLM;
 using PanoramicData.Chunker.LLM.Caching;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.Llm;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.LLM;
 
-public class ChunkEnricherTests(ITestOutputHelper output)
+public class ChunkEnricherTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly ITestOutputHelper _output = output;
-
 	private static ChunkEnricher CreateEnricher(
 		ILlmProvider? llmProvider = null,
 		IPromptTemplate? promptManager = null,
@@ -68,7 +65,7 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await enricher.EnrichAsync(chunk);
+		var result = await enricher.EnrichAsync(chunk, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -98,7 +95,7 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await enricher.EnrichAsync(chunk);
+		var result = await enricher.EnrichAsync(chunk, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -119,8 +116,8 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 		var chunk2 = new TestContentChunk { Content = "Same content", Id = Guid.NewGuid() };
 
 		// Act
-		var result1 = await enricher.EnrichAsync(chunk1);
-		var result2 = await enricher.EnrichAsync(chunk2);
+		var result1 = await enricher.EnrichAsync(chunk1, CancellationToken);
+		var result2 = await enricher.EnrichAsync(chunk2, CancellationToken);
 
 		var stats = cache.GetStatistics();
 
@@ -144,7 +141,7 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await enricher.EnrichAsync(chunk);
+		var result = await enricher.EnrichAsync(chunk, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -167,7 +164,7 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var results = await enricher.EnrichBatchAsync(chunks);
+		var results = await enricher.EnrichBatchAsync(chunks, CancellationToken);
 
 		// Assert
 		_ = results.Should().HaveCount(3);
@@ -194,7 +191,7 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await enricher.EnrichAsync(chunk);
+		var result = await enricher.EnrichAsync(chunk, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -231,7 +228,7 @@ public class ChunkEnricherTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await enricher.EnrichAsync(chunk);
+		var result = await enricher.EnrichAsync(chunk, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();

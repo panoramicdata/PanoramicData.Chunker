@@ -3,14 +3,13 @@ using PanoramicData.Chunker.KnowledgeGraph;
 using PanoramicData.Chunker.KnowledgeGraph.Extractors;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Tests.Utilities;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.KnowledgeGraph;
 
 /// <summary>
 /// Unit tests for the KnowledgeGraphBuilder class.
 /// </summary>
-public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
+public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(output)
 {
 	[Fact]
 	public void Constructor_ShouldInitialize()
@@ -58,7 +57,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		var chunks = new List<ChunkerBase>();
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
@@ -66,7 +65,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		result.Graph.Entities.Should().BeEmpty();
 		result.Graph.Relationships.Should().BeEmpty();
 		result.Warnings.Should().ContainSingle();
-		output.WriteLine($"Warnings: {string.Join(", ", result.Warnings)}");
+		_output.WriteLine($"Warnings: {string.Join(", ", result.Warnings)}");
 	}
 
 	[Fact]
@@ -80,7 +79,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
@@ -106,15 +105,15 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Test Graph");
+		var result = await builder.BuildGraphAsync(chunks, "Test Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
 		result.Graph.Should().NotBeNull();
 		result.Graph.Entities.Should().NotBeEmpty();
 		result.Graph.Name.Should().Be("Test Graph");
-		output.WriteLine($"Extracted {result.Statistics.EntitiesExtracted} entities");
-		output.WriteLine($"After deduplication: {result.Statistics.EntitiesAfterDeduplication} entities");
+		_output.WriteLine($"Extracted {result.Statistics.EntitiesExtracted} entities");
+		_output.WriteLine($"After deduplication: {result.Statistics.EntitiesAfterDeduplication} entities");
 	}
 
 	[Fact]
@@ -135,15 +134,15 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
 		result.Graph.Should().NotBeNull();
 		result.Graph.Entities.Should().NotBeEmpty();
-		output.WriteLine($"Entities extracted: {result.Statistics.EntitiesExtracted}");
-		output.WriteLine($"Relationships extracted: {result.Statistics.RelationshipsExtracted}");
-		output.WriteLine($"Extractors used: {string.Join(", ", result.Statistics.ExtractorsUsed)}");
+		_output.WriteLine($"Entities extracted: {result.Statistics.EntitiesExtracted}");
+		_output.WriteLine($"Relationships extracted: {result.Statistics.RelationshipsExtracted}");
+		_output.WriteLine($"Extractors used: {string.Join(", ", result.Statistics.ExtractorsUsed)}");
 	}
 
 	[Fact]
@@ -163,7 +162,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
@@ -172,9 +171,9 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 			.Where(e => e.Name.Contains("machine", StringComparison.OrdinalIgnoreCase))
 			.ToList();
 
-		output.WriteLine($"Total entities: {result.Graph.Entities.Count}");
-		output.WriteLine($"'Machine learning' entities: {mlEntities.Count}");
-		output.WriteLine($"Entities merged: {result.Statistics.EntitiesMerged}");
+		_output.WriteLine($"Total entities: {result.Graph.Entities.Count}");
+		_output.WriteLine($"'Machine learning' entities: {mlEntities.Count}");
+		_output.WriteLine($"Entities merged: {result.Statistics.EntitiesMerged}");
 
 		(result.Statistics.EntitiesMerged >= 0).Should().BeTrue();
 	}
@@ -205,13 +204,13 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
-		output.WriteLine($"Relationships extracted: {result.Statistics.RelationshipsExtracted}");
-		output.WriteLine($"Relationships after consolidation: {result.Statistics.RelationshipsAfterConsolidation}");
-		output.WriteLine($"Relationships merged: {result.Statistics.RelationshipsMerged}");
+		_output.WriteLine($"Relationships extracted: {result.Statistics.RelationshipsExtracted}");
+		_output.WriteLine($"Relationships after consolidation: {result.Statistics.RelationshipsAfterConsolidation}");
+		_output.WriteLine($"Relationships merged: {result.Statistics.RelationshipsMerged}");
 
 		(result.Statistics.RelationshipsAfterConsolidation <= result.Statistics.RelationshipsExtracted).Should().BeTrue();
 	}
@@ -233,7 +232,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
@@ -267,7 +266,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
@@ -275,7 +274,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		result.Graph.Statistics.Should().NotBeNull();
 		result.Graph.Statistics.TotalEntities.Should().Be(result.Graph.Entities.Count);
 		result.Graph.Statistics.TotalRelationships.Should().Be(result.Graph.Relationships.Count);
-		output.WriteLine($"Graph statistics: {result.Graph.Statistics.TotalEntities} entities, {result.Graph.Statistics.TotalRelationships} relationships");
+		_output.WriteLine($"Graph statistics: {result.Graph.Statistics.TotalEntities} entities, {result.Graph.Statistics.TotalRelationships} relationships");
 	}
 
 	[Fact]
@@ -296,14 +295,14 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
 		// If validation fails, there should be errors
 		if (!result.Success || result.Errors.Count > 0)
 		{
-			output.WriteLine($"Validation errors: {string.Join(", ", result.Errors)}");
+			_output.WriteLine($"Validation errors: {string.Join(", ", result.Errors)}");
 		}
 	}
 
@@ -325,7 +324,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 
 		// Act
 		var startTime = DateTimeOffset.UtcNow;
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 		var endTime = DateTimeOffset.UtcNow;
 
 		// Assert
@@ -334,7 +333,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		(result.CompletedAt >= result.StartedAt).Should().BeTrue();
 		result.Duration.Should().NotBeNull();
 		(result.Duration!.Value.TotalMilliseconds > 0).Should().BeTrue();
-		output.WriteLine($"Build duration: {result.Duration!.Value.TotalMilliseconds}ms");
+		_output.WriteLine($"Build duration: {result.Duration!.Value.TotalMilliseconds}ms");
 	}
 
 	[Fact]
@@ -353,7 +352,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
@@ -361,10 +360,10 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		(result.Statistics.EntityExtractionTime.TotalMilliseconds > 0).Should().BeTrue();
 		result.Statistics.ExtractorsUsed.Should().NotBeEmpty();
 
-		output.WriteLine($"Chunks processed: {result.Statistics.ChunksProcessed}");
-		output.WriteLine($"Entity extraction time: {result.Statistics.EntityExtractionTime.TotalMilliseconds}ms");
-		output.WriteLine($"Relationship extraction time: {result.Statistics.RelationshipExtractionTime.TotalMilliseconds}ms");
-		output.WriteLine($"Graph building time: {result.Statistics.GraphBuildingTime.TotalMilliseconds}ms");
+		_output.WriteLine($"Chunks processed: {result.Statistics.ChunksProcessed}");
+		_output.WriteLine($"Entity extraction time: {result.Statistics.EntityExtractionTime.TotalMilliseconds}ms");
+		_output.WriteLine($"Relationship extraction time: {result.Statistics.RelationshipExtractionTime.TotalMilliseconds}ms");
+		_output.WriteLine($"Graph building time: {result.Statistics.GraphBuildingTime.TotalMilliseconds}ms");
 	}
 
 	[Fact]
@@ -383,12 +382,12 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		cts.Cancel();
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks, cancellationToken: cts.Token);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", cancellationToken: cts.Token);
 
 		// Assert
 		result.Success.Should().BeFalse();
 		result.Errors.Should().Contain(e => e.Contains("cancel", StringComparison.OrdinalIgnoreCase));
-		output.WriteLine($"Errors: {string.Join(", ", result.Errors)}");
+		_output.WriteLine($"Errors: {string.Join(", ", result.Errors)}");
 	}
 
 	[Fact]
@@ -409,13 +408,13 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
 		result.Statistics.ExtractorsUsed.Should().Contain("SimpleKeywordExtractor");
 		result.Statistics.ExtractorsUsed.Should().Contain("CooccurrenceRelationshipExtractor");
-		output.WriteLine($"Extractors used: {string.Join(", ", result.Statistics.ExtractorsUsed)}");
+		_output.WriteLine($"Extractors used: {string.Join(", ", result.Statistics.ExtractorsUsed)}");
 	}
 
 	[Fact]
@@ -436,11 +435,11 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await builder.BuildGraphAsync(chunks);
+		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
 
 		// Assert
 		result.Success.Should().BeTrue();
-		output.WriteLine($"Entities before deduplication: {result.Statistics.EntitiesExtracted}");
-		output.WriteLine($"Entities after deduplication: {result.Statistics.EntitiesAfterDeduplication}");
+		_output.WriteLine($"Entities before deduplication: {result.Statistics.EntitiesExtracted}");
+		_output.WriteLine($"Entities after deduplication: {result.Statistics.EntitiesAfterDeduplication}");
 	}
 }

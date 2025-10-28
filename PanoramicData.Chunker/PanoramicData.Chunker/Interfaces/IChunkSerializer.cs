@@ -16,7 +16,7 @@ public interface IChunkSerializer
 	Task SerializeAsync(
 		IEnumerable<ChunkerBase> chunks,
 		Stream output,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Deserialize chunks from a stream.
@@ -26,7 +26,7 @@ public interface IChunkSerializer
 	/// <returns>The deserialized chunks.</returns>
 	Task<IEnumerable<ChunkerBase>> DeserializeAsync(
 		Stream input,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Serialize a chunking result to a stream.
@@ -37,7 +37,7 @@ public interface IChunkSerializer
 	Task SerializeResultAsync(
 		ChunkingResult result,
 		Stream output,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Deserialize a chunking result from a stream.
@@ -47,5 +47,5 @@ public interface IChunkSerializer
 	/// <returns>The deserialized chunking result.</returns>
 	Task<ChunkingResult?> DeserializeResultAsync(
 		Stream input,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 }

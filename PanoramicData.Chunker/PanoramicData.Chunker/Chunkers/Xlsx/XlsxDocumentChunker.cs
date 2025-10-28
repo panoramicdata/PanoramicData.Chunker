@@ -33,7 +33,7 @@ public partial class XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<Xls
 	public DocType SupportedType => DocType.Xlsx;
 
 	/// <inheritdoc/>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default)
+	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -79,7 +79,7 @@ public partial class XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<Xls
 	public async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(documentStream);
 		ArgumentNullException.ThrowIfNull(options);

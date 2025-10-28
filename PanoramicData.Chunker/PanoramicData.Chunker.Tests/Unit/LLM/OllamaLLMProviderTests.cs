@@ -7,14 +7,11 @@ using PanoramicData.Chunker.LLM.Providers;
 using PanoramicData.Chunker.Models.Llm;
 using System.Net;
 using System.Text.Json;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.LLM;
 
-public class OllamaLLMProviderTests(ITestOutputHelper output)
+public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly ITestOutputHelper _output = output;
-
 	[Fact]
 	public void ProviderName_ShouldReturnOllama()
 	{
@@ -64,7 +61,7 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await provider.GenerateAsync(request);
+		var result = await provider.GenerateAsync(request, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -108,7 +105,7 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await provider.GenerateAsync(request);
+		var result = await provider.GenerateAsync(request, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -156,7 +153,7 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var results = await provider.GenerateBatchAsync(requests);
+		var results = await provider.GenerateBatchAsync(requests, CancellationToken);
 
 		// Assert
 		_ = results.Should().HaveCount(3);
@@ -188,7 +185,7 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 		var provider = new OllamaLlmProvider(options, logger, httpClient);
 
 		// Act
-		var result = await provider.IsAvailableAsync();
+		var result = await provider.IsAvailableAsync(CancellationToken);
 
 		// Assert
 		_ = result.Should().BeTrue();
@@ -215,7 +212,7 @@ public class OllamaLLMProviderTests(ITestOutputHelper output)
 		var provider = new OllamaLlmProvider(options, logger, httpClient);
 
 		// Act
-		var result = await provider.IsAvailableAsync();
+		var result = await provider.IsAvailableAsync(CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();

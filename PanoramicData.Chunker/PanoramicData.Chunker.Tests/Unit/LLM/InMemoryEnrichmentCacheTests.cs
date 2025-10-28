@@ -1,14 +1,11 @@
 using AwesomeAssertions;
 using PanoramicData.Chunker.LLM.Caching;
 using PanoramicData.Chunker.Models.Llm;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.LLM;
 
-public class InMemoryEnrichmentCacheTests(ITestOutputHelper output)
+public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly ITestOutputHelper _output = output;
-
 	[Fact]
 	public void TryGet_WithNonExistentKey_ShouldReturnFalse()
 	{
@@ -64,7 +61,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output)
 
 		// Act
 		cache.Set("test-key", enrichedChunk, TimeSpan.FromMilliseconds(50));
-		await Task.Delay(100); // Wait for expiration
+		await Task.Delay(100, CancellationToken); // Wait for expiration
 		var result = cache.TryGet("test-key", out var value);
 
 		// Assert

@@ -29,7 +29,7 @@ public interface INERProvider
 	/// <param name="text">The text to analyze.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>List of extracted entities.</returns>
-	Task<List<Entity>> ExtractEntitiesAsync(string text, CancellationToken cancellationToken = default);
+	Task<List<Entity>> ExtractEntitiesAsync(string text, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Extracts named entities from multiple texts in batch.
@@ -37,5 +37,5 @@ public interface INERProvider
 	/// <param name="texts">The texts to analyze.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>List of lists of extracted entities (one per input text).</returns>
-	Task<List<List<Entity>>> ExtractEntitiesBatchAsync(IEnumerable<string> texts, CancellationToken cancellationToken = default);
+	Task<List<List<Entity>>> ExtractEntitiesBatchAsync(IEnumerable<string> texts, CancellationToken cancellationToken);
 }

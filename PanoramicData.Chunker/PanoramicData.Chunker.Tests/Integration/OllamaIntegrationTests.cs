@@ -7,14 +7,11 @@ using PanoramicData.Chunker.LLM.Caching;
 using PanoramicData.Chunker.LLM.Providers;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.Llm;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Integration;
 
-public class OllamaIntegrationTests(ITestOutputHelper output)
+public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly ITestOutputHelper _output = output;
-
 	private static bool IsOllamaAvailable()
 	{
 		try
@@ -57,7 +54,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var response = await provider.GenerateAsync(request);
+		var response = await provider.GenerateAsync(request, CancellationToken);
 
 		// Assert
 		_ = response.Should().NotBeNull();
@@ -110,7 +107,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var enriched = await enricher.EnrichAsync(chunk);
+		var enriched = await enricher.EnrichAsync(chunk, CancellationToken);
 
 		// Assert
 		_ = enriched.Should().NotBeNull();
@@ -159,7 +156,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var enriched = await enricher.EnrichAsync(chunk);
+		var enriched = await enricher.EnrichAsync(chunk, CancellationToken);
 
 		// Assert
 		_ = enriched.Should().NotBeNull();
@@ -207,7 +204,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var results = await enricher.EnrichBatchAsync(chunks);
+		var results = await enricher.EnrichBatchAsync(chunks, CancellationToken);
 
 		// Assert
 		_ = results.Should().HaveCount(3);
@@ -261,8 +258,8 @@ public class OllamaIntegrationTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result1 = await enricher.EnrichAsync(chunk1);
-		var result2 = await enricher.EnrichAsync(chunk2);
+		var result1 = await enricher.EnrichAsync(chunk1, CancellationToken);
+		var result2 = await enricher.EnrichAsync(chunk2, CancellationToken);
 		var stats = cache.GetStatistics();
 
 		// Assert

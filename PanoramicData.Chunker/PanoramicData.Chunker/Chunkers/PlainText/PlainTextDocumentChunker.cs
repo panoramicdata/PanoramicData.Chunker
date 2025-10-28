@@ -29,7 +29,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	/// <summary>
 	/// Validates if the stream contains plain text.
 	/// </summary>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default)
+	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		if (documentStream == null || !documentStream.CanRead)
 		{
@@ -42,11 +42,11 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 			documentStream.Position = 0;
 
 			using var reader = new StreamReader(documentStream, encoding: Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
-			
+
 			// Read first 1KB to check
 			var buffer = new char[1024];
 			var bytesRead = await reader.ReadAsync(buffer, cancellationToken);
-			
+
 			if (bytesRead == 0)
 			{
 				return false;
@@ -68,7 +68,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 
 			// Must be primarily printable ASCII/UTF-8
 			var printableRatio = sample.Count(c => !char.IsControl(c) || c == '\n' || c == '\r' || c == '\t') / (double)sample.Length;
-			
+
 			documentStream.Position = originalPosition;
 			return printableRatio > 0.9; // At least 90% printable
 		}
@@ -84,7 +84,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	public async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		var startTime = DateTime.UtcNow;
 		_sequenceNumber = 0;
@@ -129,7 +129,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 		catch (Exception ex)
 		{
 			logger?.LogError(ex, "Error chunking plain text document");
-			
+
 			return new ChunkingResult
 			{
 				Chunks = [],
@@ -200,7 +200,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 				heading.ParentId = headerStack.Count > 0 ? headerStack.Peek().Id : null;
 				heading.Depth = headerStack.Count;
 				heading.SequenceNumber = _sequenceNumber++;
-				
+
 				headerStack.Push((heading.HeadingLevel, heading.Id));
 				chunks.Add(heading);
 				previousLine = line;
@@ -347,7 +347,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 
 		// Count depth by number of dots
 		var level = numbering.Count(c => c == '.') + 1;
-		
+
 		// For single number (e.g., "1."), only treat as heading if context suggests heading
 		if (level == 1)
 		{
@@ -356,32 +356,32 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 			{
 				return null;
 			}
-			
+
 			// If previous chunk was a list item, this is continuing a list, not a heading
 			if (previousChunk is PlainTextListItemChunk)
 			{
 				return null;
 			}
-			
+
 			// Must start with capital letter
 			if (!char.IsUpper(text.FirstOrDefault()))
 			{
 				return null;
 			}
-			
+
 			// Should be reasonably short (headings are typically < 100 chars)
 			if (text.Length > 100)
 			{
 				return null;
 			}
-			
+
 			// Should not end with common sentence endings
 			if (text.TrimEnd().EndsWith('.') || text.TrimEnd().EndsWith('!') || text.TrimEnd().EndsWith('?'))
 			{
 				return null;
 			}
 		}
-		
+
 		level = Math.Min(level, 6); // Cap at 6
 
 		return CreateSectionChunk(text, level, HeadingHeuristic.Numbered, 0.85);
@@ -502,13 +502,13 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 		{
 			var marker = numberedMatch.Groups["marker"].Value;
 			var text = numberedMatch.Groups["text"].Value.Trim();
-			
+
 			// If previous line ends with colon, definitely a list item
 			var previousEndsWithColon = previousLine != null && previousLine.Trim().EndsWith(':');
-			
+
 			// If previous chunk was a list item, continue the list
 			var previousWasListItem = previousChunk is PlainTextListItemChunk;
-			
+
 			// If previous line ends with colon or we're continuing a list, definitely treat as list
 			if (previousEndsWithColon || previousWasListItem)
 			{
@@ -524,7 +524,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 					Metadata = CreateMetadata("list-item", "numbered")
 				};
 			}
-			
+
 			// Otherwise, check if it looks more like a heading than a list item
 			// (only for patterns like "1." without parenthesis)
 			if (!marker.Contains(')'))
@@ -534,7 +534,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 									   !text.TrimEnd().EndsWith('.') &&
 									   !text.TrimEnd().EndsWith('!') &&
 									   !text.TrimEnd().EndsWith('?');
-				
+
 				if (looksLikeHeading)
 				{
 					// Let the heading detector handle this
@@ -737,7 +737,7 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	private static bool LooksLikeHeading(string line)
 	{
 		var trimmed = line.Trim();
-		
+
 		// ALL CAPS
 		var letters = trimmed.Where(char.IsLetter).ToArray();
 		if (letters.Length >= 4 && letters.All(char.IsUpper))
@@ -833,10 +833,10 @@ public partial class PlainTextDocumentChunker(ITokenCounter tokenCounter, ILogge
 	{
 		// Build parent-child relationships
 		var chunkDict = flatChunks.ToDictionary(c => c.Id);
-		
+
 		foreach (var chunk in flatChunks.OfType<StructuralChunk>())
 		{
-		chunk.Children.Clear();
+			chunk.Children.Clear();
 			chunk.Children.AddRange(flatChunks.Where(c => c.ParentId == chunk.Id));
 		}
 

@@ -31,7 +31,7 @@ public interface IEntityExtractor
 	/// <returns>List of extracted entities.</returns>
 	Task<List<Entity>> ExtractEntitiesAsync(
 		IEnumerable<ChunkerBase> chunks,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Extracts entities from a single chunk.
@@ -41,5 +41,5 @@ public interface IEntityExtractor
 	/// <returns>List of extracted entities.</returns>
 	Task<List<Entity>> ExtractEntitiesAsync(
 		ChunkerBase chunk,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 }

@@ -3,14 +3,13 @@ using PanoramicData.Chunker.KnowledgeGraph.Extractors;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
 using PanoramicData.Chunker.Tests.Utilities;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.KnowledgeGraph;
 
 /// <summary>
 /// Unit tests for the CooccurrenceRelationshipExtractor class.
 /// </summary>
-public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
+public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output) : BaseTest(output)
 {
 	[Fact]
 	public void Constructor_WithDefaultParameters_ShouldInitialize()
@@ -61,7 +60,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks);
+		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().BeEmpty();
@@ -80,7 +79,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		var chunks = new List<ChunkerBase>();
 
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks);
+		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().BeEmpty();
@@ -106,7 +105,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync([entity], chunks);
+		var relationships = await extractor.ExtractRelationshipsAsync([entity], chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().BeEmpty();
@@ -143,7 +142,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(
 			[entity1, entity2],
-			chunks);
+			chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().ContainSingle();
@@ -151,7 +150,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		rel.Type.Should().Be(RelationshipType.Mentions);
 		rel.Bidirectional.Should().BeTrue();
 		(rel.Confidence >= 0.3).Should().BeTrue();
-		output.WriteLine($"Relationship: {rel}");
+		_output.WriteLine($"Relationship: {rel}");
 	}
 
 	[Fact]
@@ -189,7 +188,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(
 			[entity1, entity2],
-			chunks);
+			chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().BeEmpty();
@@ -230,14 +229,14 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(
 			[entity1, entity2],
-			chunks);
+			chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().ContainSingle();
 		var rel = relationships[0];
 		rel.Evidence.Should().HaveCount(2);
 		(rel.Weight > 0).Should().BeTrue();
-		output.WriteLine($"Consolidated relationship weight: {rel.Weight}");
+		_output.WriteLine($"Consolidated relationship weight: {rel.Weight}");
 	}
 
 	[Fact]
@@ -264,11 +263,11 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(
 			[entity1, entity2, entity3],
-			chunks);
+			chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().HaveCount(3); // E1-E2, E1-E3, E2-E3
-		output.WriteLine($"Extracted {relationships.Count} relationships from 3 entities");
+		_output.WriteLine($"Extracted {relationships.Count} relationships from 3 entities");
 	}
 
 	[Fact]
@@ -303,12 +302,12 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(
 			[entity1, entity2, entity3],
-			chunks);
+			chunks, CancellationToken);
 
 		// Assert
 		var maxWeight = relationships.Max(r => r.Weight);
 		maxWeight.Should().Be(1.0); // Weights should be normalized to 1.0
-		output.WriteLine($"Max weight after normalization: {maxWeight}");
+		_output.WriteLine($"Max weight after normalization: {maxWeight}");
 	}
 
 	[Fact]
@@ -342,7 +341,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(
 			[entity1, entity2],
-			chunks);
+			chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().ContainSingle();
@@ -351,7 +350,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		rel.Evidence[0].ChunkId.Should().Be(chunkId);
 		rel.Evidence[0].Context.Should().Contain("Microsoft");
 		rel.Evidence[0].Context.Should().Contain("Azure");
-		output.WriteLine($"Evidence context: {rel.Evidence[0].Context}");
+		_output.WriteLine($"Evidence context: {rel.Evidence[0].Context}");
 	}
 
 	[Fact]
@@ -375,7 +374,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(
 			[entity1, entity2],
-			chunks);
+			chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().ContainSingle();
@@ -406,7 +405,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(
 			[entity1, entity2],
-			chunks);
+			chunks, CancellationToken);
 
 		// Assert
 		relationships.Should().ContainSingle();
@@ -414,7 +413,7 @@ public class CooccurrenceRelationshipExtractorTests(ITestOutputHelper output)
 		rel.Properties.Should().ContainKey("MinDistance");
 		var minDistance = (int)rel.Properties["MinDistance"];
 		minDistance.Should().Be(50);
-		output.WriteLine($"Min distance: {minDistance}");
+		_output.WriteLine($"Min distance: {minDistance}");
 	}
 
 	[Fact]

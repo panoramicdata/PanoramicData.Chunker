@@ -20,7 +20,7 @@ public interface IGraphSerializer
 	/// <param name="graph">The knowledge graph to serialize.</param>
 	/// <param name="stream">The output stream.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task SerializeAsync(Graph graph, Stream stream, CancellationToken cancellationToken = default);
+	Task SerializeAsync(Graph graph, Stream stream, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Deserializes a knowledge graph from a string.
@@ -35,7 +35,7 @@ public interface IGraphSerializer
 	/// <param name="stream">The input stream.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>The deserialized knowledge graph.</returns>
-	Task<Graph> DeserializeAsync(Stream stream, CancellationToken cancellationToken = default);
+	Task<Graph> DeserializeAsync(Stream stream, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Gets the format name of this serializer (e.g., "JSON", "XML", "GraphML").

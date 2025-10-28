@@ -1,14 +1,13 @@
 using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Pdf;
 using PanoramicData.Chunker.Configuration;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Integration;
 
 /// <summary>
 /// Integration tests for PDF document chunking.
 /// </summary>
-public class PdfIntegrationTests(ITestOutputHelper output)
+public class PdfIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 {
 	private readonly string _testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
 
@@ -21,7 +20,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -41,7 +40,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var firstPage = pages[0];
 		_ = firstPage.PageNumber.Should().Be(1);
 		_ = firstPage.ExtractedText.Should().NotBeNullOrEmpty();
-		output.WriteLine($"Extracted text from page 1: {firstPage.ExtractedText?[..Math.Min(100, firstPage.ExtractedText.Length)]}");
+		_output.WriteLine($"Extracted text from page 1: {firstPage.ExtractedText?[..Math.Min(100, firstPage.ExtractedText.Length)]}");
 
 		// Should have paragraph chunks
 		var paragraphs = result.Chunks.OfType<PdfParagraphChunk>().ToList();
@@ -57,7 +56,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -75,7 +74,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -90,10 +89,10 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		_ = pages[1].PageNumber.Should().Be(2);
 		_ = pages[2].PageNumber.Should().Be(3);
 
-		output.WriteLine($"Total pages: {pages.Count}");
+		_output.WriteLine($"Total pages: {pages.Count}");
 		foreach (var page in pages)
 		{
-			output.WriteLine($"Page {page.PageNumber}: {page.WordCount} words");
+			_output.WriteLine($"Page {page.PageNumber}: {page.WordCount} words");
 		}
 	}
 
@@ -106,7 +105,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -117,13 +116,13 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		// Some paragraphs should be detected as likely headings (or at least we tried)
 		var headings = paragraphs.Where(p => p.IsLikelyHeading).ToList();
 
-		output.WriteLine($"Total paragraphs: {paragraphs.Count}");
-		output.WriteLine($"Detected headings: {headings.Count}");
+		_output.WriteLine($"Total paragraphs: {paragraphs.Count}");
+		_output.WriteLine($"Detected headings: {headings.Count}");
 		if (headings.Count != 0)
 		{
 			foreach (var heading in headings)
 			{
-				output.WriteLine($"Heading: {heading.Content?[..Math.Min(50, heading.Content.Length)]}");
+				_output.WriteLine($"Heading: {heading.Content?[..Math.Min(50, heading.Content.Length)]}");
 			}
 		}
 
@@ -140,7 +139,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -162,7 +161,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -179,7 +178,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		 pageText?.Contains("Name") == true ||
 		 pageText?.Contains("Department") == true).Should().BeTrue();
 
-		output.WriteLine($"Table content sample: {pageText?[..Math.Min(200, pageText.Length)]}");
+		_output.WriteLine($"Table content sample: {pageText?[..Math.Min(200, pageText.Length)]}");
 	}
 
 	[Fact]
@@ -192,7 +191,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 
 		// Act
 		var startTime = DateTime.UtcNow;
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 		var processingTime = DateTime.UtcNow - startTime;
 
 		// Assert
@@ -204,7 +203,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		// Should process reasonably fast (< 5 seconds for large PDF)
 		_ = processingTime.TotalSeconds.Should().BeLessThan(5);
 
-		output.WriteLine($"Processed {pages.Count} pages in {processingTime.TotalSeconds:F2} seconds");
+		_output.WriteLine($"Processed {pages.Count} pages in {processingTime.TotalSeconds:F2} seconds");
 	}
 
 	[Fact]
@@ -216,7 +215,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -246,7 +245,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -278,7 +277,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.Statistics.Should().NotBeNull();
@@ -287,7 +286,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		result.Statistics.ContentChunks.Should().BeGreaterThanOrEqualTo(0); // Paragraphs
 		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 
-		output.WriteLine($"Statistics: {result.Statistics.TotalChunks} chunks, {result.Statistics.StructuralChunks} structural, {result.Statistics.ContentChunks} content");
+		_output.WriteLine($"Statistics: {result.Statistics.TotalChunks} chunks, {result.Statistics.StructuralChunks} structural, {result.Statistics.ContentChunks} content");
 	}
 
 	[Fact]
@@ -299,7 +298,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act - Use auto-detect
-		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.pdf", options);
+		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.pdf", options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -318,7 +317,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		};
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		_ = result.ValidationResult.Should().NotBeNull();
@@ -334,7 +333,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		var page = result.Chunks.OfType<PdfPageChunk>().First();
@@ -354,7 +353,7 @@ public class PdfIntegrationTests(ITestOutputHelper output)
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Pdf, options, CancellationToken);
 
 		// Assert
 		var doc = result.Chunks.OfType<PdfDocumentChunk>().First();

@@ -448,7 +448,7 @@ public static class Chunker
     public static Task<ChunkingResult> ChunkAsync(
         Stream documentStream, 
         DocumentType type,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Chunk a document from a stream with custom options.
@@ -457,7 +457,7 @@ public static class Chunker
         Stream documentStream, 
         DocumentType type, 
         ChunkingOptions options,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Chunk a document from a file path (auto-detects type from extension).
@@ -465,7 +465,7 @@ public static class Chunker
     public static Task<ChunkingResult> ChunkFileAsync(
         string filePath, 
         ChunkingOptions? options = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Chunk a document with automatic format detection.
@@ -474,7 +474,7 @@ public static class Chunker
         Stream documentStream, 
         string? fileNameHint = null,
         ChunkingOptions? options = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Create a fluent builder for advanced chunking scenarios.
@@ -505,7 +505,7 @@ public class ChunkerBuilder
     public ChunkerBuilder EnableStreaming(bool enable = true);
     public ChunkerBuilder WithCaching(ICacheProvider cache);
     
-    public Task<ChunkingResult> ChunkAsync(CancellationToken cancellationToken = default);
+    public Task<ChunkingResult> ChunkAsync(CancellationToken cancellationToken);
 }
 ```
 
@@ -910,12 +910,12 @@ public interface IDocumentChunker
     Task<ChunkingResult> ChunkAsync(
         Stream documentStream, 
         ChunkingOptions options, 
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Validate if the stream contains a valid document of this type.
     /// </summary>
-    Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default);
+    Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -945,7 +945,7 @@ public interface ITokenCounter
     /// <summary>
     /// Async version for potentially expensive counting operations.
     /// </summary>
-    Task<int> CountTokensAsync(string text, CancellationToken cancellationToken = default);
+    Task<int> CountTokensAsync(string text, CancellationToken cancellationToken);
 
     /// <summary>
     /// Split text at token boundaries to fit within maxTokens.
@@ -975,7 +975,7 @@ public interface IImageDescriptionProvider
         byte[] imageData, 
         string mimeType, 
         string? existingCaption = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }
 
 public class ImageDescription
@@ -1006,7 +1006,7 @@ public interface ILlmProvider
     Task<string> GenerateSummaryAsync(
         string content, 
         int maxTokens = 100,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Extract keywords from the content.
@@ -1014,7 +1014,7 @@ public interface ILlmProvider
     Task<List<string>> ExtractKeywordsAsync(
         string content, 
         int maxKeywords = 5,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }
 
 // Suggested implementations (optional, via separate packages):
@@ -1112,7 +1112,7 @@ public interface IChunkValidator
 {
     Task<ValidationResult> ValidateAsync(
         IEnumerable<ChunkerBase> chunks,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }
 
 public class ValidationResult
@@ -1156,11 +1156,11 @@ public interface IChunkSerializer
     Task SerializeAsync(
         IEnumerable<ChunkerBase> chunks, 
         Stream output,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
     
     Task<T> DeserializeAsync<T>(
         Stream input,
-        CancellationToken cancellationToken = default) where T : IEnumerable<ChunkerBase>;
+        CancellationToken cancellationToken) where T : IEnumerable<ChunkerBase>;
 }
 
 // Built-in serializers:
@@ -1206,9 +1206,9 @@ await foreach (var chunk in chunker.ChunkStreamAsync(largeStream, options))
 /// </summary>
 public interface ICacheProvider
 {
-    Task<ChunkingResult?> GetAsync(string key, CancellationToken cancellationToken = default);
-    Task SetAsync(string key, ChunkingResult result, TimeSpan? expiration = null, CancellationToken cancellationToken = default);
-    Task RemoveAsync(string key, CancellationToken cancellationToken = default);
+    Task<ChunkingResult?> GetAsync(string key, CancellationToken cancellationToken);
+    Task SetAsync(string key, ChunkingResult result, TimeSpan? expiration = null, CancellationToken cancellationToken);
+    Task RemoveAsync(string key, CancellationToken cancellationToken);
 }
 
 // Built-in implementations:
@@ -1254,12 +1254,12 @@ public class CustomDocumentChunker : IDocumentChunker
     public async Task<ChunkingResult> ChunkAsync(
         Stream documentStream, 
         ChunkingOptions options, 
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         // Custom implementation
     }
     
-    public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default)
+    public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
     {
         // Detection logic
     }
@@ -1279,7 +1279,7 @@ public class CustomTokenCounter : ITokenCounter
         // Custom implementation
     }
     
-    public Task<int> CountTokensAsync(string text, CancellationToken cancellationToken = default)
+    public Task<int> CountTokensAsync(string text, CancellationToken cancellationToken)
     {
         // Async implementation
     }
@@ -1370,7 +1370,7 @@ public static class BatchChunker
         DocumentType type,
         ChunkingOptions options,
         int maxParallelism = 4,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
     
     /// <summary>
     /// Process all files in a directory.
@@ -1380,7 +1380,7 @@ public static class BatchChunker
         string searchPattern = "*.*",
         ChunkingOptions? options = null,
         bool recursive = false,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }
 ```
 

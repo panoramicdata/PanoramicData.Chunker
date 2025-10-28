@@ -37,7 +37,7 @@ public class ChunkEnricher(
 	/// <inheritdoc/>
 	public async Task<EnrichedChunk> EnrichAsync(
 		ChunkerBase chunk,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		var stopwatch = Stopwatch.StartNew();
 
@@ -122,7 +122,7 @@ public class ChunkEnricher(
 	/// <inheritdoc/>
 	public async Task<IEnumerable<EnrichedChunk>> EnrichBatchAsync(
 		IEnumerable<ChunkerBase> chunks,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		var semaphore = new SemaphoreSlim(_options.MaxConcurrency);
 		var tasks = chunks.Select(async chunk =>

@@ -8,27 +8,22 @@ namespace PanoramicData.Chunker.Tests.Integration;
 /// <summary>
 /// Integration tests for Plain Text document chunking.
 /// </summary>
-public class PlainTextIntegrationTests
+public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly string _testDataPath;
-
-	public PlainTextIntegrationTests()
-	{
-		_testDataPath = Path.Combine("TestData", "PlainText");
-	}
+	private readonly string _testDataPath = Path.Combine("TestData", "PlainText");
 
 	[Fact]
 	public async Task ChunkAsync_SimpleDocument_ShouldChunkSuccessfully()
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "simple.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -51,13 +46,13 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "structured.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -93,13 +88,13 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "all-caps-headers.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -114,13 +109,13 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "underlined-headers.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -141,13 +136,13 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "numbered-sections.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -173,13 +168,13 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "lists.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -203,13 +198,13 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "code-heavy.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -232,13 +227,13 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "mixed.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -259,14 +254,14 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "large.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
 		var startTime = DateTime.UtcNow;
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options);
+		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
 		var processingTime = DateTime.UtcNow - startTime;
 
 		// Assert
@@ -294,13 +289,13 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "simple.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act - Use auto-detect
-		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.txt", options);
+		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.txt", options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -312,17 +307,17 @@ public class PlainTextIntegrationTests
 	{
 		// Arrange
 		var filePath = Path.Combine(_testDataPath, "structured.txt");
-		var text = await File.ReadAllTextAsync(filePath);
+		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
 
 		var charOptions = ChunkingPresets.ForFastProcessing();
 		var openAIOptions = ChunkingPresets.ForOpenAIEmbeddings();
 
 		// Act
 		using var stream1 = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var charResult = await DocumentChunker.ChunkAsync(stream1, DocumentType.PlainText, charOptions);
+		var charResult = await DocumentChunker.ChunkAsync(stream1, DocumentType.PlainText, charOptions, CancellationToken);
 
 		using var stream2 = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var openAIResult = await DocumentChunker.ChunkAsync(stream2, DocumentType.PlainText, openAIOptions);
+		var openAIResult = await DocumentChunker.ChunkAsync(stream2, DocumentType.PlainText, openAIOptions, CancellationToken);
 
 		// Assert
 		_ = charResult.Success.Should().BeTrue();

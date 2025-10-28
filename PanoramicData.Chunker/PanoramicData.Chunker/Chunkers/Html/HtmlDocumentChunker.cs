@@ -1,4 +1,3 @@
-using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -33,17 +32,17 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 	public DocumentType SupportedType => DocumentType.Html;
 
 	/// <inheritdoc/>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default)
+	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		try
 		{
 			// Save position to restore later
 			var originalPosition = documentStream.Position;
-			
+
 			// Read first 512 bytes to detect HTML
 			var buffer = new byte[512];
 			var bytesRead = await documentStream.ReadAsync(buffer, cancellationToken);
-			
+
 			// Restore position
 			documentStream.Position = originalPosition;
 
@@ -55,9 +54,9 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			var content = Encoding.UTF8.GetString(buffer, 0, bytesRead).ToLowerInvariant();
 
 			// Check for common HTML markers
-			return content.Contains("<!doctype html") 
-				|| content.Contains("<html") 
-				|| content.Contains("<head>") 
+			return content.Contains("<!doctype html")
+				|| content.Contains("<html")
+				|| content.Contains("<head>")
 				|| content.Contains("<body>")
 				|| content.Contains("<div")
 				|| content.Contains("<p>");
@@ -72,7 +71,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 	public async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(documentStream);
 		ArgumentNullException.ThrowIfNull(options);
@@ -144,7 +143,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 
 		// Find the main content area (prefer <main>, or <body>)
 		// Don't use <article> as the main area since there might be multiple articles
-		var mainContent = document.QuerySelector("main") 
+		var mainContent = document.QuerySelector("main")
 			?? document.Body;
 
 		if (mainContent == null)
@@ -170,7 +169,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			// Determine the actual parent ID based on heading hierarchy
 			var actualParentId = parentId;
 			var headingLevel = GetHeadingLevel(tagName);
-			
+
 			if (headingLevel.HasValue)
 			{
 				// For headings, find the appropriate parent based on hierarchy
@@ -213,7 +212,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			if (contentChunk != null)
 			{
 				_chunks.Add(contentChunk);
-				
+
 				// Process any nested ul/ol elements within this li
 				foreach (var child in element.Children.Where(c => c.TagName.ToLowerInvariant() is "ul" or "ol"))
 				{
@@ -308,7 +307,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 	private ChunkerBase? CreateContentChunk(IElement element, Guid? parentId, int depth)
 	{
 		var tagName = element.TagName.ToLowerInvariant();
-		
+
 		// For list items, exclude nested list content
 		string text;
 		if (tagName == "li")
@@ -427,7 +426,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 		// to get 0-based nesting level where 0 = top-level list item
 		var nestingLevel = 0;
 		var current = element.ParentElement?.ParentElement; // Start from grandparent
-		
+
 		while (current != null)
 		{
 			var tagName = current.TagName.ToLowerInvariant();
@@ -628,7 +627,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 	{
 		// Get only direct text nodes, excluding nested ul/ol elements
 		var sb = new StringBuilder();
-		
+
 		foreach (var node in element.ChildNodes)
 		{
 			if (node.NodeType == NodeType.Text)
@@ -645,7 +644,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 				}
 			}
 		}
-		
+
 		var text = sb.ToString();
 		text = WhitespaceRegex().Replace(text, " ");
 		return text.Trim();

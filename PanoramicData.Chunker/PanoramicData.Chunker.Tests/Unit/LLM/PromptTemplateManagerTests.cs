@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using PanoramicData.Chunker.LLM;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.LLM;
 

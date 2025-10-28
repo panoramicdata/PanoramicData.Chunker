@@ -6,7 +6,6 @@ using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Utilities;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using DocType = PanoramicData.Chunker.Configuration.DocumentType;
@@ -34,7 +33,7 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 	public DocType SupportedType => DocType.Docx;
 
 	/// <inheritdoc/>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default)
+	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -80,7 +79,7 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 	public async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(documentStream);
 		ArgumentNullException.ThrowIfNull(options);

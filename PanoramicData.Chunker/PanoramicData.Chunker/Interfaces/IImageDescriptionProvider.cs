@@ -16,8 +16,8 @@ public interface IImageDescriptionProvider
 	Task<ImageDescription> GenerateDescriptionAsync(
 		byte[] imageData,
 		string mimeType,
-		string? existingCaption = null,
-		CancellationToken cancellationToken = default);
+		string? existingCaption,
+		CancellationToken cancellationToken);
 }
 
 /// <summary>

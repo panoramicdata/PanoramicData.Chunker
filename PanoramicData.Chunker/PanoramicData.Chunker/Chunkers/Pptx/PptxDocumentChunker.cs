@@ -9,8 +9,8 @@ using PanoramicData.Chunker.Utilities;
 using System.Text;
 using System.Text.RegularExpressions;
 using A = DocumentFormat.OpenXml.Drawing;
-using P = DocumentFormat.OpenXml.Presentation;
 using DocType = PanoramicData.Chunker.Configuration.DocumentType;
+using P = DocumentFormat.OpenXml.Presentation;
 
 namespace PanoramicData.Chunker.Chunkers.Pptx;
 
@@ -35,7 +35,7 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 	public DocType SupportedType => DocType.Pptx;
 
 	/// <inheritdoc/>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default)
+	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -81,7 +81,7 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 	public async Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(documentStream);
 		ArgumentNullException.ThrowIfNull(options);
@@ -186,7 +186,7 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 
 		// Extract slide title
 		string? slideTitle = null;
-		var titleShape = shapes.FirstOrDefault(s => GetPlaceholderType(s) == "title" || GetPlaceholderType(s) == "ctrTitle");
+		var titleShape = shapes.FirstOrDefault(s => GetPlaceholderType(s) is "title" or "ctrTitle");
 		if (titleShape != null)
 		{
 			slideTitle = GetShapeText(titleShape);

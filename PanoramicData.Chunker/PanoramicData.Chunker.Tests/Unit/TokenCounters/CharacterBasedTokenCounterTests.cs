@@ -6,7 +6,7 @@ namespace PanoramicData.Chunker.Tests.Unit.TokenCounters;
 /// <summary>
 /// Tests for CharacterBasedTokenCounter.
 /// </summary>
-public class CharacterBasedTokenCounterTests
+public class CharacterBasedTokenCounterTests(ITestOutputHelper output) : BaseTest(output)
 {
 	private readonly CharacterBasedTokenCounter _tokenCounter = new();
 
@@ -32,7 +32,7 @@ public class CharacterBasedTokenCounterTests
 
 		// Act
 		var syncResult = _tokenCounter.CountTokens(text);
-		var asyncResult = await _tokenCounter.CountTokensAsync(text);
+		var asyncResult = await _tokenCounter.CountTokensAsync(text, CancellationToken);
 
 		// Assert
 		asyncResult.Should().Be(syncResult);

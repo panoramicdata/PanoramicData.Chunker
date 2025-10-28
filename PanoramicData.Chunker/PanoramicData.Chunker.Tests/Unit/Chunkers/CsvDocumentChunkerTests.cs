@@ -9,12 +9,12 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// <summary>
 /// Unit tests for CsvDocumentChunker.
 /// </summary>
-public class CsvDocumentChunkerTests
+public class CsvDocumentChunkerTests : BaseTest
 {
 	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly CsvDocumentChunker _chunker;
 
-	public CsvDocumentChunkerTests()
+	public CsvDocumentChunkerTests(ITestOutputHelper output) : base(output)
 	{
 		_tokenCounter = new CharacterBasedTokenCounter();
 		_chunker = new CsvDocumentChunker(_tokenCounter);
@@ -57,7 +57,7 @@ public class CsvDocumentChunkerTests
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeTrue();
@@ -72,7 +72,7 @@ public class CsvDocumentChunkerTests
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeTrue();
@@ -86,7 +86,7 @@ public class CsvDocumentChunkerTests
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -99,7 +99,7 @@ public class CsvDocumentChunkerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -112,7 +112,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var act = async () => await _chunker.ChunkAsync(null!, options);
+		var act = async () => await _chunker.ChunkAsync(null!, options, CancellationToken);
 
 		// Assert
 		_ = await act.Should().ThrowAsync<ArgumentNullException>();
@@ -125,7 +125,7 @@ public class CsvDocumentChunkerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		var act = async () => await _chunker.ChunkAsync(stream, null!);
+		var act = async () => await _chunker.ChunkAsync(stream, null!, CancellationToken);
 
 		// Assert
 		_ = await act.Should().ThrowAsync<ArgumentNullException>();
@@ -140,7 +140,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -161,7 +161,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Should().NotBeNull();
@@ -178,7 +178,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().FirstOrDefault();
@@ -195,7 +195,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().FirstOrDefault();
@@ -212,7 +212,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var doc = result.Chunks.OfType<CsvDocumentChunk>().FirstOrDefault();
@@ -230,7 +230,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var row = result.Chunks.OfType<CsvRowChunk>().FirstOrDefault();
@@ -249,7 +249,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Statistics.Should().NotBeNull();
@@ -266,7 +266,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions { ValidateChunks = true };
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.ValidationResult.Should().NotBeNull();
@@ -282,7 +282,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var rows = result.Chunks.OfType<CsvRowChunk>();
@@ -302,7 +302,7 @@ public class CsvDocumentChunkerTests
 		var options = new ChunkingOptions();
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var row = result.Chunks.OfType<CsvRowChunk>().FirstOrDefault();

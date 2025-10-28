@@ -60,7 +60,7 @@ public class ChunkerFactory : IChunkerFactory
 	/// <summary>
 	/// Get a chunker by auto-detecting the document type from the stream.
 	/// </summary>
-	public async Task<IDocumentChunker> GetChunkerForStreamAsync(Stream stream, string? fileNameHint = null, CancellationToken cancellationToken = default)
+	public async Task<IDocumentChunker> GetChunkerForStreamAsync(Stream stream, string? fileNameHint, CancellationToken cancellationToken)
 	{
 		// Try to detect from filename extension first
 		if (!string.IsNullOrEmpty(fileNameHint))
@@ -100,12 +100,6 @@ public class ChunkerFactory : IChunkerFactory
 
 		throw new NotSupportedException("Unable to detect document type from stream content. Please specify the document type explicitly or provide a filename hint with a recognized extension.");
 	}
-
-	/// <summary>
-	/// Get a chunker by auto-detecting the document type from the stream (synchronous wrapper).
-	/// </summary>
-	public IDocumentChunker GetChunkerForStream(Stream stream, string? fileNameHint = null)
-		=> GetChunkerForStreamAsync(stream, fileNameHint).GetAwaiter().GetResult();
 
 	/// <summary>
 	/// Register a custom chunker.

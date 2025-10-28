@@ -4,6 +4,13 @@
     <File Path=".github/copilot-instructions.md" />
     <File Path="PanoramicData.Chunker.dic" />
   </Folder>
+  <Folder Name="/Solution Items/Architecture/">
+    <File Path="docs/architecture/ARCHITECTURE_DIAGRAMS.md" />
+    <File Path="docs/architecture/COMPONENT_SPECIFICATIONS.md" />
+    <File Path="docs/architecture/INDEX.md" />
+    <File Path="docs/architecture/README.md" />
+    <File Path="docs/architecture/SEQUENCE_DIAGRAMS.md" />
+  </Folder>
   <Folder Name="/Solution Items/Plans/">
     <File Path="docs/MasterPlan.md" />
     <File Path="docs/phases/Phase-00.md" />

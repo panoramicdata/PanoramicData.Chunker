@@ -2,8 +2,6 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Integration;
 
@@ -11,10 +9,8 @@ namespace PanoramicData.Chunker.Tests.Integration;
 /// Integration tests for DOCX document chunking.
 /// Tests end-to-end chunking of real DOCX files.
 /// </summary>
-public class DocxIntegrationTests(ITestOutputHelper output)
+public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly ITestOutputHelper _output = output;
-
 	[Fact]
 	public async Task ChunkAsync_SimpleDocument_ShouldExtractAllElements()
 	{
@@ -34,7 +30,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -68,7 +64,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -108,7 +104,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -148,7 +144,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -188,7 +184,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -227,7 +223,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 
 		// Act
 		var startTime = DateTime.UtcNow;
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 		var duration = DateTime.UtcNow - startTime;
 
 		// Assert
@@ -262,7 +258,7 @@ public class DocxIntegrationTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();

@@ -3,14 +3,13 @@ using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.KnowledgeGraph.Extractors;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
-using Xunit;
 
 namespace PanoramicData.Chunker.Tests.Unit.KnowledgeGraph;
 
 /// <summary>
 /// Unit tests for SimpleKeywordExtractor.
 /// </summary>
-public class SimpleKeywordExtractorTests
+public class SimpleKeywordExtractorTests(ITestOutputHelper output) : BaseTest(output)
 {
 	[Fact]
 	public async Task ExtractEntitiesAsync_WithSimpleText_ShouldExtractKeywords()
@@ -24,13 +23,13 @@ public class SimpleKeywordExtractorTests
 		};
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync([chunk]);
+		var entities = await extractor.ExtractEntitiesAsync([chunk], CancellationToken);
 
 		// Assert
 		entities.Should().NotBeEmpty();
 		entities.Should().AllSatisfy(e => e.Type.Should().Be(EntityType.Keyword));
 		entities.Should().Contain(e => e.Name.Equals("machine", StringComparison.OrdinalIgnoreCase) ||
-		     e.Name.Equals("learning", StringComparison.OrdinalIgnoreCase));
+			 e.Name.Equals("learning", StringComparison.OrdinalIgnoreCase));
 	}
 
 	[Fact]
@@ -45,7 +44,7 @@ public class SimpleKeywordExtractorTests
 		};
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync([chunk]);
+		var entities = await extractor.ExtractEntitiesAsync([chunk], CancellationToken);
 
 		// Assert
 		entities.Should().NotContain(e => e.Name.Equals("the", StringComparison.OrdinalIgnoreCase));
@@ -64,7 +63,7 @@ public class SimpleKeywordExtractorTests
 		};
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync([chunk]);
+		var entities = await extractor.ExtractEntitiesAsync([chunk], CancellationToken);
 
 		// Assert
 		entities.Should().NotContain(e => e.Name.Length < 5);
@@ -87,7 +86,7 @@ public class SimpleKeywordExtractorTests
 		};
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks.Cast<ChunkerBase>());
+		var entities = await extractor.ExtractEntitiesAsync(chunks.Cast<ChunkerBase>(), CancellationToken);
 
 		// Assert
 		entities.Should().NotBeEmpty();
@@ -107,7 +106,7 @@ public class SimpleKeywordExtractorTests
 		var chunk = new MarkdownParagraphChunk { Id = Guid.NewGuid(), Content = "" };
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync([chunk]);
+		var entities = await extractor.ExtractEntitiesAsync([chunk], CancellationToken);
 
 		// Assert
 		entities.Should().BeEmpty();
@@ -121,7 +120,7 @@ public class SimpleKeywordExtractorTests
 		var chunks = new List<MarkdownParagraphChunk>();
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks);
+		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
 
 		// Assert
 		entities.Should().BeEmpty();
@@ -139,7 +138,7 @@ public class SimpleKeywordExtractorTests
 		};
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync([chunk]);
+		var entities = await extractor.ExtractEntitiesAsync([chunk], CancellationToken);
 
 		// Assert
 		entities.Should().NotBeEmpty();
@@ -163,7 +162,7 @@ public class SimpleKeywordExtractorTests
 		};
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync([chunk]);
+		var entities = await extractor.ExtractEntitiesAsync([chunk], CancellationToken);
 
 		// Assert
 		entities.Should().NotBeEmpty();
@@ -187,7 +186,7 @@ public class SimpleKeywordExtractorTests
 		};
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync([chunk]);
+		var entities = await extractor.ExtractEntitiesAsync([chunk], CancellationToken);
 
 		// Assert
 		// Should extract at most maxKeywords per chunk

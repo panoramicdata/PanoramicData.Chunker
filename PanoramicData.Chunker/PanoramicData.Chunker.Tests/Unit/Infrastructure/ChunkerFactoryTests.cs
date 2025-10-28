@@ -9,7 +9,7 @@ namespace PanoramicData.Chunker.Tests.Unit.Infrastructure;
 /// <summary>
 /// Tests for ChunkerFactory with Markdown chunker registration.
 /// </summary>
-public class ChunkerFactoryTests
+public class ChunkerFactoryTests(ITestOutputHelper output) : BaseTest(output)
 {
 	[Fact]
 	public void Constructor_ShouldAutoRegisterMarkdownChunker()
@@ -51,14 +51,14 @@ public class ChunkerFactoryTests
 	}
 
 	[Fact]
-	public void GetChunkerForStream_WithMarkdownExtension_ShouldReturnMarkdownChunker()
+	public async Task GetChunkerForStream_WithMarkdownExtension_ShouldReturnMarkdownChunker()
 	{
 		// Arrange
 		var factory = new ChunkerFactory();
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes("# Test"));
 
 		// Act
-		var chunker = factory.GetChunkerForStream(stream, "document.md");
+		var chunker = await factory.GetChunkerForStreamAsync(stream, "document.md", CancellationToken);
 
 		// Assert
 		_ = chunker.Should().NotBeNull();
@@ -66,14 +66,14 @@ public class ChunkerFactoryTests
 	}
 
 	[Fact]
-	public void GetChunkerForStream_WithMarkdownExtensionUpperCase_ShouldReturnMarkdownChunker()
+	public async Task GetChunkerForStream_WithMarkdownExtensionUpperCase_ShouldReturnMarkdownChunker()
 	{
 		// Arrange
 		var factory = new ChunkerFactory();
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes("# Test"));
 
 		// Act
-		var chunker = factory.GetChunkerForStream(stream, "DOCUMENT.MD");
+		var chunker = await factory.GetChunkerForStreamAsync(stream, "DOCUMENT.MD", CancellationToken);
 
 		// Assert
 		_ = chunker.Should().NotBeNull();
@@ -81,14 +81,14 @@ public class ChunkerFactoryTests
 	}
 
 	[Fact]
-	public void GetChunkerForStream_WithMarkdownExtension_ShouldReturnMarkdownChunker2()
+	public async Task GetChunkerForStream_WithMarkdownExtension_ShouldReturnMarkdownChunker2()
 	{
 		// Arrange
 		var factory = new ChunkerFactory();
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes("# Test"));
 
 		// Act
-		var chunker = factory.GetChunkerForStream(stream, "document.markdown");
+		var chunker = await factory.GetChunkerForStreamAsync(stream, "document.markdown", CancellationToken);
 
 		// Assert
 		_ = chunker.Should().NotBeNull();
@@ -104,7 +104,7 @@ public class ChunkerFactoryTests
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var chunker = await factory.GetChunkerForStreamAsync(stream);
+		var chunker = await factory.GetChunkerForStreamAsync(stream, null, CancellationToken);
 
 		// Assert
 		_ = chunker.Should().NotBeNull();
@@ -121,7 +121,7 @@ public class ChunkerFactoryTests
 		using var stream = new MemoryStream(binaryData);
 
 		// Act
-		var act = async () => await factory.GetChunkerForStreamAsync(stream);
+		var act = async () => await factory.GetChunkerForStreamAsync(stream, null, CancellationToken);
 
 		// Assert
 		_ = await act.Should().ThrowAsync<NotSupportedException>()

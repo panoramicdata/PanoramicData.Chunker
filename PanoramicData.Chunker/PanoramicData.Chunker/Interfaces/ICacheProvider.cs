@@ -13,7 +13,7 @@ public interface ICacheProvider
 	/// <param name="key">The cache key.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>The cached result, or null if not found.</returns>
-	Task<ChunkingResult?> GetAsync(string key, CancellationToken cancellationToken = default);
+	Task<ChunkingResult?> GetAsync(string key, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Set chunking result in cache.
@@ -25,13 +25,13 @@ public interface ICacheProvider
 	Task SetAsync(
 		string key,
 		ChunkingResult result,
-		TimeSpan? expiration = null,
-		CancellationToken cancellationToken = default);
+		TimeSpan? expiration,
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Remove cached result.
 	/// </summary>
 	/// <param name="key">The cache key.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
-	Task RemoveAsync(string key, CancellationToken cancellationToken = default);
+	Task RemoveAsync(string key, CancellationToken cancellationToken);
 }

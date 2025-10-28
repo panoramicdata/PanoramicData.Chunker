@@ -28,7 +28,7 @@ public partial class CharacterBasedTokenCounter : ITokenCounter
 	/// <summary>
 	/// Async version (just wraps synchronous version).
 	/// </summary>
-	public Task<int> CountTokensAsync(string text, CancellationToken cancellationToken = default) => Task.FromResult(CountTokens(text));
+	public Task<int> CountTokensAsync(string text, CancellationToken cancellationToken) => Task.FromResult(CountTokens(text));
 
 	/// <summary>
 	/// Split text at token boundaries to fit within maxTokens.

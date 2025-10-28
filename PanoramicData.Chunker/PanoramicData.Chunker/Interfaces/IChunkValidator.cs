@@ -15,5 +15,5 @@ public interface IChunkValidator
 	/// <returns>Validation result.</returns>
 	Task<ValidationResult> ValidateAsync(
 		IEnumerable<ChunkerBase> chunks,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 }

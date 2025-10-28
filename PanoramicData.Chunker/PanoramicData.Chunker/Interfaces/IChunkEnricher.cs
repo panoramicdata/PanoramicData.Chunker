@@ -16,7 +16,7 @@ public interface IChunkEnricher
 	/// <returns>The enriched chunk.</returns>
 	Task<EnrichedChunk> EnrichAsync(
 		ChunkerBase chunk,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Enriches multiple chunks with LLM-generated metadata.
@@ -26,5 +26,5 @@ public interface IChunkEnricher
 	/// <returns>The enriched chunks.</returns>
 	Task<IEnumerable<EnrichedChunk>> EnrichBatchAsync(
 		IEnumerable<ChunkerBase> chunks,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 }

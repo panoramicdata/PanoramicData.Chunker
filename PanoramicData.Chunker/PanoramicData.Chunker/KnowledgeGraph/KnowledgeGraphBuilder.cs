@@ -49,8 +49,8 @@ public class KnowledgeGraphBuilder(IEntityResolver? entityResolver = null)
 	/// <returns>The knowledge graph result.</returns>
 	public async Task<KnowledgeGraphResult> BuildGraphAsync(
 		IEnumerable<ChunkerBase> chunks,
-		string graphName = "Document Graph",
-		CancellationToken cancellationToken = default)
+		string graphName,
+		CancellationToken cancellationToken)
 	{
 		var result = new KnowledgeGraphResult
 		{
@@ -121,17 +121,18 @@ public class KnowledgeGraphBuilder(IEntityResolver? entityResolver = null)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
 
+				// Track extractor usage
+				if (!result.Statistics.ExtractorsUsed.Contains(extractor.Name))
+				{
+					result.Statistics.ExtractorsUsed.Add(extractor.Name);
+				}
+
 				var relationships = await extractor.ExtractRelationshipsAsync(
 					resolvedEntities,
 					chunkList,
 					cancellationToken);
 
 				allRelationships.AddRange(relationships);
-
-				if (!result.Statistics.ExtractorsUsed.Contains(extractor.Name))
-				{
-					result.Statistics.ExtractorsUsed.Add(extractor.Name);
-				}
 			}
 
 			result.Statistics.RelationshipsExtracted = allRelationships.Count;

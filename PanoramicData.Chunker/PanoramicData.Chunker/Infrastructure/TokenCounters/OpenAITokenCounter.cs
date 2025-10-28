@@ -62,7 +62,7 @@ public class OpenAITokenCounter(string encodingName) : ITokenCounter
 	/// <summary>
 	/// Async version (wraps synchronous version as encoding is CPU-bound).
 	/// </summary>
-	public Task<int> CountTokensAsync(string text, CancellationToken cancellationToken = default)
+	public Task<int> CountTokensAsync(string text, CancellationToken cancellationToken)
 		=> Task.Run(() => CountTokens(text), cancellationToken);
 
 	/// <summary>

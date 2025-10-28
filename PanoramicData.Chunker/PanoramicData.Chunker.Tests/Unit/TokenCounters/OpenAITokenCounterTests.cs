@@ -3,7 +3,7 @@ using PanoramicData.Chunker.Infrastructure.TokenCounters;
 
 namespace PanoramicData.Chunker.Tests.Unit.TokenCounters;
 
-public class OpenAITokenCounterTests
+public class OpenAITokenCounterTests(ITestOutputHelper output) : BaseTest(output)
 {
 	[Fact]
 	public void Constructor_Default_ShouldUseCL100K()
@@ -161,7 +161,7 @@ public class OpenAITokenCounterTests
 
 		// Act
 		var syncCount = counter.CountTokens(text);
-		var asyncCount = await counter.CountTokensAsync(text);
+		var asyncCount = await counter.CountTokensAsync(text, CancellationToken);
 
 		// Assert
 		_ = asyncCount.Should().Be(syncCount);

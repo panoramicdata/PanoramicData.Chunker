@@ -4,8 +4,6 @@ using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Models;
 using System.Text;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
@@ -14,9 +12,8 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// Tests are designed to skip gracefully when test files are missing and provide
 /// detailed validation when files are present.
 /// </summary>
-public class PptxDocumentChunkerTests(ITestOutputHelper output)
+public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(output)
 {
-	private readonly ITestOutputHelper _output = output;
 	private const string TestDataPath = "TestData/Pptx";
 
 	private static string GetTestFilePath(string fileName) => Path.Combine(TestDataPath, fileName);
@@ -70,7 +67,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.CanHandleAsync(stream);
+		var result = await chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeTrue("PPTX chunker should handle .pptx files");
@@ -85,7 +82,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("This is plain text, not PPTX"));
 
 		// Act
-		var result = await chunker.CanHandleAsync(stream);
+		var result = await chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse("PPTX chunker should reject non-PPTX content");
@@ -110,7 +107,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -150,7 +147,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -189,7 +186,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -201,8 +198,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		{
 			foreach (var content in contents.Take(10))
 			{
-				var preview = content.Content.Length > 50 
-					? content.Content[..50] + "..." 
+				var preview = content.Content.Length > 50
+					? content.Content[..50] + "..."
 					: content.Content;
 				_output.WriteLine($"  Slide {content.SlideNumber}: '{preview}'");
 				_ = content.Content.Should().NotBeNullOrWhiteSpace();
@@ -230,7 +227,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -267,7 +264,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -308,7 +305,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Statistics.Should().NotBeNull();
@@ -348,7 +345,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -395,7 +392,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -448,7 +445,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -498,12 +495,12 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.ValidationResult.Should().NotBeNull();
-		
+
 		_output.WriteLine($"Validation result: {(result.ValidationResult!.IsValid ? "? Valid" : "? Invalid")}");
 		_output.WriteLine($"Validation issues: {result.ValidationResult.Issues.Count}");
 
@@ -539,7 +536,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue("empty presentation should not cause errors");
@@ -570,7 +567,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		await using var stream = File.OpenRead(testFilePath);
 
 		// Act
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -616,7 +613,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 
 		// Act
 		var startTime = DateTime.UtcNow;
-		var result = await chunker.ChunkAsync(stream, options);
+		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
 		var duration = DateTime.UtcNow - startTime;
 
 		// Assert

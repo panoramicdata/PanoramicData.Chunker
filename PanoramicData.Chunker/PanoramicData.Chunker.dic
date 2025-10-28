@@ -7,11 +7,13 @@ Deduplication
 Deserialize
 Deserializer
 Docx
+Encodings
 Enricher
 GPT
 Json
 LLM
 Ollama
+Postgres
 Pptx
 Serializer
 Subtree

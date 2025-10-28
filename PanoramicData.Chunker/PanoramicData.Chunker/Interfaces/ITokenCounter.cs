@@ -18,7 +18,7 @@ public interface ITokenCounter
 	/// <param name="text">The text to count tokens in.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>The number of tokens.</returns>
-	Task<int> CountTokensAsync(string text, CancellationToken cancellationToken = default);
+	Task<int> CountTokensAsync(string text, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Split text at token boundaries to fit within maxTokens.

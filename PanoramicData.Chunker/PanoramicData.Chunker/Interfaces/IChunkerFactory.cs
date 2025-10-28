@@ -1,5 +1,4 @@
 using PanoramicData.Chunker.Configuration;
-using System.Threading.Tasks;
 
 namespace PanoramicData.Chunker.Interfaces;
 
@@ -22,15 +21,7 @@ public interface IChunkerFactory
 	/// <param name="fileNameHint">Optional filename hint for extension-based detection.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>A chunker capable of handling the detected document type.</returns>
-	Task<IDocumentChunker> GetChunkerForStreamAsync(Stream stream, string? fileNameHint = null, CancellationToken cancellationToken = default);
-
-	/// <summary>
-	/// Get a chunker by auto-detecting the document type from the stream (synchronous).
-	/// </summary>
-	/// <param name="stream">The document stream.</param>
-	/// <param name="fileNameHint">Optional filename hint for extension-based detection.</param>
-	/// <returns>A chunker capable of handling the detected document type.</returns>
-	IDocumentChunker GetChunkerForStream(Stream stream, string? fileNameHint = null);
+	Task<IDocumentChunker> GetChunkerForStreamAsync(Stream stream, string? fileNameHint, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Register a custom chunker for a document type.

@@ -9,12 +9,12 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// <summary>
 /// Tests for MarkdownDocumentChunker.
 /// </summary>
-public class MarkdownDocumentChunkerTests
+public class MarkdownDocumentChunkerTests : BaseTest
 {
 	private readonly MarkdownDocumentChunker _chunker;
 	private readonly ChunkingOptions _defaultOptions;
 
-	public MarkdownDocumentChunkerTests()
+	public MarkdownDocumentChunkerTests(ITestOutputHelper output) : base(output)
 	{
 		var tokenCounter = new CharacterBasedTokenCounter();
 		_chunker = new MarkdownDocumentChunker(tokenCounter);
@@ -53,7 +53,7 @@ public class MarkdownDocumentChunkerTests
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeTrue();
@@ -66,7 +66,7 @@ public class MarkdownDocumentChunkerTests
 		using var stream = new MemoryStream();
 
 		// Act
-		var result = await _chunker.CanHandleAsync(stream);
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -76,7 +76,7 @@ public class MarkdownDocumentChunkerTests
 	public async Task CanHandleAsync_WithNullStream_ShouldReturnFalse()
 	{
 		// Act
-		var result = await _chunker.CanHandleAsync(null!);
+		var result = await _chunker.CanHandleAsync(null!, CancellationToken);
 
 		// Assert
 		_ = result.Should().BeFalse();
@@ -90,7 +90,7 @@ public class MarkdownDocumentChunkerTests
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -117,7 +117,7 @@ Second paragraph.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -155,7 +155,7 @@ Second paragraph.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -176,7 +176,7 @@ Second paragraph.";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		var items = result.Chunks.OfType<MarkdownListItemChunk>().ToList();
@@ -198,7 +198,7 @@ public class Test { }
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		var codeChunk = result.Chunks.OfType<MarkdownCodeBlockChunk>().FirstOrDefault();
@@ -219,7 +219,7 @@ public class Test { }
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		var quoteChunk = result.Chunks.OfType<MarkdownQuoteChunk>().FirstOrDefault();
@@ -240,7 +240,7 @@ public class Test { }
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		var tableChunk = result.Chunks.OfType<MarkdownTableChunk>().FirstOrDefault();
@@ -259,7 +259,7 @@ public class Test { }
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
@@ -278,7 +278,7 @@ public class Test { }
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		_ = result.Statistics.Should().NotBeNull();
@@ -296,7 +296,7 @@ public class Test { }
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		_ = result.ValidationResult.Should().NotBeNull();
@@ -318,7 +318,7 @@ public class Test { }
 		};
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, options);
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
 		var paragraphs = result.Chunks.OfType<MarkdownParagraphChunk>().ToList();
@@ -337,7 +337,7 @@ public class Test { }
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		_ = result.Chunks.Select(c => c.SequenceNumber).Should().BeInAscendingOrder();
@@ -352,7 +352,7 @@ public class Test { }
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
 
 		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions);
+		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
 
 		// Assert
 		var h1 = result.Chunks[0];

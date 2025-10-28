@@ -33,5 +33,5 @@ public interface IRelationshipExtractor
 	Task<List<Relationship>> ExtractRelationshipsAsync(
 		IEnumerable<Entity> entities,
 		IEnumerable<ChunkerBase> chunks,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 }

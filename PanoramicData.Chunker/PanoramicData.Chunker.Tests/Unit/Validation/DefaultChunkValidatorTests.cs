@@ -7,7 +7,7 @@ namespace PanoramicData.Chunker.Tests.Unit.Validation;
 /// <summary>
 /// Tests for DefaultChunkValidator.
 /// </summary>
-public class DefaultChunkValidatorTests
+public class DefaultChunkValidatorTests(ITestOutputHelper output) : BaseTest(output)
 {
 	private readonly DefaultChunkValidator _validator = new();
 
@@ -21,7 +21,7 @@ public class DefaultChunkValidatorTests
 		var chunks = new List<ChunkerBase> { root, child };
 
 		// Act
-		var result = await _validator.ValidateAsync(chunks);
+		var result = await _validator.ValidateAsync(chunks, CancellationToken);
 
 		// Assert
 		_ = result.IsValid.Should().BeTrue();
@@ -32,16 +32,16 @@ public class DefaultChunkValidatorTests
 	public async Task ValidateAsync_WithOrphanedChunk_ShouldFail()
 	{
 		// Arrange
-		var chunk = new TestContentChunk 
-		{ 
-			Id = Guid.NewGuid(), 
+		var chunk = new TestContentChunk
+		{
+			Id = Guid.NewGuid(),
 			ParentId = Guid.NewGuid() // Non-existent parent
 		};
 
 		var chunks = new List<ChunkerBase> { chunk };
 
 		// Act
-		var result = await _validator.ValidateAsync(chunks);
+		var result = await _validator.ValidateAsync(chunks, CancellationToken);
 
 		// Assert
 		result.IsValid.Should().BeFalse();
@@ -61,7 +61,7 @@ public class DefaultChunkValidatorTests
 		var chunks = new List<ChunkerBase> { chunk1, chunk2 };
 
 		// Act
-		var result = await _validator.ValidateAsync(chunks);
+		var result = await _validator.ValidateAsync(chunks, CancellationToken);
 
 		// Assert
 		result.IsValid.Should().BeFalse();
@@ -73,17 +73,17 @@ public class DefaultChunkValidatorTests
 	{
 		// Arrange
 		var root = new TestStructuralChunk { Id = Guid.NewGuid(), Depth = 0 };
-		var child = new TestContentChunk 
-		{ 
-			Id = Guid.NewGuid(), 
-			ParentId = root.Id, 
+		var child = new TestContentChunk
+		{
+			Id = Guid.NewGuid(),
+			ParentId = root.Id,
 			Depth = 5 // Should be 1
 		};
 
 		var chunks = new List<ChunkerBase> { root, child };
 
 		// Act
-		var result = await _validator.ValidateAsync(chunks);
+		var result = await _validator.ValidateAsync(chunks, CancellationToken);
 
 		// Assert
 		result.IsValid.Should().BeFalse();

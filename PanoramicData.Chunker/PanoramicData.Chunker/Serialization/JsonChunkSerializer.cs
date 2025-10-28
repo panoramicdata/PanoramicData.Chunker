@@ -22,7 +22,7 @@ public class JsonChunkSerializer(JsonSerializerOptions? options = null) : IChunk
 	public async Task SerializeAsync(
 		IEnumerable<ChunkerBase> chunks,
 		Stream output,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(chunks);
 		ArgumentNullException.ThrowIfNull(output);
@@ -35,7 +35,7 @@ public class JsonChunkSerializer(JsonSerializerOptions? options = null) : IChunk
 	/// </summary>
 	public async Task<IEnumerable<ChunkerBase>> DeserializeAsync(
 		Stream input,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(input);
 
@@ -72,7 +72,7 @@ public class JsonChunkSerializer(JsonSerializerOptions? options = null) : IChunk
 	public async Task SerializeResultAsync(
 		ChunkingResult result,
 		Stream output,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(result);
 		ArgumentNullException.ThrowIfNull(output);
@@ -85,7 +85,7 @@ public class JsonChunkSerializer(JsonSerializerOptions? options = null) : IChunk
 	/// </summary>
 	public async Task<ChunkingResult?> DeserializeResultAsync(
 		Stream input,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(input);
 

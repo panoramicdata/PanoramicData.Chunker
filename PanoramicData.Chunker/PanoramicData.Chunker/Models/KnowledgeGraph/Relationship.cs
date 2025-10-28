@@ -105,8 +105,8 @@ public class Relationship
 			return;
 		}
 
-		// Update weight (average)
-		Weight = (Weight + other.Weight) / 2.0;
+		// Sum weights (accumulate strength)
+		Weight += other.Weight;
 
 		// Take the higher confidence
 		Confidence = Math.Max(Confidence, other.Confidence);
@@ -120,13 +120,10 @@ public class Relationship
 			}
 		}
 
-		// Merge properties (prefer existing values)
+		// Merge properties (newer values overwrite existing)
 		foreach (var prop in other.Properties)
 		{
-			if (!Properties.ContainsKey(prop.Key))
-			{
-				Properties[prop.Key] = prop.Value;
-			}
+			Properties[prop.Key] = prop.Value;
 		}
 	}
 

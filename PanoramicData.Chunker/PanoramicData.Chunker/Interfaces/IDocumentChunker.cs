@@ -23,7 +23,7 @@ public interface IDocumentChunker
 	Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
-		CancellationToken cancellationToken = default);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Validate if the stream contains a valid document of this type.
@@ -31,5 +31,5 @@ public interface IDocumentChunker
 	/// <param name="documentStream">The stream to validate.</param>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>True if the stream can be handled by this chunker.</returns>
-	Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken = default);
+	Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken);
 }
