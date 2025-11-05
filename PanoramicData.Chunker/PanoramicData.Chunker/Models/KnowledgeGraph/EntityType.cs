@@ -16,222 +16,228 @@ public enum EntityType
 	Keyword = 1,
 
 	/// <summary>
+	/// A proper noun extracted based on capitalization (person, organization, place name, etc.).
+	/// May require further classification into specific subtypes.
+	/// </summary>
+	ProperNoun = 2,
+
+	/// <summary>
 	/// A person's name.
 	/// </summary>
-	Person = 2,
+	Person = 3,
 
 	/// <summary>
 	/// An organization, company, or institution.
 	/// </summary>
-	Organization = 3,
+	Organization = 4,
 
 	/// <summary>
 	/// A geographical location (city, country, region).
 	/// </summary>
-	Location = 4,
+	Location = 5,
 
 	/// <summary>
 	/// A specific date or time reference.
 	/// </summary>
-	Date = 5,
+	Date = 6,
 
 	/// <summary>
 	/// A monetary amount or financial value.
 	/// </summary>
-	Money = 6,
+	Money = 7,
 
 	/// <summary>
 	/// A percentage value.
 	/// </summary>
-	Percent = 7,
+	Percent = 8,
 
 	/// <summary>
 	/// A product or service name.
 	/// </summary>
-	Product = 8,
+	Product = 9,
 
 	/// <summary>
 	/// A specific event.
 	/// </summary>
-	Event = 9,
+	Event = 10,
 
 	/// <summary>
 	/// A work of art, book, movie, or creative work.
 	/// </summary>
-	Work = 10,
+	Work = 11,
 
 	/// <summary>
 	/// A law, regulation, or legal document.
 	/// </summary>
-	Law = 11,
+	Law = 12,
 
 	/// <summary>
 	/// A programming language or technology.
 	/// </summary>
-	Technology = 12,
+	Technology = 13,
 
 	/// <summary>
 	/// A software framework or library.
 	/// </summary>
-	Framework = 13,
+	Framework = 14,
 
 	/// <summary>
 	/// A software library or package.
 	/// </summary>
-	Library = 14,
+	Library = 15,
 
 	/// <summary>
 	/// A specific version number or identifier.
 	/// </summary>
-	Version = 15,
+	Version = 16,
 
 	/// <summary>
 	/// A file or document reference.
 	/// </summary>
-	File = 16,
+	File = 17,
 
 	/// <summary>
 	/// A URL or web address.
 	/// </summary>
-	Url = 17,
+	Url = 18,
 
 	/// <summary>
 	/// An email address.
 	/// </summary>
-	Email = 18,
+	Email = 19,
 
 	/// <summary>
 	/// A phone number.
 	/// </summary>
-	Phone = 19,
+	Phone = 20,
 
 	/// <summary>
 	/// A medical term, condition, or treatment.
 	/// </summary>
-	Medical = 20,
+	Medical = 21,
 
 	/// <summary>
 	/// A chemical compound or substance.
 	/// </summary>
-	Chemical = 21,
+	Chemical = 22,
 
 	/// <summary>
 	/// A biological entity (species, gene, protein).
 	/// </summary>
-	Biological = 22,
+	Biological = 23,
 
 	/// <summary>
 	/// A mathematical concept or formula.
 	/// </summary>
-	Mathematical = 23,
+	Mathematical = 24,
 
 	/// <summary>
 	/// A scientific concept or theory.
 	/// </summary>
-	Scientific = 24,
+	Scientific = 25,
 
 	/// <summary>
 	/// A business or economic concept.
 	/// </summary>
-	Business = 25,
+	Business = 26,
 
 	/// <summary>
 	/// A legal concept or term.
 	/// </summary>
-	Legal = 26,
+	Legal = 27,
 
 	/// <summary>
 	/// An educational institution or program.
 	/// </summary>
-	Educational = 27,
+	Educational = 28,
 
 	/// <summary>
 	/// A department or division within an organization.
 	/// </summary>
-	Department = 28,
+	Department = 29,
 
 	/// <summary>
 	/// A job title or role.
 	/// </summary>
-	JobTitle = 29,
+	JobTitle = 30,
 
 	/// <summary>
 	/// A skill or competency.
 	/// </summary>
-	Skill = 30,
+	Skill = 31,
 
 	/// <summary>
 	/// A certification or qualification.
 	/// </summary>
-	Certification = 31,
+	Certification = 32,
 
 	/// <summary>
 	/// A project or initiative.
 	/// </summary>
-	Project = 32,
+	Project = 33,
 
 	/// <summary>
 	/// A task or activity.
 	/// </summary>
-	Task = 33,
+	Task = 34,
 
 	/// <summary>
 	/// A measurement or quantity with units.
 	/// </summary>
-	Measurement = 34,
+	Measurement = 35,
 
 	/// <summary>
 	/// A unit of measurement.
 	/// </summary>
-	Unit = 35,
+	Unit = 36,
 
 	/// <summary>
 	/// A currency type.
 	/// </summary>
-	Currency = 36,
+	Currency = 37,
 
 	/// <summary>
 	/// A language (natural language).
 	/// </summary>
-	Language = 37,
+	Language = 38,
 
 	/// <summary>
 	/// A nationality or ethnic group.
 	/// </summary>
-	Nationality = 38,
+	Nationality = 39,
 
 	/// <summary>
 	/// A religion or belief system.
 	/// </summary>
-	Religion = 39,
+	Religion = 40,
 
 	/// <summary>
 	/// A political party or movement.
 	/// </summary>
-	Political = 40,
+	Political = 41,
 
 	/// <summary>
 	/// A facility or physical structure.
 	/// </summary>
-	Facility = 41,
+	Facility = 42,
 
 	/// <summary>
 	/// A vehicle or transportation method.
 	/// </summary>
-	Vehicle = 42,
+	Vehicle = 43,
 
 	/// <summary>
 	/// A weather or climate phenomenon.
 	/// </summary>
-	Weather = 43,
+	Weather = 44,
 
 	/// <summary>
 	/// A topic or subject area.
 	/// </summary>
-	Topic = 44,
+	Topic = 45,
 
 	/// <summary>
 	/// A concept or abstract idea.
 	/// </summary>
-	Concept = 45
+	Concept = 46
 }

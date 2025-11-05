@@ -9,14 +9,14 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 /// <summary>
 /// Integration tests for PostgresGraphStore using xUnit v3 Fixture pattern.
 /// </summary>
-public class PostgresGraphStoreTests : IClassFixture<PostgresKnowledgeGraphFixture>
+public class PostgresGraphStoreTests : IClassFixture<ApacheAgeFixture>
 {
-	private readonly PostgresKnowledgeGraphFixture _fixture;
+	private readonly ApacheAgeFixture _fixture;
 	private readonly IGraphStore _graphStore;
 
 	private readonly static CancellationToken _cancellationToken = TestContext.Current.CancellationToken;
 
-	public PostgresGraphStoreTests(PostgresKnowledgeGraphFixture fixture)
+	public PostgresGraphStoreTests(ApacheAgeFixture fixture)
 	{
 		_fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
 		_graphStore = _fixture.Services.GetRequiredService<IGraphStore>();

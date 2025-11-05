@@ -236,8 +236,21 @@ public class CooccurrenceRelationshipExtractor(int maxDistance = 500, double min
 
 	private static string GetContext(string text, int startPos, int endPos, int contextSize = 100)
 	{
+		// Ensure startPos <= endPos
+		if (startPos > endPos)
+		{
+			(startPos, endPos) = (endPos, startPos);
+		}
+
 		var start = Math.Max(0, startPos - contextSize);
 		var end = Math.Min(text.Length, endPos + contextSize);
+		
+		// Ensure we don't have invalid range
+		if (start >= text.Length || end <= 0 || start >= end)
+		{
+			return string.Empty;
+		}
+
 		var context = text[start..end];
 
 		if (start > 0)

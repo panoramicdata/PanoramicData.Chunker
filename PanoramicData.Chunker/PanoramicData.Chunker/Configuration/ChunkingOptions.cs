@@ -35,6 +35,18 @@ public class ChunkingOptions
 	/// </summary>
 	public ChunkingStrategy Strategy { get; set; } = ChunkingStrategy.Structural;
 
+	/// <summary>
+	/// Maximum number of characters per chunk (0 = no limit).
+	/// Useful for preventing oversized chunks that reduce entity extraction accuracy.
+	/// Recommended: 2000 characters (~400-500 tokens) for knowledge graph extraction.
+	/// </summary>
+	public int MaxCharactersPerChunk { get; set; } = 0;
+
+	/// <summary>
+	/// When splitting large content, enforce sentence boundaries to maintain semantic coherence.
+	/// </summary>
+	public bool EnforceSentenceBoundaries { get; set; } = true;
+
 	// Content Processing
 	/// <summary>
 	/// Preserve formatting information in chunks.
