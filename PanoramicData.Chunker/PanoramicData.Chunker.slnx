@@ -12,6 +12,7 @@
     <File Path="docs/architecture/SEQUENCE_DIAGRAMS.md" />
   </Folder>
   <Folder Name="/Solution Items/Plans/">
+    <File Path="docs/GROUND_TRUTH_EVALUATION_PLAN.md" />
     <File Path="docs/MasterPlan.md" />
     <File Path="docs/phases/Phase-00.md" />
     <File Path="docs/phases/Phase-01.md" />

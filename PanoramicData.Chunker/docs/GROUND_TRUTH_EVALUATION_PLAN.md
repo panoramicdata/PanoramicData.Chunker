@@ -1,6 +1,6 @@
 # Ground Truth Knowledge Graph Quality Assessment - Phased Implementation Plan
 
-## ?? Document Overview
+## 📋 Document Overview
 
 **Project**: PanoramicData.Chunker Knowledge Graph Quality Validation  
 **Document**: Ground Truth Evaluation Plan  
@@ -10,16 +10,16 @@
 
 ---
 
-## ?? Executive Summary
+## 📋 Executive Summary
 
 ### Objective
 Create a comprehensive evaluation system to measure the quality of our knowledge graph extraction pipeline using Charles Darwin's autobiography as ground truth, with **Cypher-only validation** as the final goal.
 
 ### Success Criteria
-- ? **90%+ recall** on ground truth relationships
-- ? **60%+ precision** on extracted relationships
-- ? **100% Cypher-retrievable** from Apache AGE database
-- ? **<100ms average** query time for Cypher queries
+- ✅ **90%+ recall** on ground truth relationships
+- ✅ **60%+ precision** on extracted relationships
+- ✅ **100% Cypher-retrievable** from Apache AGE database
+- ✅ **<100ms average** query time for Cypher queries
 
 ### Approach
 By creating a ground truth dataset from Darwin's autobiography (Project Gutenberg) and comparing extracted relationships against it, we can:
@@ -31,7 +31,7 @@ By creating a ground truth dataset from Darwin's autobiography (Project Gutenber
 
 ---
 
-## ?? Phase 1: Ground Truth Creation (Week 1)
+## 📋 Phase 1: Ground Truth Creation (Week 1)
 
 ### Objectives
 - Create authoritative ground truth dataset (50-100 relationships)
@@ -199,7 +199,7 @@ public static class GroundTruthLoader
 
 ---
 
-## ?? Phase 2: Baseline Comparison (Week 2)
+## 📋 Phase 2: Baseline Comparison (Week 2)
 
 ### Objectives
 - Run current extraction pipeline on Darwin autobiography
@@ -588,7 +588,7 @@ dotnet test --filter "GroundTruthComparisonTests" > baseline-results.txt
 
 ---
 
-## ?? Phase 3: Iterative Improvement (Week 3)
+## 📋 Phase 3: Iterative Improvement (Week 3)
 
 ### Objectives
 - Analyze failure patterns from baseline
@@ -673,7 +673,7 @@ public class HybridEntityExtractor : IEntityExtractor
     
     public HybridEntityExtractor(HybridEntityExtractorOptions? options = null)
     {
-      _options = options ?? new HybridEntityExtractorOptions();
+      _options = options 📋 new HybridEntityExtractorOptions();
     }
   
     protected override double CalculateEntityConfidence(
@@ -860,7 +860,7 @@ var chunkingOptions = new ChunkingOptions
 
 ---
 
-## ?? Phase 4: Cypher-Only Validation (Week 4)
+## 📋 Phase 4: Cypher-Only Validation (Week 4)
 
 ### Objectives
 - Verify 100% of ground truth relationships retrievable via Cypher
@@ -1058,11 +1058,11 @@ CREATE INDEX idx_age_relationships_type_to ON age_relationships (type, to_entity
 ### 4.4 Success Criteria
 
 **Cypher-Only Retrieval**:
-- ? 90%+ of ground truth relationships retrieved using Cypher queries
-- ? **Zero use** of `Graph.GetEntitiesByName()` or other in-memory methods
-- ? All queries use `ICypherQueryExecutor.ExecuteQueryAsync<T>()` or `ExecutePatternMatchAsync()`
-- ? Average query time < 100ms
-- ? Complex path queries < 500ms
+- ✅ 90%+ of ground truth relationships retrieved using Cypher queries
+- ✅ **Zero use** of `Graph.GetEntitiesByName()` or other in-memory methods
+- ✅ All queries use `ICypherQueryExecutor.ExecuteQueryAsync<T>()` or `ExecutePatternMatchAsync()`
+- ✅ Average query time < 100ms
+- ✅ Complex path queries < 500ms
 
 ---
 
@@ -1075,7 +1075,7 @@ CREATE INDEX idx_age_relationships_type_to ON age_relationships (type, to_entity
 
 ---
 
-## ?? Phase 5: Reporting & Documentation (Ongoing)
+## 📋 Phase 5: Reporting & Documentation (Ongoing)
 
 ### 5.1 Automated Report Generation
 
@@ -1240,42 +1240,42 @@ This document summarizes the results of validating our knowledge graph extractio
 
 ---
 
-## ?? Summary: File Structure
+## 📋 Summary: File Structure
 
 ```
 PanoramicData.Chunker.Tests/
-??? TestData/
-?   ??? Darwin-GroundTruth.txt
-?   ??? Darwin-GroundTruth-README.md
-??? Helpers/
-?   ??? GroundTruthLoader.cs
-?   ??? GroundTruthComparison.cs
-?   ??? GroundTruthReport.cs
-??? Integration/KnowledgeGraph/
-?   ??? GroundTruthComparisonTests.cs
-?   ??? CypherOnlyGroundTruthTests.cs
-??? Results/
-    ??? baseline-results.txt
-    ??? iteration-1-results.txt
-    ??? iteration-2-results.txt
-    ??? iteration-3-results.txt
-    ??? final-results.txt
+📋? TestData/
+?   📋? Darwin-GroundTruth.txt
+?   📋? Darwin-GroundTruth-README.md
+📋? Helpers/
+?   📋? GroundTruthLoader.cs
+?   📋? GroundTruthComparison.cs
+?   📋? GroundTruthReport.cs
+📋? Integration/KnowledgeGraph/
+?   📋? GroundTruthComparisonTests.cs
+?   📋? CypherOnlyGroundTruthTests.cs
+📋? Results/
+    📋? baseline-results.txt
+    📋? iteration-1-results.txt
+    📋? iteration-2-results.txt
+    📋? iteration-3-results.txt
+    📋? final-results.txt
 
 PanoramicData.Chunker/
-??? KnowledgeGraph/Extractors/
-?   ??? HybridEntityExtractorOptions.cs (new)
-?   ??? HybridEntityExtractor.cs (modified)
-?   ??? PatternBasedRelationshipExtractor.cs (modified)
-??? Models/KnowledgeGraph/
-    ??? RelationshipType.cs (modified - add new types)
+📋? KnowledgeGraph/Extractors/
+?   📋? HybridEntityExtractorOptions.cs (new)
+?   📋? HybridEntityExtractor.cs (modified)
+?   📋? PatternBasedRelationshipExtractor.cs (modified)
+📋? Models/KnowledgeGraph/
+    📋? RelationshipType.cs (modified - add new types)
 
 docs/
-??? GROUND_TRUTH_EVALUATION_PLAN.md (this file)
-??? GROUND_TRUTH_EVALUATION_RESULTS.md (final results)
-??? ground-truth-analysis/
-    ??? baseline-analysis.md
-    ??? improvement-analysis.md
-    ??? cypher-query-performance.md
+📋? GROUND_TRUTH_EVALUATION_PLAN.md (this file)
+📋? GROUND_TRUTH_EVALUATION_RESULTS.md (final results)
+📋? ground-truth-analysis/
+    📋? baseline-analysis.md
+    📋? improvement-analysis.md
+    📋? cypher-query-performance.md
 ```
 
 ---
@@ -1314,7 +1314,7 @@ docs/
 
 ---
 
-## ?? Final Target Metrics
+## 📋 Final Target Metrics
 
 | Metric | Minimum | Target | Stretch |
 |--------|---------|--------|---------|
@@ -1326,7 +1326,7 @@ docs/
 
 ---
 
-## ?? References
+## 📋 References
 
 - Darwin's Autobiography: https://www.gutenberg.org/files/2010/2010-h/2010-h.htm
 - Apache AGE Documentation: https://age.apache.org/
@@ -1335,8 +1335,9 @@ docs/
 
 ---
 
-**Status**: ?? **PLANNING PHASE**  
+**Status**: 📋 **PLANNING PHASE**  
 **Next Action**: Begin Phase 1 - Create ground truth dataset  
 **Estimated Timeline**: 4 weeks  
 **Owner**: Development Team
+
 

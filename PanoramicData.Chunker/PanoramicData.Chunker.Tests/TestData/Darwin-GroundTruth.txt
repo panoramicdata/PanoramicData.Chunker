@@ -1,0 +1,51 @@
+Entity1	RelationType	Entity2	Confidence	Section	Notes
+Professor Jameson	Founded	Plinian Society	1.0	Edinburgh	"The Plinian Society was encouraged and, I believe, founded by Professor Jameson"
+Charles Darwin	MemberOf	Plinian Society	1.0	Edinburgh	Darwin regularly attended meetings and presented papers
+HMS Beagle	IsA	Ship	1.0	Voyage	Royal Navy survey vessel on a five-year voyage
+Darwin	AuthorOf	Origin of Species	1.0	Later Life	Published in 1859, groundbreaking work on evolution
+Captain FitzRoy	Manages	HMS Beagle	0.9	Voyage	Ship commander during the voyage
+Edinburgh University	LocatedIn	Edinburgh	1.0	Education	Scottish capital city
+Darwin	StudiedAt	Edinburgh University	1.0	Education	Medical studies (1825-1827)
+Robert Grant	WorksFor	Edinburgh University	0.9	Education	Professor of comparative anatomy and zoology
+Darwin	InfluencedBy	Robert Grant	0.8	Education	Introduced Darwin to marine invertebrates and evolutionary ideas
+Galapagos Islands	PartOf	Voyage of the Beagle	1.0	Voyage	Key destination that shaped Darwin's thinking
+Darwin	Visited	Galapagos Islands	1.0	Voyage	Visited in September 1835
+Cambridge University	LocatedIn	Cambridge	1.0	Education	English university town
+Darwin	StudiedAt	Cambridge University	1.0	Education	Christ's College (1828-1831), studying for clergy
+John Henslow	WorksFor	Cambridge University	0.9	Education	Professor of botany
+Darwin	MentorOf	John Henslow	0.8	Education	Close friendship and mentorship, recommended Darwin for Beagle voyage
+Darwin	CollaboratesWith	John Henslow	0.9	Education	Botanical walks and scientific discussions
+FitzRoy	Invited	Darwin	0.9	Voyage	FitzRoy invited Darwin as naturalist and companion
+Darwin	TraveledOn	HMS Beagle	1.0	Voyage	Five-year voyage (1831-1836) around the world
+Shrewsbury	IsA	Town	1.0	Childhood	Darwin's birthplace in England
+Darwin	BornIn	Shrewsbury	1.0	Childhood	Born February 12, 1809
+Dr. Robert Darwin	FatherOf	Charles Darwin	1.0	Family	Darwin's father, a physician
+Erasmus Darwin	GrandfatherOf	Charles Darwin	1.0	Family	Famous physician and poet
+Josiah Wedgwood	RelatedTo	Darwin	0.9	Family	Darwin's maternal grandfather, pottery manufacturer
+South America	VisitedBy	Darwin	1.0	Voyage	Extensive explorations during Beagle voyage
+Patagonia	PartOf	South America	1.0	Geography	Southern region explored by Darwin
+Darwin	Discovered	Fossils	0.9	Voyage	Found extinct mammal fossils in South America
+Andes Mountains	VisitedBy	Darwin	1.0	Voyage	Darwin crossed the Andes and studied geology
+Darwin	Observed	Earthquakes	0.9	Voyage	Experienced earthquake in Chile, influenced geological thinking
+Coral Reefs	StudiedBy	Darwin	0.9	Voyage	Developed theory of coral reef formation
+Tierra del Fuego	VisitedBy	Darwin	1.0	Voyage	Southernmost region of South America
+New Zealand	VisitedBy	Darwin	1.0	Voyage	Part of the circumnavigation
+Australia	VisitedBy	Darwin	1.0	Voyage	Visited Sydney and surrounding areas
+Cape of Good Hope	VisitedBy	Darwin	1.0	Voyage	Southern tip of Africa
+Bahia	VisitedBy	Darwin	1.0	Voyage	Brazilian coastal city, first stop in South America
+Darwin	Collected	Specimens	1.0	Voyage	Extensive collection of plants, animals, fossils, and rocks
+Darwin	Studied	Barnacles	1.0	Post-Voyage	Eight-year study after returning from voyage
+Darwin	Wrote	Voyage of the Beagle	1.0	Post-Voyage	Published account of his travels (1839)
+Darwin	Wrote	Journal of Researches	1.0	Post-Voyage	Scientific journal from the voyage
+Geological Society	MemberOf	Darwin	0.9	Post-Voyage	Darwin became prominent in scientific society
+Royal Society	MemberOf	Darwin	0.9	Post-Voyage	Elected Fellow of the Royal Society
+Darwin	LivedIn	Down House	1.0	Later Life	Family home in Kent where he wrote Origin of Species
+Emma Wedgwood	MarriedTo	Darwin	1.0	Family	Darwin's wife and cousin
+Darwin	Developed	Theory of Evolution	1.0	Later Life	Theory of evolution by natural selection
+Alfred Russel Wallace	CollaboratesWith	Darwin	0.8	Later Life	Independently developed similar evolutionary theory
+Darwin	Influenced	Modern Biology	1.0	Legacy	Revolutionary impact on biological sciences
+Natural Selection	DiscoveredBy	Darwin	1.0	Later Life	Mechanism of evolutionary change
+Thomas Huxley	SupportedBy	Darwin	0.8	Later Life	"Darwin's Bulldog" - strong defender of evolution
+Darwin	Corresponded	Scientists	0.9	Later Life	Extensive correspondence with naturalists worldwide
+Lyell	InfluencedBy	Darwin	0.9	Education	Charles Lyell's "Principles of Geology" influenced Darwin's thinking
+Darwin	Proposed	Descent with Modification	0.9	Later Life	Core concept of evolutionary theory
