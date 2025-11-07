@@ -1,4 +1,4 @@
-using PanoramicData.Chunker.Interfaces.KnowledgeGraph;
+﻿using PanoramicData.Chunker.Interfaces.KnowledgeGraph;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
 
@@ -41,7 +41,7 @@ public class HybridEntityExtractor(
 	/// </summary>
 	public HybridEntityExtractor()
 		: this(
-			keywordExtractor: new SimpleKeywordExtractor(maxKeywords: 15, minWordLength: 4, minConfidence: 0.0),
+			keywordExtractor: new SimpleKeywordExtractor(maxKeywords: 50, minWordLength: 3, minConfidence: 0.0),
 			capitalizationExtractor: new CapitalizationEntityExtractor(minOccurrences: 1, minWordLength: 2))
 	{
 	}
@@ -108,7 +108,8 @@ public class HybridEntityExtractor(
 			}
 			else
 			{
-				// New proper noun - add it
+				// New proper noun - add it with aliases
+				entity.Aliases = GenerateNameAliases(entity.Name);
 				merged[entity.Name] = entity;
 			}
 		}
@@ -144,6 +145,9 @@ public class HybridEntityExtractor(
 		merged.Sources.AddRange(keyword.Sources);
 		merged.Sources.AddRange(properNoun.Sources);
 
+		// Generate name aliases for better matching
+		merged.Aliases = GenerateNameAliases(merged.Name);
+
 		// Cap confidence at 1.0
 		if (merged.Confidence > 1.0)
 		{
@@ -151,5 +155,65 @@ public class HybridEntityExtractor(
 		}
 
 		return merged;
+	}
+
+	/// <summary>
+	/// Generates name aliases for an entity to handle variations in text.
+	/// </summary>
+	/// <param name="name">The entity name.</param>
+	/// <returns>List of alias variations.</returns>
+	private static List<string> GenerateNameAliases(string name)
+	{
+		var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+		// Remove quotes if present (e.g., "'Beagle'" → "Beagle")
+		if (name.Contains('\'') || name.Contains('"'))
+		{
+			aliases.Add(name.Replace("'", "").Replace("\"", ""));
+		}
+
+		// HMS prefix variations (e.g., "HMS Beagle" → "Beagle")
+		if (name.StartsWith("HMS ", StringComparison.OrdinalIgnoreCase))
+		{
+			aliases.Add(name[4..]); // Remove "HMS "
+		}
+
+		// Multi-word: Add last word as alias (e.g., "Robert Grant" → "Grant")
+		// But skip if it's a common word or very short
+		if (name.Contains(' '))
+		{
+			var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			if (words.Length > 1)
+			{
+				var lastName = words[^1];
+				// Only add if it's substantial (not "of", "the", etc.)
+				if (lastName.Length > 2 && char.IsUpper(lastName[0]))
+				{
+					aliases.Add(lastName);
+				}
+
+				// Also add first word if it's a person's first name
+				var firstName = words[0];
+				if (firstName.Length > 2 && char.IsUpper(firstName[0]))
+				{
+					aliases.Add(firstName);
+				}
+			}
+		}
+
+		// Title prefixes: "Professor Jameson" → "Jameson"
+		var titlePrefixes = new[] { "Professor", "Captain", "Dr.", "Dr", "Sir", "Lord", "Mr.", "Mr", "Mrs.", "Mrs", "Miss", "Ms.", "Ms" };
+		foreach (var prefix in titlePrefixes)
+		{
+			if (name.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase))
+			{
+				aliases.Add(name[(prefix.Length + 1)..]);
+			}
+		}
+
+		// Remove the original name from aliases (we don't need it as an alias of itself)
+		aliases.Remove(name);
+
+		return [.. aliases.Where(a => !string.IsNullOrWhiteSpace(a))];
 	}
 }

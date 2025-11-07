@@ -13,8 +13,8 @@ Darwin	Visited	Galapagos Islands	1.0	Voyage	Visited in September 1835
 Cambridge University	LocatedIn	Cambridge	1.0	Education	English university town
 Darwin	StudiedAt	Cambridge University	1.0	Education	Christ's College (1828-1831), studying for clergy
 John Henslow	WorksFor	Cambridge University	0.9	Education	Professor of botany
-Darwin	MentorOf	John Henslow	0.8	Education	Close friendship and mentorship, recommended Darwin for Beagle voyage
-Darwin	CollaboratesWith	John Henslow	0.9	Education	Botanical walks and scientific discussions
+John Henslow	MentorOf	Darwin	0.9	Education	Close friendship and mentorship, recommended Darwin for Beagle voyage
+John Henslow	CollaboratesWith	Darwin	0.9	Education	Botanical walks and scientific discussions
 FitzRoy	Invited	Darwin	0.9	Voyage	FitzRoy invited Darwin as naturalist and companion
 Darwin	TraveledOn	HMS Beagle	1.0	Voyage	Five-year voyage (1831-1836) around the world
 Shrewsbury	IsA	Town	1.0	Childhood	Darwin's birthplace in England
@@ -47,5 +47,5 @@ Darwin	Influenced	Modern Biology	1.0	Legacy	Revolutionary impact on biological s
 Natural Selection	DiscoveredBy	Darwin	1.0	Later Life	Mechanism of evolutionary change
 Thomas Huxley	SupportedBy	Darwin	0.8	Later Life	"Darwin's Bulldog" - strong defender of evolution
 Darwin	Corresponded	Scientists	0.9	Later Life	Extensive correspondence with naturalists worldwide
-Lyell	InfluencedBy	Darwin	0.9	Education	Charles Lyell's "Principles of Geology" influenced Darwin's thinking
+Charles Lyell	InfluencedBy	Darwin	0.9	Education	Charles Lyell's "Principles of Geology" influenced Darwin's thinking
 Darwin	Proposed	Descent with Modification	0.9	Later Life	Core concept of evolutionary theory

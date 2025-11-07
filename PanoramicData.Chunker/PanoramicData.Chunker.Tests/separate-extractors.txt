@@ -1,0 +1,76 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.100-rc.2.25502.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(351,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\PanoramicData.Chunker.Tests.csproj]
+  PanoramicData.Chunker -> C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker\bin\Debug\net9.0\PanoramicData.Chunker.dll
+  PanoramicData.Chunker.Tests -> C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll
+Test run for C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25502-107 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.10)
+[xUnit.net 00:00:00.20]   Discovering: PanoramicData.Chunker.Tests
+[xUnit.net 00:00:00.59]   Discovered:  PanoramicData.Chunker.Tests
+[xUnit.net 00:00:00.76]   Starting:    PanoramicData.Chunker.Tests
+  Passed PanoramicData.Chunker.Tests.Integration.KnowledgeGraph.GroundTruthComparisonTests.Debug_SeparateExtractors_ShowWhatEachFinds [907 ms]
+  Standard Output Messages:
+ Created 26 chunks
+ 
+ === KEYWORD EXTRACTOR (166 entities) ===
+   Charles (conf: 1.00, freq: 5)
+   Darwin (conf: 0.75, freq: 5)
+   Gutenberg (conf: 1.00, freq: 4)
+   Autobiography (conf: 1.00, freq: 3)
+   Project (conf: 0.89, freq: 3)
+   eBook (conf: 0.89, freq: 4)
+   located (conf: 1.00, freq: 1)
+   United (conf: 0.84, freq: 1)
+   States (conf: 0.84, freq: 1)
+   anywhere (conf: 0.50, freq: 1)
+   restrictions (conf: 0.50, freq: 1)
+   whatsoever (conf: 0.50, freq: 1)
+   License (conf: 0.50, freq: 1)
+   online (conf: 0.50, freq: 1)
+   check (conf: 0.42, freq: 1)
+   using (conf: 0.42, freq: 1)
+   anyone (conf: 0.36, freq: 1)
+   world (conf: 0.36, freq: 1)
+   cost (conf: 0.36, freq: 1)
+   Title (conf: 0.98, freq: 1)
+ 
+ === CAPITALIZATION EXTRACTOR (533 entities) ===
+   ? Plinian Society
+   ? Professor Jameson
+   ? Edinburgh University
+   ? Origin
+ 
+ Sample proper nouns:
+   Project Gutenberg (conf: 0.90, freq: 2)
+   The Autobiography of Charles Darwin (conf: 0.80, freq: 1)
+   Charles Darwin (conf: 0.80, freq: 1)
+   United States and (conf: 0.90, freq: 2)
+   Project Gutenberg License (conf: 0.90, freq: 2)
+   United States (conf: 0.90, freq: 2)
+   Title The Autobiography of Charles (conf: 0.80, freq: 1)
+   Darwin From The Life and (conf: 0.80, freq: 1)
+   Letters of Charles Darwin (conf: 0.80, freq: 1)
+   Author Charles Darwin (conf: 0.80, freq: 1)
+   Editor Charles Darwin’s (conf: 0.80, freq: 1)
+   Francis Darwin (conf: 0.80, freq: 1)
+   Release Date December (conf: 0.80, freq: 1)
+   Most (conf: 0.70, freq: 1)
+   April (conf: 0.80, freq: 2)
+   Language English (conf: 0.80, freq: 1)
+   Sue Asscher (conf: 0.80, freq: 1)
+   Development of (conf: 0.80, freq: 1)
+   Mind and Character,’ and (conf: 0.80, freq: 1)
+   May (conf: 0.90, freq: 4)
+
+
+[xUnit.net 00:00:06.87]   Finished:    PanoramicData.Chunker.Tests (ID = '1ccf2624124cd1869ba8c3e73660169bf8a514d4020d2c387a215201f189d6cf')
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 7.4945 Seconds

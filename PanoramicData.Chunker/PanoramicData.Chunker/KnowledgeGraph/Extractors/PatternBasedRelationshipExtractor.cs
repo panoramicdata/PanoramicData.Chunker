@@ -323,12 +323,48 @@ public partial class PatternBasedRelationshipExtractor(
 				IsDirectional = true
 			},
 
+			// NEW: Founded BY passive voice
+			new RelationshipPattern
+			{
+				Regex = FoundedByPassivePattern(),
+				Type = RelationshipType.Founded,
+				Confidence = 0.95,
+				IsDirectional = true
+			},
+
+			// NEW: Studied/Went to pattern
+			new RelationshipPattern
+			{
+				Regex = StudiedAtPattern(),
+				Type = RelationshipType.LocatedIn,
+				Confidence = 0.9,
+				IsDirectional = true
+			},
+
+			// NEW: Voyage pattern
+			new RelationshipPattern
+			{
+				Regex = VoyageOfPattern(),
+				Type = RelationshipType.PartOf,
+				Confidence = 0.9,
+				IsDirectional = true
+			},
+
 			// Member relationships
 			new RelationshipPattern
 			{
 				Regex = MemberOfPattern(),
 				Type = RelationshipType.MemberOf,
 				Confidence = 0.9,
+				IsDirectional = true
+			},
+
+			// NEW: Presented to pattern
+			new RelationshipPattern
+			{
+				Regex = PresentedToPattern(),
+				Type = RelationshipType.MemberOf,
+				Confidence = 0.85,
 				IsDirectional = true
 			},
 
@@ -483,6 +519,19 @@ public partial class PatternBasedRelationshipExtractor(
 
 	[GeneratedRegex(@"\b(and|with|alongside|together\s+with)\b", RegexOptions.IgnoreCase)]
 	private static partial Regex RelatedToPattern();
+
+	// NEW PATTERNS FOR DARWIN TEXT - Added for Phase 3
+	[GeneratedRegex(@"\b(founded\s+by|established\s+by|created\s+by|started\s+by|encouraged.*?by)\b", RegexOptions.IgnoreCase)]
+	private static partial Regex FoundedByPassivePattern();
+
+	[GeneratedRegex(@"\b(sent.*?to|went\s+to|studied\s+at|enrolled\s+at|stayed\s+at)\b", RegexOptions.IgnoreCase)]
+	private static partial Regex StudiedAtPattern();
+
+	[GeneratedRegex(@"\b(voyage|journey|expedition)\s+(of\s+the|aboard|in\s+the)\b", RegexOptions.IgnoreCase)]
+	private static partial Regex VoyageOfPattern();
+
+	[GeneratedRegex(@"\b(read\s+(before|to)|presented\s+(to|at))\b", RegexOptions.IgnoreCase)]
+	private static partial Regex PresentedToPattern();
 
 	private static string GetChunkContent(ChunkerBase chunk)
 	{

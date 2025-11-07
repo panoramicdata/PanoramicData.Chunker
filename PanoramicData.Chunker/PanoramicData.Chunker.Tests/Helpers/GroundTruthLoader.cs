@@ -99,7 +99,7 @@ public static class GroundTruthLoader
 				}
 
 				// Validate confidence range
-				if (confidence < 0.0 || confidence > 1.0)
+				if (confidence is < 0.0 or > 1.0)
 				{
 					throw new InvalidDataException(
 						$"Line {lineNumber}: Confidence {confidence} out of range [0.0, 1.0]");
@@ -133,29 +133,26 @@ public static class GroundTruthLoader
 	/// <summary>
 	/// Gets statistics about the loaded ground truth dataset.
 	/// </summary>
-	public static GroundTruthStatistics GetStatistics(List<GroundTruthRelationship> groundTruth)
+	public static GroundTruthStatistics GetStatistics(List<GroundTruthRelationship> groundTruth) => new GroundTruthStatistics
 	{
-		return new GroundTruthStatistics
-		{
-			TotalRelationships = groundTruth.Count,
-			UniqueEntity1Count = groundTruth.Select(r => r.Entity1).Distinct().Count(),
-			UniqueEntity2Count = groundTruth.Select(r => r.Entity2).Distinct().Count(),
-			UniqueRelationshipTypes = groundTruth.Select(r => r.RelationType).Distinct().Count(),
-			AverageConfidence = groundTruth.Average(r => r.Confidence),
-			ConfidenceDistribution = groundTruth
+		TotalRelationships = groundTruth.Count,
+		UniqueEntity1Count = groundTruth.Select(r => r.Entity1).Distinct().Count(),
+		UniqueEntity2Count = groundTruth.Select(r => r.Entity2).Distinct().Count(),
+		UniqueRelationshipTypes = groundTruth.Select(r => r.RelationType).Distinct().Count(),
+		AverageConfidence = groundTruth.Average(r => r.Confidence),
+		ConfidenceDistribution = groundTruth
 				.GroupBy(r => r.Confidence)
 				.OrderByDescending(g => g.Key)
 				.ToDictionary(g => g.Key, g => g.Count()),
-			RelationshipTypeDistribution = groundTruth
+		RelationshipTypeDistribution = groundTruth
 				.GroupBy(r => r.RelationType)
 				.OrderByDescending(g => g.Count())
 				.ToDictionary(g => g.Key, g => g.Count()),
-			SectionDistribution = groundTruth
+		SectionDistribution = groundTruth
 				.GroupBy(r => r.Section)
 				.OrderByDescending(g => g.Count())
 				.ToDictionary(g => g.Key, g => g.Count())
-		};
-	}
+	};
 }
 
 /// <summary>

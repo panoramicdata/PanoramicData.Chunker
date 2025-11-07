@@ -133,24 +133,61 @@ public class CapitalizationEntityExtractor(
 		var results = new List<string>();
 		var sentences = text.Split(['.', '!', '?'], StringSplitOptions.RemoveEmptyEntries);
 
+		// Common false positive sentence starters to skip
+		var sentenceStarters = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+		{
+			"The", "In", "On", "At", "For", "With", "From", "To", "By", "Of", "As",
+			"During", "After", "Before", "When", "While", "If", "This", "That", "These",
+			"Those", "Some", "Many", "One", "Two", "Three"
+		};
+
 		foreach (var sentence in sentences)
 		{
 			var words = sentence.Split([' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
 
-			// Skip first word (may be capitalized as sentence start)
-			for (var i = 1; i < words.Length; i++)
+			// Process ALL words, but be more careful with first word
+			for (var i = 0; i < words.Length; i++)
 			{
 				var word = CleanWord(words[i]);
 
 				// Check if capitalized AND not an acronym AND not all-caps
 				if (IsCapitalized(word) && !IsAcronym(word) && !IsAllCaps(word))
 				{
-					// Check if multi-word proper noun (e.g., "Plinian Society")
-					var sequence = ExtractMultiWordProperNoun(words, i);
-					if (sequence.Split(' ').Length >= 1) // At least one word
+					// For first word of sentence, require it to be part of a multi-word sequence
+					// AND not a common sentence starter
+					if (i == 0)
 					{
-						results.Add(sequence);
-						i += sequence.Split(' ').Length - 1;  // Skip processed words
+						// Skip common sentence starters
+						if (sentenceStarters.Contains(word))
+						{
+							continue;
+						}
+
+						// Look ahead - if next word is also capitalized or a connector, extract the sequence
+						if (i + 1 < words.Length)
+						{
+							var nextWord = CleanWord(words[i + 1]);
+							if ((IsCapitalized(nextWord) && !sentenceStarters.Contains(nextWord)) || _allowedConnectors.Contains(nextWord))
+							{
+								// Multi-word sequence starting at sentence beginning - extract it
+								var sentenceStartSequence = ExtractMultiWordProperNoun(words, i);
+								if (sentenceStartSequence.Split(' ').Length >= 2) // Require multi-word for sentence start
+								{
+									results.Add(sentenceStartSequence);
+									i += sentenceStartSequence.Split(' ').Length - 1;
+								}
+							}
+						}
+						// Single word at sentence start - skip it (likely just capitalization)
+						continue;
+					}
+
+					// Not first word - extract normally
+					var midSentenceSequence = ExtractMultiWordProperNoun(words, i);
+					if (midSentenceSequence.Split(' ').Length >= 1)
+					{
+						results.Add(midSentenceSequence);
+						i += midSentenceSequence.Split(' ').Length - 1;  // Skip processed words
 					}
 				}
 			}

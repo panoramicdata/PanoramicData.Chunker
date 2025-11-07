@@ -1,0 +1,118 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.100-rc.2.25502.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(351,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\PanoramicData.Chunker.Tests.csproj]
+  PanoramicData.Chunker -> C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker\bin\Debug\net9.0\PanoramicData.Chunker.dll
+  PanoramicData.Chunker.Tests -> C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll
+Test run for C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25502-107 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.10)
+[xUnit.net 00:00:00.25]   Discovering: PanoramicData.Chunker.Tests
+[xUnit.net 00:00:00.67]   Discovered:  PanoramicData.Chunker.Tests
+[xUnit.net 00:00:00.83]   Starting:    PanoramicData.Chunker.Tests
+  Passed PanoramicData.Chunker.Tests.Integration.KnowledgeGraph.GroundTruthComparisonTests.Debug_ActualEntityExtraction_ShowAliases [11 s]
+  Standard Output Messages:
+ Downloaded HTML document (160,183 characters)
+ Created 26 chunks
+ Extracted 696 entities
+ Extracted 5696 relationships
+ Saved graph to database
+ 
+ === EXTRACTED ENTITIES (696) ===
+ 
+ Proper Nouns (50):
+   Charles (conf: 1.00, freq: 6)
+   English (conf: 1.00, freq: 2)
+   Cambridge (conf: 1.00, freq: 3)
+   Henslow (conf: 1.00, freq: 6)
+   In the (conf: 1.00, freq: 4)
+   During the (conf: 1.00, freq: 6)
+     Aliases: During
+   On the (conf: 1.00, freq: 4)
+   London (conf: 0.99, freq: 5)
+   Species (conf: 0.98, freq: 2)
+   Published (conf: 0.97, freq: 2)
+   October (conf: 0.97, freq: 2)
+   January (conf: 0.97, freq: 2)
+   September (conf: 0.97, freq: 3)
+   Macaulay (conf: 0.96, freq: 2)
+   Shrewsbury and (conf: 0.95, freq: 3)
+     Aliases: Shrewsbury
+   Towards the (conf: 0.95, freq: 3)
+     Aliases: Towards
+   Natural Science (conf: 0.95, freq: 3)
+     Aliases: Science, Natural
+   Voyage of the (conf: 0.95, freq: 3)
+     Aliases: Voyage
+   South America (conf: 0.95, freq: 3)
+     Aliases: America, South
+   Geological Society (conf: 0.95, freq: 3)
+     Aliases: Society, Geological
+   Robert Brown (conf: 0.95, freq: 3)
+     Aliases: Brown, Robert
+   December (conf: 0.94, freq: 4)
+   Journal (conf: 0.94, freq: 4)
+   Lyell (conf: 0.94, freq: 4)
+   United States and (conf: 0.90, freq: 2)
+     Aliases: United
+   Project Gutenberg License (conf: 0.90, freq: 2)
+     Aliases: License, Project
+   United States (conf: 0.90, freq: 2)
+     Aliases: States, United
+   Hensleigh Wedgwood’s (conf: 0.90, freq: 2)
+     Aliases: Wedgwood’s, Hensleigh
+   Mr (conf: 0.90, freq: 5)
+   Josiah Wedgwood (conf: 0.90, freq: 2)
+     Aliases: Wedgwood, Josiah
+   Dr (conf: 0.90, freq: 4)
+   Early in (conf: 0.90, freq: 2)
+     Aliases: Early
+   Some of the (conf: 0.90, freq: 2)
+     Aliases: Some
+   One of (conf: 0.90, freq: 2)
+     Aliases: One
+   Sir (conf: 0.90, freq: 4)
+   North Wales (conf: 0.90, freq: 2)
+     Aliases: Wales, North
+   This (conf: 0.90, freq: 7)
+   If the (conf: 0.90, freq: 2)
+   Henslow and (conf: 0.90, freq: 2)
+     Aliases: Henslow
+   England (conf: 0.90, freq: 5)
+   Jago in the Cape de (conf: 0.90, freq: 2)
+     Aliases: Jago
+   Lyell and Hooker (conf: 0.90, freq: 2)
+     Aliases: Hooker, Lyell
+   Linnean Society (conf: 0.90, freq: 2)
+     Aliases: Society, Linnean
+   April (conf: 0.88, freq: 3)
+   Edinburgh (conf: 0.88, freq: 3)
+   Sedgwick (conf: 0.88, freq: 3)
+   Society (conf: 0.88, freq: 3)
+   May (conf: 0.85, freq: 3)
+   Shrewsbury (conf: 0.85, freq: 3)
+   The (conf: 0.85, freq: 3)
+ 
+ === GROUND TRUTH ENTITY CHECK ===
+   ? Plinian Society
+   ? Professor Jameson
+   ? HMS Beagle
+   ? Charles Darwin
+   ? Edinburgh University
+   ? Robert Grant
+   ? Captain FitzRoy
+   ? Galapagos Islands
+   ? John Henslow
+   ? Cambridge University
+   ? Origin of Species
+
+
+[xUnit.net 00:00:17.72]   Finished:    PanoramicData.Chunker.Tests (ID = '1ccf2624124cd1869ba8c3e73660169bf8a514d4020d2c387a215201f189d6cf')
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 18.3886 Seconds
