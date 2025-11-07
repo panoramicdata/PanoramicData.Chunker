@@ -19,15 +19,16 @@ namespace PanoramicData.Chunker.KnowledgeGraph.Extractors;
 /// - Context-aware extraction
 /// - No external API costs
 /// 
-/// Requires: Ollama running locally with a capable model (e.g., llama3, mistral, phi3)
+/// Requires: Ollama running locally with a capable model (e.g., llama2, llama3, phi3)
+/// Recommended: phi3 (best balance), llama2 (fastest available), or llama3 (most accurate)
 /// </remarks>
 /// <param name="ollamaEndpoint">Ollama API endpoint (default: http://localhost:11434)</param>
-/// <param name="modelName">Model to use for extraction (default: llama3.2)</param>
+/// <param name="modelName">Model to use for extraction (default: phi3 for best speed/accuracy balance)</param>
 /// <param name="temperature">Temperature for generation (default: 0.1 for deterministic)</param>
 /// <param name="maxTokensPerChunk">Maximum tokens to send per chunk (default: 2000)</param>
 public class OllamaEntityExtractor(
 	string ollamaEndpoint = "http://localhost:11434",
-	string modelName = "llama3.2",
+	string modelName = "phi3",
 	double temperature = 0.1,
 	int maxTokensPerChunk = 2000) : IEntityExtractor
 {
@@ -124,61 +125,62 @@ public class OllamaEntityExtractor(
 	{
 		var prompt = BuildNerPrompt(text);
 
-		// Use Ollama.Api - GenerateAsync with GenerateRequest
-		var request = new Ollama.Api.Models.GenerateRequest
+		try
 		{
-			Model = _modelName,
-			Prompt = prompt,
-			Stream = false,
-			Options = new Ollama.Api.Models.GenerateOptions
+			// Use Ollama.Api - GenerateAsync with GenerateRequest
+			var request = new Ollama.Api.Models.GenerateRequest
 			{
-				Temperature = (float)_temperature,
-				NumPredict = 1000
+				Model = _modelName,
+				Prompt = prompt,
+				Stream = false,
+				Options = new Ollama.Api.Models.GenerateOptions
+				{
+					Temperature = (float)_temperature,
+					NumPredict = 500  // Reduced from 1000 for faster response
+				}
+			};
+
+			Console.WriteLine($"[OllamaEntityExtractor] Sending request to Ollama (model: {_modelName})...");
+			var response = await _client.Generate.GenerateAsync(request, cancellationToken);
+			Console.WriteLine($"[OllamaEntityExtractor] Received response: {response?.Response?.Length ?? 0} characters");
+
+			if (response == null || string.IsNullOrWhiteSpace(response.Response))
+			{
+				Console.WriteLine("[OllamaEntityExtractor] Empty response from Ollama");
+				return [];
 			}
-		};
 
-		var response = await _client.Generate.GenerateAsync(request, cancellationToken);
-
-		if (response == null || string.IsNullOrWhiteSpace(response.Response))
+			return ParseNerResponse(response.Response, text, chunkId);
+		}
+		catch (TaskCanceledException ex)
 		{
+			Console.WriteLine($"[OllamaEntityExtractor] Request timed out or was canceled: {ex.Message}");
 			return [];
 		}
-
-		return ParseNerResponse(response.Response, text, chunkId);
+		catch (Exception ex)
+		{
+			Console.WriteLine($"[OllamaEntityExtractor] Error calling Ollama: {ex.GetType().Name} - {ex.Message}");
+			if (ex.InnerException != null)
+			{
+				Console.WriteLine($"[OllamaEntityExtractor] Inner exception: {ex.InnerException.Message}");
+			}
+			return [];
+		}
 	}
 
 	private static string BuildNerPrompt(string text) =>
-		// Use $$ for raw string interpolation with JSON
+		// Simplified prompt for faster response
 		$$"""
-You are a Named Entity Recognition (NER) expert. Extract all entities from the following text and classify them.
+Extract entities as JSON from this text:
 
-ENTITY TYPES:
-- PERSON: People's names (e.g., "Charles Darwin", "Professor Jameson")
-- ORGANIZATION: Organizations, societies, institutions (e.g., "Plinian Society", "Edinburgh University")
-- LOCATION: Places, cities, countries (e.g., "Edinburgh", "Galapagos Islands")
-- WORK: Books, publications, creative works (e.g., "Origin of Species", "Voyage of the Beagle")
-- EVENT: Historical events, voyages, expeditions
-- DATE: Dates and time periods
-
-TEXT:
 {{text}}
 
-INSTRUCTIONS:
-1. Extract ALL entities, including rare ones that appear only once
-2. Preserve exact capitalization and punctuation (e.g., "'Beagle'", "HMS Beagle")
-3. Include titles with names (e.g., "Professor Jameson", "Captain FitzRoy")
-4. Include full multi-word entities (e.g., "Plinian Society", not just "Society")
-5. Output ONLY valid JSON in this exact format:
-
+Output format:
 {
   "entities": [
-    {"name": "Charles Darwin", "type": "PERSON"},
-    {"name": "Plinian Society", "type": "ORGANIZATION"},
-    {"name": "Edinburgh University", "type": "ORGANIZATION"}
+    {"name": "entity name", "type": "PERSON|ORGANIZATION|LOCATION|WORK|EVENT|DATE|PRODUCT"}
   ]
 }
-
-OUTPUT (JSON only, no explanation):
 """;
 
 	private List<Entity> ParseNerResponse(string response, string sourceText, Guid chunkId)

@@ -59,8 +59,8 @@ public class GroundTruthLoaderTests
 
 		// Assert
 		stats.TotalRelationships.Should().Be(groundTruth.Count);
-		stats.UniqueEntity1Count.Should().BeGreaterThan(0);
-		stats.UniqueEntity2Count.Should().BeGreaterThan(0);
+		stats.UniqueEntity1Count.Should().BePositive();
+		stats.UniqueEntity2Count.Should().BePositive();
 		stats.UniqueRelationshipTypes.Should().BeGreaterThan(5, "Should have diverse relationship types");
 		stats.AverageConfidence.Should().BeInRange(0.8, 1.0, "Most relationships should be high confidence");
 		stats.ConfidenceDistribution.Should().NotBeEmpty();
