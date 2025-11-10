@@ -208,5 +208,146 @@ public enum RelationshipType
 	/// <summary>
 	/// One entity extends or inherits from another.
 	/// </summary>
-	Extends = 40
+	Extends = 40,
+
+	// Phase 12: Additional relationship types for better entity relationship coverage
+
+	/// <summary>
+	/// One entity studied at or attended another (educational institution).
+	/// Example: "Darwin studied at Edinburgh University"
+	/// </summary>
+	StudiedAt = 41,
+
+	/// <summary>
+	/// One entity traveled on or journeyed aboard another (vessel, vehicle).
+	/// Example: "Darwin traveled on HMS Beagle"
+	/// </summary>
+	TraveledOn = 42,
+
+	/// <summary>
+	/// One entity was taught by, mentored by, or guided by another.
+	/// Example: "Darwin was mentored by Professor Henslow"
+	/// </summary>
+	MentorOf = 43,
+
+	/// <summary>
+	/// One entity presented work to or read papers before another (organization).
+	/// Example: "Darwin presented to the Plinian Society"
+	/// </summary>
+	PresentedTo = 44,
+
+	/// <summary>
+	/// One entity visited another during a specific event or period.
+	/// Example: "Darwin visited Galapagos Islands during the voyage"
+	/// </summary>
+	VisitedDuring = 45,
+
+	/// <summary>
+	/// One entity was born in or originated from another (location).
+	/// Example: "Darwin was born in Shrewsbury"
+	/// </summary>
+	BornIn = 46,
+
+	/// <summary>
+	/// One entity is the father of another.
+	/// </summary>
+	FatherOf = 47,
+
+	/// <summary>
+	/// One entity is the mother of another.
+	/// </summary>
+	MotherOf = 48,
+
+	/// <summary>
+	/// One entity is the grandfather of another.
+	/// </summary>
+	GrandfatherOf = 49,
+
+	/// <summary>
+	/// One entity is the grandmother of another.
+	/// </summary>
+	GrandmotherOf = 50,
+
+	/// <summary>
+	/// One entity is married to another.
+	/// </summary>
+	MarriedTo = 51,
+
+	/// <summary>
+	/// One entity visited another (location, person, organization).
+	/// Example: "Darwin visited the Galapagos Islands"
+	/// </summary>
+	Visited = 52,
+
+	/// <summary>
+	/// One entity discovered another.
+	/// Example: "Darwin discovered fossils in South America"
+	/// </summary>
+	Discovered = 53,
+
+	/// <summary>
+	/// One entity observed or witnessed another.
+	/// Example: "Darwin observed finches on the Galapagos"
+	/// </summary>
+	Observed = 54,
+
+	/// <summary>
+	/// One entity studied or researched another.
+	/// Example: "Darwin studied barnacles for eight years"
+	/// </summary>
+	Studied = 55,
+
+	/// <summary>
+	/// One entity collected samples or specimens from another.
+	/// Example: "Darwin collected specimens from South America"
+	/// </summary>
+	Collected = 56,
+
+	/// <summary>
+	/// One entity wrote or authored another work.
+	/// Example: "Darwin wrote 'Voyage of the Beagle'"
+	/// </summary>
+	Wrote = 57,
+
+	/// <summary>
+	/// One entity developed or created another theory/concept.
+	/// Example: "Darwin developed the theory of evolution"
+	/// </summary>
+	Developed = 58,
+
+	/// <summary>
+	/// One entity proposed another idea/theory.
+	/// Example: "Darwin proposed descent with modification"
+	/// </summary>
+	Proposed = 59,
+
+	/// <summary>
+	/// One entity influenced the thinking or work of another.
+	/// Example: "Charles Lyell influenced Darwin's thinking"
+	/// </summary>
+	InfluencedBy = 60,
+
+	/// <summary>
+	/// One entity lived in or resided in another location.
+	/// Example: "Darwin lived in Down House"
+	/// </summary>
+	LivedIn = 61,
+
+	/// <summary>
+	/// One entity corresponded with or exchanged letters with another.
+	/// Example: "Darwin corresponded with scientists worldwide"
+	/// </summary>
+	Corresponded = 62,
+
+	/// <summary>
+	/// One entity was supported by another.
+	/// Example: "Darwin was supported by Thomas Huxley"
+	/// </summary>
+	SupportedBy = 63,
+
+	/// <summary>
+	/// One entity invited another.
+	/// Example: "FitzRoy invited Darwin to join the Beagle voyage"
+	/// </summary>
+	Invited = 64
 }

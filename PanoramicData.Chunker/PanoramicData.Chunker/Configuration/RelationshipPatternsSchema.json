@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://panoramicdata.com/schemas/relationship-patterns.json",
+  "title": "Relationship Extraction Patterns",
+  "description": "Schema for relationship extraction pattern configuration",
+  "type": "object",
+  "required": ["version", "patterns"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Version of the pattern configuration",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of this pattern set"
+    },
+    "lastUpdated": {
+   "type": "string",
+      "format": "date",
+      "description": "Date when patterns were last updated"
+    },
+    "patterns": {
+      "type": "array",
+      "description": "Array of relationship extraction patterns",
+      "minItems": 1,
+      "items": {
+   "type": "object",
+        "required": ["name", "regex", "relationshipType", "confidence", "isDirectional"],
+  "properties": {
+     "name": {
+            "type": "string",
+    "description": "Unique name for this pattern",
+"pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+          },
+  "regex": {
+       "type": "string",
+  "description": "Regular expression pattern (raw string, not compiled)"
+      },
+          "relationshipType": {
+            "type": "string",
+      "description": "The RelationshipType enum value this pattern detects"
+        },
+          "confidence": {
+       "type": "number",
+       "description": "Confidence score for matches (0.0 to 1.0)",
+     "minimum": 0.0,
+        "maximum": 1.0
+   },
+  "isDirectional": {
+ "type": "boolean",
+      "description": "Whether this relationship has a specific direction"
+ },
+          "description": {
+       "type": "string",
+         "description": "Human-readable description of what this pattern matches"
+          },
+   "examples": {
+         "type": "array",
+        "description": "Example sentences that should match this pattern",
+     "items": {
+           "type": "string"
+      }
+     },
+       "category": {
+            "type": "string",
+            "description": "Category of this pattern (e.g., 'Organizational', 'Scientific')"
+     },
+ "enabled": {
+    "type": "boolean",
+   "description": "Whether this pattern is active (default: true)",
+      "default": true
+},
+          "regexOptions": {
+            "type": "string",
+  "description": "Regex options (default: 'IgnoreCase')",
+       "enum": ["None", "IgnoreCase", "Multiline", "Singleline", "IgnoreCase,Multiline"],
+         "default": "IgnoreCase"
+          }
+    }
+      }
+    },
+    "categories": {
+      "type": "object",
+      "description": "Descriptions of pattern categories",
+      "patternProperties": {
+        "^[A-Za-z]+$": {
+       "type": "string"
+        }
+      }
+    },
+    "trainingNotes": {
+  "type": "object",
+      "description": "Notes and instructions for training this model",
+      "properties": {
+        "instructions": {
+          "type": "string"
+        },
+        "patternDesign": {
+   "type": "string"
+ },
+      "confidenceScoring": {
+          "type": "string"
+   },
+  "testingStrategy": {
+          "type": "string"
+        }
+   }
+    }
+  }
+}

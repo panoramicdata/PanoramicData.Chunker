@@ -1,0 +1,447 @@
+{
+  "$schema": "./RelationshipPatternsSchema.json",
+  "version": "2.0",
+  "description": "Relationship extraction patterns for PatternBasedRelationshipExtractor",
+  "lastUpdated": "2025-01-15",
+  "patterns": [
+    {
+  "name": "FoundedByPassive",
+      "regex": "\\b(founded\\s+by|established\\s+by|created\\s+by|started\\s+by|encouraged.*?by|set\\s+up\\s+by)\\b",
+ "relationshipType": "Founded",
+  "confidence": 0.95,
+      "isDirectional": false,
+    "description": "Passive voice founded relationships (e.g., 'Society founded by Professor')",
+      "examples": [
+        "The Plinian Society was founded by Professor Jameson",
+        "The company was established by John Smith"
+      ],
+      "category": "Organizational"
+    },
+    {
+      "name": "FoundedActive",
+      "regex": "\\b(founded|established|created|started|formed|set\\s+up)\\b",
+      "relationshipType": "Founded",
+      "confidence": 0.95,
+      "isDirectional": true,
+      "description": "Active voice founded relationships",
+      "examples": [
+        "Professor Jameson founded the Society",
+        "She established the company in 2020"
+      ],
+      "category": "Organizational"
+    },
+    {
+      "name": "StudiedAt",
+      "regex": "\\b(sent.*?to|went\\s+to|studied\\s+at|enrolled\\s+(at|in)|attended|stayed\\s+at|spent.*?(sessions?|years?|time)\\s+(at|in))\\b",
+      "relationshipType": "StudiedAt",
+      "confidence": 0.9,
+  "isDirectional": true,
+      "description": "Educational institution attendance",
+      "examples": [
+        "Darwin studied at Edinburgh University",
+        "She went to Cambridge",
+        "He spent two years at Oxford"
+      ],
+      "category": "Educational"
+    },
+    {
+      "name": "MentorOf",
+      "regex": "\\b(mentored|taught|guided|advised|persuaded\\s+me|asked.*?to|recommended.*?for|encouraged\\s+me)\\b",
+      "relationshipType": "MentorOf",
+      "confidence": 0.85,
+  "isDirectional": true,
+   "description": "Mentorship and guidance relationships",
+      "examples": [
+        "Henslow mentored Darwin",
+        "Professor Smith guided me through my research"
+      ],
+      "category": "Educational"
+    },
+    {
+      "name": "PresentedTo",
+      "regex": "\\b(read\\s+(before|to)|presented\\s+(to|at)|delivered.*?(to|at)|gave.*?paper\\s+(to|at))\\b",
+      "relationshipType": "PresentedTo",
+      "confidence": 0.85,
+      "isDirectional": true,
+      "description": "Academic presentation relationships",
+"examples": [
+        "Darwin read a paper before the Plinian Society",
+ "She presented her findings to the committee"
+   ],
+      "category": "Academic"
+ },
+    {
+      "name": "TraveledOn",
+ "regex": "\\b(voyage|journey|expedition|trip|traveled|sailed)\\s+(of|on|aboard|in)\\s+(the\\s+)?['\"\"]?\\b",
+      "relationshipType": "TraveledOn",
+      "confidence": 0.9,
+      "isDirectional": true,
+      "description": "Travel and transportation relationships",
+  "examples": [
+        "Darwin traveled on HMS Beagle",
+      "The voyage of the Discovery"
+      ],
+      "category": "Travel"
+    },
+    {
+      "name": "WorksAtUniversity",
+      "regex": "\\b((Professor|Dr\\.|Doctor)\\s+\\w+\\s+(at|of)|at\\s+(the\\s+)?\\w+\\s+(University|College|Institute))\\b",
+   "relationshipType": "WorksFor",
+      "confidence": 0.9,
+      "isDirectional": true,
+      "description": "Academic employment at institutions",
+      "examples": [
+        "Professor Jameson at Edinburgh University",
+        "Dr. Smith of Cambridge"
+      ],
+      "category": "Employment"
+    },
+    {
+      "name": "MemberOf",
+      "regex": "\\b(member\\s+of|belonged\\s+to|part\\s+of|joined|attended\\s+meetings|participated\\s+in)\\b",
+      "relationshipType": "MemberOf",
+      "confidence": 0.9,
+    "isDirectional": true,
+      "description": "Organizational membership",
+      "examples": [
+  "Darwin was a member of the Royal Society",
+ "She belonged to the academic committee"
+      ],
+  "category": "Organizational"
+    },
+    {
+      "name": "LocatedIn",
+      "regex": "\\b(at|in|located\\s+in|based\\s+in|from|situated\\s+in)\\b",
+      "relationshipType": "LocatedIn",
+      "confidence": 0.85,
+"isDirectional": true,
+      "description": "Geographic location relationships",
+    "examples": [
+      "Edinburgh University in Scotland",
+        "The lab is located in Cambridge"
+      ],
+      "category": "Geographic"
+    },
+    {
+      "name": "WorksFor",
+      "regex": "\\b(works?\\s+for|worked\\s+for|employed\\s+by|works?\\s+at|serves?\\s+at)\\b",
+      "relationshipType": "WorksFor",
+ "confidence": 0.9,
+      "isDirectional": true,
+    "description": "Employment relationships",
+      "examples": [
+   "She works for the company",
+        "He was employed by the university"
+      ],
+      "category": "Employment"
+    },
+    {
+      "name": "AuthorOf",
+      "regex": "\\b(wrote|authored|created|composed|published)\\b",
+      "relationshipType": "AuthorOf",
+      "confidence": 0.9,
+      "isDirectional": true,
+      "description": "Authorship relationships",
+      "examples": [
+        "Darwin authored Origin of Species",
+        "She published the groundbreaking paper"
+      ],
+    "category": "Creative"
+    },
+{
+   "name": "Wrote",
+      "regex": "\\b(wrote|penned|composed|drafted)\\b",
+      "relationshipType": "Wrote",
+   "confidence": 0.9,
+      "isDirectional": true,
+    "description": "Writing relationships (broader than authored)",
+      "examples": [
+  "Darwin wrote extensively about evolution",
+        "She penned several articles"
+  ],
+      "category": "Creative"
+    },
+    {
+      "name": "PartOf",
+      "regex": "\\b(part\\s+of|component\\s+of|within|inside|belongs\\s+to)\\b",
+      "relationshipType": "PartOf",
+      "confidence": 0.85,
+      "isDirectional": true,
+      "description": "Component/whole relationships",
+      "examples": [
+   "The chapter is part of the book",
+        "Ecuador is part of South America"
+      ],
+      "category": "Structural"
+    },
+    {
+      "name": "Visited",
+      "regex": "\\b(visited|traveled\\s+to|went\\s+to|explored|toured)\\b",
+      "relationshipType": "Visited",
+      "confidence": 0.85,
+      "isDirectional": true,
+   "description": "Visitation relationships",
+      "examples": [
+        "Darwin visited the Galapagos Islands",
+        "She toured the facility"
+      ],
+      "category": "Travel"
+    },
+    {
+      "name": "Discovered",
+      "regex": "\\b(discovered|found|uncovered|unearthed)\\b",
+    "relationshipType": "Discovered",
+   "confidence": 0.85,
+      "isDirectional": true,
+      "description": "Discovery relationships",
+      "examples": [
+        "Darwin discovered new species",
+        "They found ancient fossils"
+      ],
+      "category": "Scientific"
+    },
+    {
+      "name": "Observed",
+      "regex": "\\b(observed|witnessed|saw|noticed|watched)\\b",
+      "relationshipType": "Observed",
+      "confidence": 0.8,
+      "isDirectional": true,
+      "description": "Observation relationships",
+      "examples": [
+        "Darwin observed finches on the islands",
+        "She witnessed the phenomenon"
+      ],
+      "category": "Scientific"
+    },
+    {
+    "name": "Studied",
+      "regex": "\\b(studied|researched|investigated|examined|analyzed)\\b",
+      "relationshipType": "Studied",
+    "confidence": 0.8,
+      "isDirectional": true,
+      "description": "Research relationships",
+   "examples": [
+        "Darwin studied barnacles for eight years",
+        "She researched the effects"
+      ],
+  "category": "Scientific"
+    },
+    {
+      "name": "Collected",
+      "regex": "\\b(collected|gathered|obtained|acquired|amassed)\\s+(specimens?|samples?|data|information)\\b",
+      "relationshipType": "Collected",
+      "confidence": 0.85,
+  "isDirectional": true,
+      "description": "Collection relationships",
+      "examples": [
+        "Darwin collected specimens from South America",
+        "They gathered data over five years"
+      ],
+      "category": "Scientific"
+    },
+    {
+      "name": "Developed",
+      "regex": "\\b(developed|formulated|conceived|devised)\\s+(the\\s+)?(theory|concept|idea|hypothesis)\\b",
+      "relationshipType": "Developed",
+      "confidence": 0.85,
+  "isDirectional": true,
+      "description": "Intellectual development relationships",
+      "examples": [
+        "Darwin developed the theory of evolution",
+        "She formulated a new hypothesis"
+      ],
+      "category": "Intellectual"
+    },
+    {
+      "name": "Proposed",
+      "regex": "\\b(proposed|suggested|put\\s+forward|advanced)\\b",
+      "relationshipType": "Proposed",
+      "confidence": 0.85,
+      "isDirectional": true,
+      "description": "Proposal relationships",
+      "examples": [
+ "Darwin proposed descent with modification",
+        "She suggested a new approach"
+    ],
+      "category": "Intellectual"
+    },
+    {
+   "name": "InfluencedBy",
+      "regex": "\\b(influenced\\s+by|inspired\\s+by|shaped\\s+by|affected\\s+by)\\b",
+      "relationshipType": "InfluencedBy",
+      "confidence": 0.8,
+      "isDirectional": true,
+      "description": "Influence relationships (passive)",
+      "examples": [
+        "Darwin was influenced by Lyell's work",
+        "Her thinking was shaped by recent discoveries"
+      ],
+    "category": "Intellectual"
+    },
+    {
+      "name": "Influences",
+      "regex": "\\b(influences?|affects?|impacts?|shapes?|sways?)\\b",
+   "relationshipType": "Influences",
+      "confidence": 0.75,
+"isDirectional": true,
+      "description": "Influence relationships (active)",
+  "examples": [
+        "Lyell influenced Darwin's thinking",
+        "The discovery shaped modern biology"
+      ],
+      "category": "Intellectual"
+    },
+    {
+   "name": "LivedIn",
+    "regex": "\\b(lived\\s+(in|at)|resided\\s+(in|at)|dwelt\\s+(in|at)|made.*?home\\s+(in|at))\\b",
+      "relationshipType": "LivedIn",
+      "confidence": 0.85,
+      "isDirectional": true,
+      "description": "Residence relationships",
+    "examples": [
+        "Darwin lived in Down House",
+        "She resided in London"
+      ],
+      "category": "Geographic"
+},
+    {
+      "name": "Invited",
+      "regex": "\\b(invited|asked|requested|summoned)\\b",
+    "relationshipType": "Invited",
+   "confidence": 0.85,
+      "isDirectional": true,
+   "description": "Invitation relationships",
+      "examples": [
+        "FitzRoy invited Darwin to join the voyage",
+        "She asked him to collaborate"
+  ],
+      "category": "Social"
+    },
+    {
+  "name": "Manages",
+      "regex": "\\b(manages?|leads?|directs?|oversees?|heads?|commands?)\\b",
+      "relationshipType": "Manages",
+      "confidence": 0.9,
+      "isDirectional": true,
+      "description": "Management relationships",
+      "examples": [
+        "Captain FitzRoy commanded HMS Beagle",
+        "She manages the research team"
+      ],
+      "category": "Organizational"
+    },
+    {
+      "name": "Owns",
+      "regex": "\\b(owns?|possesses?|has|holds?|controls?)\\b",
+      "relationshipType": "Owns",
+      "confidence": 0.9,
+      "isDirectional": true,
+      "description": "Ownership relationships",
+    "examples": [
+        "The museum owns the collection",
+        "She holds the patent"
+      ],
+      "category": "Legal"
+ },
+    {
+      "name": "Creates",
+      "regex": "\\b(creates?|produces?|makes?|builds?|generates?)\\b",
+      "relationshipType": "Creates",
+      "confidence": 0.85,
+      "isDirectional": true,
+      "description": "Creation relationships",
+ "examples": [
+        "The process creates new compounds",
+        "She produces scientific illustrations"
+ ],
+  "category": "Creative"
+  },
+    {
+      "name": "Uses",
+      "regex": "\\b(uses?|utilized?|employs?|applies?|leverages?)\\b",
+      "relationshipType": "Uses",
+      "confidence": 0.8,
+      "isDirectional": true,
+      "description": "Usage relationships",
+      "examples": [
+        "The method uses statistical analysis",
+  "She employed novel techniques"
+    ],
+      "category": "Methodological"
+    },
+    {
+  "name": "CollaboratesWith",
+      "regex": "\\b(collaborates?\\s+with|works?\\s+with|partners?\\s+with|teams?\\s+with|cooperates?\\s+with)\\b",
+      "relationshipType": "CollaboratesWith",
+      "confidence": 0.85,
+      "isDirectional": false,
+      "description": "Collaboration relationships",
+  "examples": [
+        "Darwin collaborated with Henslow",
+    "The teams worked together"
+      ],
+ "category": "Social"
+  },
+    {
+      "name": "Supports",
+      "regex": "\\b(supports?|helps?|aids?|assists?|backs?)\\b",
+      "relationshipType": "Supports",
+      "confidence": 0.8,
+      "isDirectional": true,
+  "description": "Support relationships (active)",
+      "examples": [
+        "The foundation supports the research",
+    "He helps maintain the database"
+      ],
+      "category": "Social"
+    },
+    {
+      "name": "SupportedBy",
+      "regex": "\\b(supported\\s+by|backed\\s+by|defended\\s+by|championed\\s+by)\\b",
+      "relationshipType": "SupportedBy",
+      "confidence": 0.8,
+      "isDirectional": true,
+      "description": "Support relationships (passive)",
+    "examples": [
+   "Darwin was supported by Thomas Huxley",
+        "The theory is backed by evidence"
+      ],
+      "category": "Social"
+    },
+    {
+      "name": "RelatedTo",
+      "regex": "\\b(and|with|alongside|together\\s+with)\\b",
+      "relationshipType": "RelatedTo",
+   "confidence": 0.5,
+"isDirectional": false,
+      "description": "Generic relatedness (catch-all, low confidence)",
+      "examples": [
+        "Darwin and FitzRoy",
+        "The book with illustrations"
+      ],
+      "category": "Generic"
+    }
+  ],
+  "categories": {
+    "Organizational": "Patterns related to organizations, founding, membership",
+    "Educational": "Patterns related to education, mentorship, study",
+    "Academic": "Patterns related to academic activities, presentations",
+    "Employment": "Patterns related to work and employment",
+    "Geographic": "Patterns related to location and residence",
+    "Travel": "Patterns related to journeys and transportation",
+    "Creative": "Patterns related to creation, writing, authorship",
+    "Scientific": "Patterns related to research, discovery, observation",
+    "Intellectual": "Patterns related to ideas, theories, influence",
+ "Social": "Patterns related to social interactions, collaboration",
+    "Structural": "Patterns related to composition and structure",
+    "Legal": "Patterns related to ownership and control",
+  "Methodological": "Patterns related to methods and techniques",
+    "Generic": "Catch-all patterns with low specificity"
+  },
+  "trainingNotes": {
+    "instructions": "To train this model, add new patterns based on observed relationships in documents.",
+    "patternDesign": "Patterns should be specific enough to avoid false positives but general enough to capture variations.",
+    "confidenceScoring": "Assign higher confidence (0.9-1.0) to specific, unambiguous patterns. Lower confidence (0.5-0.7) to generic patterns.",
+    "testingStrategy": "Test new patterns against ground truth datasets and adjust confidence scores based on precision/recall metrics."
+  }
+}

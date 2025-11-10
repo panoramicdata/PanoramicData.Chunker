@@ -1,67 +1,135 @@
+using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces.KnowledgeGraph;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
-using System.Text.RegularExpressions;
 
 namespace PanoramicData.Chunker.KnowledgeGraph.Extractors;
 
 /// <summary>
 /// Extracts relationships between entities using pattern matching and linguistic analysis.
-/// Uses regex patterns and contextual clues to identify specific relationship types.
+/// Uses regex patterns loaded from JSON configuration files for flexibility and trainability.
 /// </summary>
 /// <remarks>
-/// This extractor identifies relationships by analyzing the text between entities:
-/// - Pattern matching for specific relationship indicators
-/// - Verb analysis for action-based relationships
-/// - Preposition analysis for spatial/organizational relationships
-/// - Distance-based co-occurrence for general relatedness
+/// Phase 12 Enhancements:
+/// - Patterns now loaded from external JSON configuration
+/// - Supports custom pattern files for domain-specific extraction
+/// - Enables training and refinement without code changes
+/// - Pre-compiles patterns at initialization for performance
 /// 
-/// Supports 15+ relationship types including: Founded, MemberOf, LocatedIn, WorksFor,
-/// AuthorOf, PartOf, Creates, Uses, Collaborates, and more.
+/// Pattern Configuration:
+/// - Default patterns: Configuration/RelationshipPatterns.json (embedded resource)
+/// - Custom patterns: Can be loaded from any JSON file matching the schema
+/// 
+/// Supports 35+ relationship types including: Founded, MemberOf, LocatedIn, WorksFor,
+/// AuthorOf, PartOf, Creates, Uses, Collaborates, StudiedAt, TraveledOn, MentorOf,
+/// PresentedTo, Visited, Discovered, Observed, Studied, Collected, Wrote, Developed,
+/// Proposed, InfluencedBy, LivedIn, Invited, and more.
 /// </remarks>
-/// <remarks>
-/// Initializes a new instance of the <see cref="PatternBasedRelationshipExtractor"/> class.
-/// </remarks>
-/// <param name="maxDistance">Maximum character distance between entities (default: 500).</param>
-/// <param name="minConfidence">Minimum confidence score for relationships (default: 0.3).</param>
-/// <param name="enablePatternMatching">Enable pattern-based relationship detection (default: true).</param>
-/// <param name="enableProximityRelationships">Enable distance-based co-occurrence relationships (default: true).</param>
-public partial class PatternBasedRelationshipExtractor(
-	int maxDistance = 500,
-	double minConfidence = 0.3,
-	bool enablePatternMatching = true,
-	bool enableProximityRelationships = true) : IRelationshipExtractor
+public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 {
-
-	// Relationship patterns: (pattern, relationshipType, confidence, isDirectional)
-	private readonly List<RelationshipPattern> _patterns = BuildPatterns();
+	private readonly int _maxDistance;
+	private readonly double _minConfidence;
+	private readonly bool _enablePatternMatching;
+	private readonly bool _enableProximityRelationships;
+	private readonly List<CompiledRelationshipPattern> _patterns;
 
 	/// <inheritdoc/>
 	public string Name => "PatternBasedRelationshipExtractor";
 
 	/// <inheritdoc/>
-	public string Version => "1.0";
+	public string Version => "2.0"; // Phase 12: JSON-based patterns
 
 	/// <inheritdoc/>
-	public IReadOnlyList<RelationshipType> SupportedRelationshipTypes { get; } =
-	[
-		RelationshipType.Founded,
-		RelationshipType.MemberOf,
-		RelationshipType.LocatedIn,
-		RelationshipType.WorksFor,
-		RelationshipType.AuthorOf,
-		RelationshipType.PartOf,
-		RelationshipType.Creates,
-		RelationshipType.Uses,
-		RelationshipType.CollaboratesWith,
-		RelationshipType.Owns,
-		RelationshipType.Manages,
-		RelationshipType.Influences,
-		RelationshipType.Supports,
-		RelationshipType.RelatedTo,
-		RelationshipType.Mentions,
-		RelationshipType.CooccursWith
-	];
+	public IReadOnlyList<RelationshipType> SupportedRelationshipTypes { get; }
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="PatternBasedRelationshipExtractor"/> class
+	/// with default patterns from embedded resource.
+	/// </summary>
+	/// <param name="maxDistance">Maximum character distance between entities (default: 500).</param>
+	/// <param name="minConfidence">Minimum confidence score for relationships (default: 0.3).</param>
+	/// <param name="enablePatternMatching">Enable pattern-based relationship detection (default: true).</param>
+	/// <param name="enableProximityRelationships">Enable distance-based co-occurrence relationships (default: true).</param>
+	public PatternBasedRelationshipExtractor(
+		int maxDistance = 500,
+		double minConfidence = 0.3,
+		bool enablePatternMatching = true,
+		bool enableProximityRelationships = true)
+	{
+		_maxDistance = maxDistance;
+		_minConfidence = minConfidence;
+		_enablePatternMatching = enablePatternMatching;
+		_enableProximityRelationships = enableProximityRelationships;
+
+		// Load default patterns synchronously (for backward compatibility)
+		// In production, consider using async factory pattern
+		_patterns = LoadDefaultPatternsSync();
+
+		SupportedRelationshipTypes = _patterns
+			.Select(p => p.Type)
+			.Distinct()
+			.ToList()
+			.AsReadOnly();
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="PatternBasedRelationshipExtractor"/> class
+	/// with custom patterns from a JSON file.
+	/// </summary>
+	/// <param name="patternFilePath">Path to custom pattern JSON file.</param>
+	/// <param name="maxDistance">Maximum character distance between entities (default: 500).</param>
+	/// <param name="minConfidence">Minimum confidence score for relationships (default: 0.3).</param>
+	/// <param name="enablePatternMatching">Enable pattern-based relationship detection (default: true).</param>
+	/// <param name="enableProximityRelationships">Enable distance-based co-occurrence relationships (default: true).</param>
+	/// <param name="cancellationToken">Cancellation token.</param>
+	public static async Task<PatternBasedRelationshipExtractor> CreateAsync(
+		string patternFilePath,
+		int maxDistance = 500,
+		double minConfidence = 0.3,
+		bool enablePatternMatching = true,
+		bool enableProximityRelationships = true,
+		CancellationToken cancellationToken = default)
+	{
+		var patterns = await RelationshipPatternLoader.LoadPatternsAsync(patternFilePath, cancellationToken);
+
+		return new PatternBasedRelationshipExtractor(
+			patterns,
+			maxDistance,
+			minConfidence,
+			enablePatternMatching,
+			enableProximityRelationships);
+	}
+
+	/// <summary>
+	/// Internal constructor that accepts pre-loaded patterns.
+	/// </summary>
+	private PatternBasedRelationshipExtractor(
+		List<CompiledRelationshipPattern> patterns,
+		int maxDistance,
+		double minConfidence,
+		bool enablePatternMatching,
+		bool enableProximityRelationships)
+	{
+		_patterns = patterns;
+		_maxDistance = maxDistance;
+		_minConfidence = minConfidence;
+		_enablePatternMatching = enablePatternMatching;
+		_enableProximityRelationships = enableProximityRelationships;
+
+		SupportedRelationshipTypes = _patterns
+			.Select(p => p.Type)
+			.Distinct()
+			.ToList()
+			.AsReadOnly();
+	}
+
+	/// <summary>
+	/// Loads default patterns synchronously (for backward compatibility).
+	/// </summary>
+	private static List<CompiledRelationshipPattern> LoadDefaultPatternsSync() =>
+		// This is a workaround for constructor limitation
+		// Ideally use async factory pattern in production
+		RelationshipPatternLoader.LoadDefaultPatternsAsync().GetAwaiter().GetResult();
 
 	/// <inheritdoc/>
 	public async Task<List<Relationship>> ExtractRelationshipsAsync(
@@ -122,14 +190,14 @@ public partial class PatternBasedRelationshipExtractor(
 					// Calculate minimum distance
 					var minDistance = CalculateMinDistance(positions1, positions2);
 
-					if (minDistance > maxDistance)
+					if (minDistance > _maxDistance)
 					{
 						continue;
 					}
 
 					// Try pattern-based extraction first
 					List<DetectedRelationship>? detectedRelationships = null;
-					if (enablePatternMatching)
+					if (_enablePatternMatching)
 					{
 						detectedRelationships = DetectPatternBasedRelationships(
 							content,
@@ -140,10 +208,10 @@ public partial class PatternBasedRelationshipExtractor(
 					}
 
 					// If no patterns matched and proximity is enabled, create co-occurrence relationship
-					if ((detectedRelationships == null || detectedRelationships.Count == 0) && enableProximityRelationships)
+					if ((detectedRelationships == null || detectedRelationships.Count == 0) && _enableProximityRelationships)
 					{
 						var proximityConfidence = CalculateProximityConfidence(minDistance);
-						if (proximityConfidence >= minConfidence)
+						if (proximityConfidence >= _minConfidence)
 						{
 							detectedRelationships =
 							[
@@ -165,7 +233,7 @@ public partial class PatternBasedRelationshipExtractor(
 					{
 						foreach (var detected in detectedRelationships)
 						{
-							if (detected.Confidence < minConfidence)
+							if (detected.Confidence < _minConfidence)
 							{
 								continue;
 							}
@@ -227,7 +295,8 @@ public partial class PatternBasedRelationshipExtractor(
 					ToEntityId = toEntity.Id,
 					Confidence = pattern.Confidence,
 					IsDirectional = pattern.IsDirectional,
-					Context = GetContext(content, firstPos, secondPos)
+					Context = GetContext(content, firstPos, secondPos),
+					PatternName = pattern.Name
 				});
 
 				// If it's a high-confidence pattern, don't check other patterns
@@ -239,20 +308,6 @@ public partial class PatternBasedRelationshipExtractor(
 		}
 
 		return detected;
-	}
-
-	private static string GetTextBetween(string content, int start, int end, int entityLength)
-	{
-		var extractStart = start + entityLength;
-		var extractEnd = end;
-
-		if (extractStart >= extractEnd || extractStart >= content.Length)
-		{
-			return string.Empty;
-		}
-
-		extractEnd = Math.Min(extractEnd, content.Length);
-		return content[extractStart..extractEnd].Trim();
 	}
 
 	private void AddOrUpdateRelationship(
@@ -282,6 +337,11 @@ public partial class PatternBasedRelationshipExtractor(
 			};
 
 			relationship.Properties["DetectionMethod"] = "PatternMatching";
+			if (!string.IsNullOrWhiteSpace(detected.PatternName))
+			{
+				relationship.Properties["PatternName"] = detected.PatternName;
+			}
+
 			relationshipMap[key] = relationship;
 			relationships.Add(relationship);
 		}
@@ -313,225 +373,7 @@ public partial class PatternBasedRelationshipExtractor(
 		}
 	}
 
-	private static List<RelationshipPattern> BuildPatterns() => [
-			// Founded/Founder relationships
-			new RelationshipPattern
-			{
-				Regex = FoundedPattern(),
-				Type = RelationshipType.Founded,
-				Confidence = 0.95,
-				IsDirectional = true
-			},
-
-			// NEW: Founded BY passive voice
-			new RelationshipPattern
-			{
-				Regex = FoundedByPassivePattern(),
-				Type = RelationshipType.Founded,
-				Confidence = 0.95,
-				IsDirectional = true
-			},
-
-			// NEW: Studied/Went to pattern
-			new RelationshipPattern
-			{
-				Regex = StudiedAtPattern(),
-				Type = RelationshipType.LocatedIn,
-				Confidence = 0.9,
-				IsDirectional = true
-			},
-
-			// NEW: Voyage pattern
-			new RelationshipPattern
-			{
-				Regex = VoyageOfPattern(),
-				Type = RelationshipType.PartOf,
-				Confidence = 0.9,
-				IsDirectional = true
-			},
-
-			// Member relationships
-			new RelationshipPattern
-			{
-				Regex = MemberOfPattern(),
-				Type = RelationshipType.MemberOf,
-				Confidence = 0.9,
-				IsDirectional = true
-			},
-
-			// NEW: Presented to pattern
-			new RelationshipPattern
-			{
-				Regex = PresentedToPattern(),
-				Type = RelationshipType.MemberOf,
-				Confidence = 0.85,
-				IsDirectional = true
-			},
-
-			// Location relationships
-			new RelationshipPattern
-			{
-				Regex = LocatedInPattern(),
-				Type = RelationshipType.LocatedIn,
-				Confidence = 0.85,
-				IsDirectional = true
-			},
-
-			// Works for relationships
-			new RelationshipPattern
-			{
-				Regex = WorksForPattern(),
-				Type = RelationshipType.WorksFor,
-				Confidence = 0.9,
-				IsDirectional = true
-			},
-
-			// Author/Creator relationships
-			new RelationshipPattern
-			{
-				Regex = AuthorOfPattern(),
-				Type = RelationshipType.AuthorOf,
-				Confidence = 0.9,
-				IsDirectional = true
-			},
-
-			// Part of relationships
-			new RelationshipPattern
-			{
-				Regex = PartOfPattern(),
-				Type = RelationshipType.PartOf,
-				Confidence = 0.85,
-				IsDirectional = true
-			},
-
-			// Creates relationships
-			new RelationshipPattern
-			{
-				Regex = CreatesPattern(),
-				Type = RelationshipType.Creates,
-				Confidence = 0.85,
-				IsDirectional = true
-			},
-
-			// Uses relationships
-			new RelationshipPattern
-			{
-				Regex = UsesPattern(),
-				Type = RelationshipType.Uses,
-				Confidence = 0.8,
-				IsDirectional = true
-			},
-
-			// Collaboration relationships
-			new RelationshipPattern
-			{
-				Regex = CollaboratesPattern(),
-				Type = RelationshipType.CollaboratesWith,
-				Confidence = 0.85,
-				IsDirectional = false
-			},
-
-			// Ownership relationships
-			new RelationshipPattern
-			{
-				Regex = OwnsPattern(),
-				Type = RelationshipType.Owns,
-				Confidence = 0.9,
-				IsDirectional = true
-			},
-
-			// Management relationships
-			new RelationshipPattern
-			{
-				Regex = ManagesPattern(),
-				Type = RelationshipType.Manages,
-				Confidence = 0.9,
-				IsDirectional = true
-			},
-
-			// Influence relationships
-			new RelationshipPattern
-			{
-				Regex = InfluencesPattern(),
-				Type = RelationshipType.Influences,
-				Confidence = 0.75,
-				IsDirectional = true
-			},
-
-			// Support relationships
-			new RelationshipPattern
-			{
-				Regex = SupportsPattern(),
-				Type = RelationshipType.Supports,
-				Confidence = 0.8,
-				IsDirectional = true
-			},
-
-			// Generic related-to (catch-all for "and", "with", etc.)
-			new RelationshipPattern
-			{
-				Regex = RelatedToPattern(),
-				Type = RelationshipType.RelatedTo,
-				Confidence = 0.6,
-				IsDirectional = false
-			}
-		];
-
-	// Pattern generators (using C# 11+ source generators for regex)
-	[GeneratedRegex(@"\b(founded|established|created|started|formed)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex FoundedPattern();
-
-	[GeneratedRegex(@"\b(member\s+of|belonged\s+to|part\s+of|joined|attended|participated\s+in)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex MemberOfPattern();
-
-	[GeneratedRegex(@"\b(at|in|located\s+in|based\s+in|from)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex LocatedInPattern();
-
-	[GeneratedRegex(@"\b(works?\s+for|worked\s+for|employed\s+by|works?\s+at)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex WorksForPattern();
-
-	[GeneratedRegex(@"\b(wrote|authored|created|composed|published)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex AuthorOfPattern();
-
-	[GeneratedRegex(@"\b(part\s+of|component\s+of|within|inside)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex PartOfPattern();
-
-	[GeneratedRegex(@"\b(creates?|produces?|makes?|builds?|develops?)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex CreatesPattern();
-
-	[GeneratedRegex(@"\b(uses?|utilized?|employs?|applies?)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex UsesPattern();
-
-	[GeneratedRegex(@"\b(collaborates?\s+with|works?\s+with|partners?\s+with|teams?\s+with)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex CollaboratesPattern();
-
-	[GeneratedRegex(@"\b(owns?|possesses?|has|holds?)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex OwnsPattern();
-
-	[GeneratedRegex(@"\b(manages?|leads?|directs?|oversees?|heads?)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex ManagesPattern();
-
-	[GeneratedRegex(@"\b(influences?|affects?|impacts?|shapes?)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex InfluencesPattern();
-
-	[GeneratedRegex(@"\b(supports?|helps?|aids?|assists?|backs?)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex SupportsPattern();
-
-	[GeneratedRegex(@"\b(and|with|alongside|together\s+with)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex RelatedToPattern();
-
-	// NEW PATTERNS FOR DARWIN TEXT - Added for Phase 3
-	[GeneratedRegex(@"\b(founded\s+by|established\s+by|created\s+by|started\s+by|encouraged.*?by)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex FoundedByPassivePattern();
-
-	[GeneratedRegex(@"\b(sent.*?to|went\s+to|studied\s+at|enrolled\s+at|stayed\s+at)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex StudiedAtPattern();
-
-	[GeneratedRegex(@"\b(voyage|journey|expedition)\s+(of\s+the|aboard|in\s+the)\b", RegexOptions.IgnoreCase)]
-	private static partial Regex VoyageOfPattern();
-
-	[GeneratedRegex(@"\b(read\s+(before|to)|presented\s+(to|at))\b", RegexOptions.IgnoreCase)]
-	private static partial Regex PresentedToPattern();
+	// Helper methods
 
 	private static string GetChunkContent(ChunkerBase chunk)
 	{
@@ -568,14 +410,14 @@ public partial class PatternBasedRelationshipExtractor(
 		}
 
 		// Far entities (near maxDistance) get low confidence
-		if (distance >= maxDistance)
+		if (distance >= _maxDistance)
 		{
-			return minConfidence;
+			return _minConfidence;
 		}
 
 		// Linear interpolation
-		var ratio = (double)distance / maxDistance;
-		return 1.0 - (ratio * (1.0 - minConfidence));
+		var ratio = (double)distance / _maxDistance;
+		return 1.0 - (ratio * (1.0 - _minConfidence));
 	}
 
 	private static string GetContext(string text, int startPos, int endPos, int contextSize = 150)
@@ -609,17 +451,25 @@ public partial class PatternBasedRelationshipExtractor(
 		return context;
 	}
 
+	private static string GetTextBetween(string content, int start, int end, int entityLength)
+	{
+		var extractStart = start + entityLength;
+		var extractEnd = end;
+
+		if (extractStart >= extractEnd || extractStart >= content.Length)
+		{
+			return string.Empty;
+		}
+
+		extractEnd = Math.Min(extractEnd, content.Length);
+		return content[extractStart..extractEnd].Trim();
+	}
+
 	private static string GetRelationshipKey(Guid entityId1, Guid entityId2, RelationshipType type) =>
 		// For directional relationships, order matters
 		$"{entityId1}_{entityId2}_{type}";
 
-	private class RelationshipPattern
-	{
-		public required Regex Regex { get; init; }
-		public required RelationshipType Type { get; init; }
-		public required double Confidence { get; init; }
-		public required bool IsDirectional { get; init; }
-	}
+	// Helper classes
 
 	private class DetectedRelationship
 	{
@@ -629,5 +479,6 @@ public partial class PatternBasedRelationshipExtractor(
 		public required double Confidence { get; init; }
 		public required bool IsDirectional { get; init; }
 		public required string Context { get; init; }
+		public string? PatternName { get; init; }
 	}
 }

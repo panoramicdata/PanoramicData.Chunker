@@ -40,6 +40,25 @@
 		<None Include="..\README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
+	<!-- Configuration Files - Copy to output directory and include in NuGet package -->
+	<ItemGroup>
+		<None Include="Configuration\RelationshipPatterns.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>true</Pack>
+			<PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
+		</None>
+		<None Include="Configuration\RelationshipPatternsSchema.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>true</Pack>
+			<PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
+		</None>
+		<None Include="Configuration\EntityPatterns.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>true</Pack>
+			<PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
+		</None>
+	</ItemGroup>
+
 	<!-- Runtime Dependencies -->
 	<ItemGroup>
 		<PackageReference Include="AngleSharp" Version="1.3.0" />

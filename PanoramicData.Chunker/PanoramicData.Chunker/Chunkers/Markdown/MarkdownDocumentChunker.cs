@@ -101,7 +101,7 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 
 		// Split oversized chunks if needed
 		var finalChunks = options.MaxTokens > 0
-			? await SplitOversizedChunksAsync(chunks, options, cancellationToken)
+			? SplitOversizedChunks(chunks, options, cancellationToken)
 			: chunks;
 
 		// Calculate statistics
@@ -718,7 +718,7 @@ public class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocumentChun
 	/// <summary>
 	/// Splits oversized chunks based on token limits.
 	/// </summary>
-	private async Task<List<ChunkerBase>> SplitOversizedChunksAsync(
+	private List<ChunkerBase> SplitOversizedChunks(
 		List<ChunkerBase> chunks,
 		ChunkingOptions options,
 		CancellationToken cancellationToken)

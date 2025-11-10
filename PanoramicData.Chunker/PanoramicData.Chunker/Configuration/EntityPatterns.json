@@ -1,0 +1,92 @@
+{
+  "$schema": "./EntityPatternsSchema.json",
+  "version": "2.0",
+  "description": "Entity extraction patterns and dictionaries for CapitalizationEntityExtractor",
+  "lastUpdated": "2025-01-15",
+  "properNounDictionary": {
+    "people": [
+  "Darwin", "Charles", "Jameson", "Grant", "Henslow", "FitzRoy", "Wedgwood",
+ "Lyell", "Wallace", "Hooker", "Huxley", "Sedgwick", "Owen",
+ "Robert", "John", "Thomas", "William", "James", "George", "Edward",
+      "Mary", "Elizabeth", "Emma", "Sarah", "Anne", "Catherine",
+   "Smith", "Johnson", "Brown", "Wilson", "Taylor", "Davis", "Miller"
+    ],
+    "places": [
+    "Edinburgh", "Cambridge", "Shrewsbury", "Plymouth", "London",
+      "Galapagos", "Patagonia", "Tierra", "Fuego", "Andes", "Chile", "Brazil",
+      "Australia", "Zealand", "Tahiti", "Madagascar",
+      "North", "South", "East", "West", "Central",
+      "Islands", "Island", "Mountains", "Mountain", "River", "Ocean", "Sea"
+    ],
+    "organizations": [
+      "Plinian", "Beagle", "Royal", "Geological",
+      "University", "Society", "Institute", "College", "Academy"
+    ]
+  },
+  "titlePrefixes": {
+  "academic": [
+      "Professor", "Prof", "Prof.",
+ "Doctor", "Dr", "Dr."
+    ],
+    "military": [
+      "Captain", "Capt", "Capt.",
+      "General", "Colonel", "Major", "Lieutenant"
+    ],
+    "nobility": [
+      "Sir", "Lord", "Lady", "Dame",
+   "King", "Queen", "Prince", "Princess"
+    ],
+    "religious": [
+      "Bishop", "Archbishop", "Reverend", "Rev", "Rev."
+    ],
+    "formal": [
+      "Mr", "Mr.", "Mrs", "Mrs.", "Miss", "Ms", "Ms.",
+      "President", "Prime Minister"
+    ],
+    "ships": [
+      "HMS", "USS", "RMS"
+    ],
+    "geographic": [
+      "Mount", "Mt", "Mt.", "Saint", "St", "St."
+    ]
+  },
+  "organizationalSuffixes": [
+"University", "College", "Institute", "Academy",
+    "Society", "Association", "Foundation", "Organization",
+    "Company", "Corporation", "Ltd", "Inc", "LLC",
+    "Department", "Ministry", "Agency",
+    "Museum", "Library", "Observatory",
+    "Hospital", "Clinic", "Laboratory", "Lab",
+    "Church", "Cathedral", "Temple", "Mosque"
+],
+  "allowedConnectors": [
+    "of", "the", "and", "in", "at", "on", "for", "de", "del", "la", "le"
+  ],
+  "sentenceStarters": [
+    "The", "In", "On", "At", "For", "With", "From", "To", "By", "Of", "As",
+    "During", "After", "Before", "When", "While", "If", "This", "That", "These",
+  "Those", "Some", "Many", "One", "Two", "Three", "Four", "Five",
+    "But", "And", "Or", "So", "Yet", "However", "Therefore", "Thus",
+  "He", "She", "It", "They", "We", "You", "I",
+    "His", "Her", "Its", "Their", "Our", "Your", "My"
+  ],
+  "extractionRules": {
+    "minWordLength": 2,
+    "minOccurrences": 1,
+    "baseConfidence": 0.7,
+    "confidenceBoosts": {
+      "inDictionary": 0.15,
+  "hasTitle": 0.10,
+      "multiWord": 0.10,
+      "organizationalSuffix": 0.10,
+ "perFrequency": 0.05,
+      "maxFrequencyBoost": 0.20
+    }
+  },
+  "trainingNotes": {
+    "instructions": "To train entity extraction, add commonly occurring proper nouns to the appropriate dictionary sections.",
+    "dictionaryMaintenance": "Review extracted entities regularly and promote high-frequency entities to the dictionary.",
+    "categoryClassification": "Consider classifying entities by type (Person, Organization, Location) for better accuracy.",
+    "performanceMonitoring": "Track precision/recall metrics and adjust confidence thresholds accordingly."
+  }
+}

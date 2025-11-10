@@ -276,6 +276,163 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		true.Should().BeTrue();
 	}
 
+	[Fact]
+	public async Task Debug_Phase12_WhyNoRelationships()
+	{
+		// Arrange
+		await _fixture.CleanDatabaseAsync();
+
+		// Act: Extract graph
+		var graph = await ExtractDarwinKnowledgeGraphAsync();
+
+		_output.WriteLine("=== PHASE 12 DIAGNOSTIC: Why No Relationships? ===");
+		_output.WriteLine(string.Empty);
+
+		// Test Case 1: Professor Jameson -> Founded -> Plinian Society
+		_output.WriteLine("TEST CASE 1: Professor Jameson -> Founded -> Plinian Society");
+		_output.WriteLine("----------------------------------------------------------------");
+
+		var jameson = graph.Entities.FirstOrDefault(e =>
+			e.Name.Contains("Jameson", StringComparison.OrdinalIgnoreCase));
+		var plinian = graph.Entities.FirstOrDefault(e =>
+			e.Name.Contains("Plinian", StringComparison.OrdinalIgnoreCase));
+
+		if (jameson == null)
+		{
+			_output.WriteLine("❌ PROBLEM: Jameson entity NOT FOUND");
+			_output.WriteLine("   Searching for partial matches...");
+			var partialMatches = graph.Entities
+				.Where(e => e.Name.Contains("James", StringComparison.OrdinalIgnoreCase))
+				.ToList();
+			if (partialMatches.Count > 0)
+			{
+				_output.WriteLine($"   Found {partialMatches.Count} partial matches:");
+				foreach (var match in partialMatches.Take(5))
+				{
+					_output.WriteLine($"     - '{match.Name}' (type: {match.Type})");
+				}
+			}
+		}
+		else
+		{
+			_output.WriteLine($"✅ Jameson entity FOUND: '{jameson.Name}' (ID: {jameson.Id})");
+			_output.WriteLine($"   Type: {jameson.Type}, Confidence: {jameson.Confidence:F2}, Frequency: {jameson.Frequency}");
+			_output.WriteLine($"   Aliases: {(jameson.Aliases.Count > 0 ? string.Join(", ", jameson.Aliases) : "none")}");
+			_output.WriteLine($"   Sources: {jameson.Sources.Count} chunks");
+		}
+
+		if (plinian == null)
+		{
+			_output.WriteLine("❌ PROBLEM: Plinian entity NOT FOUND");
+			_output.WriteLine("   Searching for partial matches...");
+			var partialMatches = graph.Entities
+				.Where(e => e.Name.Contains("Plin", StringComparison.OrdinalIgnoreCase) ||
+				    e.Name.Contains("Society", StringComparison.OrdinalIgnoreCase))
+				.ToList();
+			if (partialMatches.Count > 0)
+			{
+				_output.WriteLine($"   Found {partialMatches.Count} partial matches:");
+				foreach (var match in partialMatches.Take(5))
+				{
+					_output.WriteLine($"     - '{match.Name}' (type: {match.Type})");
+				}
+			}
+		}
+		else
+		{
+			_output.WriteLine($"✅ Plinian entity FOUND: '{plinian.Name}' (ID: {plinian.Id})");
+			_output.WriteLine($"   Type: {plinian.Type}, Confidence: {plinian.Confidence:F2}, Frequency: {plinian.Frequency}");
+			_output.WriteLine($"   Aliases: {(plinian.Aliases.Count > 0 ? string.Join(", ", plinian.Aliases) : "none")}");
+			_output.WriteLine($"   Sources: {plinian.Sources.Count} chunks");
+		}
+
+		_output.WriteLine(string.Empty);
+
+		// Check if they're in the same chunk
+		if (jameson != null && plinian != null)
+		{
+			var jamesonChunks = jameson.Sources.Select(s => s.ChunkId).ToHashSet();
+			var plinianChunks = plinian.Sources.Select(s => s.ChunkId).ToHashSet();
+			var commonChunks = jamesonChunks.Intersect(plinianChunks).ToList();
+
+			_output.WriteLine($"Jameson appears in {jamesonChunks.Count} chunk(s)");
+			_output.WriteLine($"Plinian appears in {plinianChunks.Count} chunk(s)");
+			_output.WriteLine($"Common chunks: {commonChunks.Count}");
+
+			if (commonChunks.Count > 0)
+			{
+				_output.WriteLine("✅ BOTH entities in same chunk! Checking distances...");
+				_output.WriteLine(string.Empty);
+
+				foreach (var chunkId in commonChunks)
+				{
+					var jamesonPos = jameson.Sources.First(s => s.ChunkId == chunkId).Position;
+					var plinianPos = plinian.Sources.First(s => s.ChunkId == chunkId).Position;
+					var distance = Math.Abs(jamesonPos - plinianPos);
+
+					_output.WriteLine($"  Chunk {chunkId}:");
+					_output.WriteLine($"    Jameson position: {jamesonPos}");
+					_output.WriteLine($"    Plinian position: {plinianPos}");
+					_output.WriteLine($"    Distance: {distance} characters");
+					_output.WriteLine($"    Within maxDistance (500)? {(distance <= 500 ? "YES ✅" : "NO ❌")}");
+				}
+			}
+			else
+			{
+				_output.WriteLine("❌ PROBLEM: Entities NOT in same chunk!");
+			}
+
+			_output.WriteLine(string.Empty);
+
+			// Check for relationships between them
+			var jamesonRelationships = graph.GetRelationships(jameson.Id);
+			var relationshipToPlinian = jamesonRelationships.FirstOrDefault(r =>
+				r.ToEntityId == plinian.Id || r.FromEntityId == plinian.Id);
+
+			_output.WriteLine($"Jameson has {jamesonRelationships.Count} total relationships");
+			if (relationshipToPlinian != null)
+			{
+				_output.WriteLine($"✅ Relationship FOUND: {relationshipToPlinian.Type}");
+				_output.WriteLine($"   Confidence: {relationshipToPlinian.Confidence:F2}");
+				_output.WriteLine($"   Evidence count: {relationshipToPlinian.Evidence.Count}");
+			}
+			else
+			{
+				_output.WriteLine("❌ NO relationship between Jameson and Plinian");
+			}
+		}
+
+		_output.WriteLine(string.Empty);
+		_output.WriteLine("=== OTHER GROUND TRUTH ENTITIES ===");
+
+		// Check a few more key entities
+		var testEntities = new[]
+		{
+			("Darwin", "Charles Darwin"),
+			("Edinburgh", "Edinburgh University"),
+			("Beagle", "HMS Beagle"),
+			("Henslow", "John Henslow")
+		};
+
+		foreach (var (searchTerm, fullName) in testEntities)
+		{
+			var found = graph.Entities.FirstOrDefault(e =>
+				e.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+			if (found != null)
+			{
+				_output.WriteLine($"✅ {fullName}: Found as '{found.Name}' ({found.Sources.Count} chunks)");
+			}
+			else
+			{
+				_output.WriteLine($"❌ {fullName}: NOT FOUND");
+			}
+		}
+
+		// This test always passes - it's diagnostic only
+		true.Should().BeTrue();
+	}
+
 	/// <summary>
 	/// Extracts Darwin's autobiography knowledge graph using current extraction pipeline.
 	/// </summary>

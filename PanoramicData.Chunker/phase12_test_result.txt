@@ -1,0 +1,147 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.100-rc.2.25502.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(351,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\PanoramicData.Chunker.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.2.25502.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(351,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.csproj]
+  PanoramicData.Chunker -> C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker\bin\Debug\net9.0\PanoramicData.Chunker.dll
+  PanoramicData.Chunker.Tests -> C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll
+Test run for C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25502-107 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\bin\Debug\net9.0\PanoramicData.Chunker.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.10)
+[xUnit.net 00:00:00.31]   Discovering: PanoramicData.Chunker.Tests
+[xUnit.net 00:00:00.65]   Discovered:  PanoramicData.Chunker.Tests
+[xUnit.net 00:00:00.79]   Starting:    PanoramicData.Chunker.Tests
+[xUnit.net 00:00:26.97]     PanoramicData.Chunker.Tests.Integration.KnowledgeGraph.GroundTruthComparisonTests.ExtractedGraph_ShouldMatch_GroundTruthRelationships [FAIL]
+[xUnit.net 00:00:26.97]       Expected results.RecallRate to be greater than 0.1 because Baseline: Should find at least 10% of ground truth relationships, but found 0.02 (difference of -0.08).
+[xUnit.net 00:00:26.97]       Stack Trace:
+[xUnit.net 00:00:26.98]            at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:26.98]            at AwesomeAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:26.98]            at AwesomeAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:26.98]            at AwesomeAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:26.98]            at AwesomeAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:26.98]            at AwesomeAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:26.98]            at AwesomeAssertions.Numeric.NumericAssertionsBase`3.BeGreaterThan(T expected, String because, Object[] becauseArgs)
+[xUnit.net 00:00:26.98]         C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\Integration\KnowledgeGraph\GroundTruthComparisonTests.cs(52,0): at PanoramicData.Chunker.Tests.Integration.KnowledgeGraph.GroundTruthComparisonTests.ExtractedGraph_ShouldMatch_GroundTruthRelationships()
+[xUnit.net 00:00:26.98]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:26.98]       Output:
+[xUnit.net 00:00:26.98]         Loaded 50 ground truth relationships
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:26.98]         Downloaded HTML document (160,183 characters)
+[xUnit.net 00:00:26.98]         Created 26 chunks
+[xUnit.net 00:00:26.98]         Extracted 888 entities
+[xUnit.net 00:00:26.98]         Extracted 13071 relationships
+[xUnit.net 00:00:26.98]         Saved graph to database
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:26.98]         Extracted graph with 888 entities and 13071 relationships
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:26.98]         === Ground Truth Comparison Report ===
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:26.98]         Overall Metrics:
+[xUnit.net 00:00:26.98]           Ground Truth Relationships: 50
+[xUnit.net 00:00:26.98]           Extracted Relationships: 13071
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:26.98]         True Positives:  1 (2.0%)
+[xUnit.net 00:00:26.98]           False Negatives: 49 (98.0%)
+[xUnit.net 00:00:26.98]           False Positives: 13070
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:26.98]         Quality Metrics:
+[xUnit.net 00:00:26.98]           Precision: 0.0%
+[xUnit.net 00:00:26.98]           Recall:    2.0%
+[xUnit.net 00:00:26.98]           F1 Score:  0.0%
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:26.98]         Top 10 Misses:
+[xUnit.net 00:00:26.98]           Professor Jameson -> Founded -> Plinian Society
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           Charles Darwin -> MemberOf -> Plinian Society
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           HMS Beagle -> IsA -> Ship
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           Darwin -> AuthorOf -> Origin of Species
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           Captain FitzRoy -> Manages -> HMS Beagle
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           Edinburgh University -> LocatedIn -> Edinburgh
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           Darwin -> StudiedAt -> Edinburgh University
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           Robert Grant -> WorksFor -> Edinburgh University
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           Darwin -> InfluencedBy -> Robert Grant
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]           Galapagos Islands -> PartOf -> Voyage of the Beagle
+[xUnit.net 00:00:26.98]             Reason: No relationship detected between entities
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:26.98]         
+[xUnit.net 00:00:27.49]   Finished:    PanoramicData.Chunker.Tests (ID = '1ccf2624124cd1869ba8c3e73660169bf8a514d4020d2c387a215201f189d6cf')
+  Failed PanoramicData.Chunker.Tests.Integration.KnowledgeGraph.GroundTruthComparisonTests.ExtractedGraph_ShouldMatch_GroundTruthRelationships [21 s]
+  Error Message:
+   Expected results.RecallRate to be greater than 0.1 because Baseline: Should find at least 10% of ground truth relationships, but found 0.02 (difference of -0.08).
+  Stack Trace:
+     at AwesomeAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at AwesomeAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at AwesomeAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at AwesomeAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at AwesomeAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at AwesomeAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at AwesomeAssertions.Numeric.NumericAssertionsBase`3.BeGreaterThan(T expected, String because, Object[] becauseArgs)
+   at PanoramicData.Chunker.Tests.Integration.KnowledgeGraph.GroundTruthComparisonTests.ExtractedGraph_ShouldMatch_GroundTruthRelationships() in C:\Users\david\Projects\PanoramicData.Chunker\PanoramicData.Chunker\PanoramicData.Chunker.Tests\Integration\KnowledgeGraph\GroundTruthComparisonTests.cs:line 52
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ Loaded 50 ground truth relationships
+ 
+ Downloaded HTML document (160,183 characters)
+ Created 26 chunks
+ Extracted 888 entities
+ Extracted 13071 relationships
+ Saved graph to database
+ 
+ Extracted graph with 888 entities and 13071 relationships
+ 
+ === Ground Truth Comparison Report ===
+ 
+ Overall Metrics:
+   Ground Truth Relationships: 50
+   Extracted Relationships: 13071
+ 
+ True Positives:  1 (2.0%)
+   False Negatives: 49 (98.0%)
+   False Positives: 13070
+ 
+ Quality Metrics:
+   Precision: 0.0%
+   Recall:    2.0%
+   F1 Score:  0.0%
+ 
+ Top 10 Misses:
+   Professor Jameson -> Founded -> Plinian Society
+     Reason: No relationship detected between entities
+   Charles Darwin -> MemberOf -> Plinian Society
+     Reason: No relationship detected between entities
+   HMS Beagle -> IsA -> Ship
+     Reason: No relationship detected between entities
+   Darwin -> AuthorOf -> Origin of Species
+     Reason: No relationship detected between entities
+   Captain FitzRoy -> Manages -> HMS Beagle
+     Reason: No relationship detected between entities
+   Edinburgh University -> LocatedIn -> Edinburgh
+     Reason: No relationship detected between entities
+   Darwin -> StudiedAt -> Edinburgh University
+     Reason: No relationship detected between entities
+   Robert Grant -> WorksFor -> Edinburgh University
+     Reason: No relationship detected between entities
+   Darwin -> InfluencedBy -> Robert Grant
+     Reason: No relationship detected between entities
+   Galapagos Islands -> PartOf -> Voyage of the Beagle
+     Reason: No relationship detected between entities
+ 
+ 
+
+
+
+Test Run Failed.
+Total tests: 1
+     Failed: 1
+ Total time: 28.1472 Seconds

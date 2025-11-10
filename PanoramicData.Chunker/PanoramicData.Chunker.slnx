@@ -40,6 +40,8 @@
     <File Path="Specification.md" />
   </Folder>
   <Project Path="PanoramicData.Chunker.Benchmarks/PanoramicData.Chunker.Benchmarks.csproj" />
+  <Project Path="PanoramicData.Chunker.GraphTrainer.Tests/PanoramicData.Chunker.GraphTrainer.Tests.csproj" />
+  <Project Path="PanoramicData.Chunker.GraphTrainer/PanoramicData.Chunker.GraphTrainer.csproj" />
   <Project Path="PanoramicData.Chunker.Tests/PanoramicData.Chunker.Tests.csproj" />
   <Project Path="PanoramicData.Chunker/PanoramicData.Chunker.csproj" />
 </Solution>
