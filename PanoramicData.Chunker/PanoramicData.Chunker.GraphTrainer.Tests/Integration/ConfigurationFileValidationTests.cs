@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using PanoramicData.Chunker.Configuration;
 
 namespace PanoramicData.Chunker.GraphTrainer.Tests.Integration;

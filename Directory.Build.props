@@ -3,5 +3,10 @@
   <PropertyGroup>
     <NuGetAuditMode>All</NuGetAuditMode>
     <Copyright>Copyright © Panoramic Data Limited</Copyright>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>Panoramic Data Limited</Authors>
+    <Company>Panoramic Data Limited</Company>
   </PropertyGroup>
 </Project>

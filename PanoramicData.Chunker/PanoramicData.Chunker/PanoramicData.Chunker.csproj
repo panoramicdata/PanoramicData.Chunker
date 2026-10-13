@@ -1,25 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-
-		<!-- NuGet Package Metadata -->
-		<PackageId>PanoramicData.Chunker</PackageId>
-		<Version>0.9.0</Version>
-		<Authors>Panoramic Data Limited</Authors>
-		<Company>Panoramic Data Limited</Company>
-		<Product>PanoramicData.Chunker</Product>
-		<Description>A comprehensive document chunking library for .NET that intelligently splits various document formats (Markdown, HTML, DOCX, PPTX, XLSX, CSV, PDF, Plain Text) into semantic chunks optimized for RAG (Retrieval-Augmented Generation) and LLM processing. Features include hierarchical chunking, token counting, quality metrics, and support for multiple document formats.</Description>
-		<PackageTags>chunking;rag;llm;document-processing;markdown;html;docx;pptx;xlsx;csv;pdf;openai;embedding;semantic-search;document-intelligence</PackageTags>
-		<PackageProjectUrl>https://github.com/panoramicdata/PanoramicData.Chunker</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/panoramicdata/PanoramicData.Chunker</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Copyright>Copyright © Panoramic Data Limited 2025</Copyright>
-		<PackageReleaseNotes>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- NuGet Package Metadata -->
+    <PackageId>PanoramicData.Chunker</PackageId>
+    <Version>0.9.0</Version>
+    <Authors>Panoramic Data Limited</Authors>
+    <Company>Panoramic Data Limited</Company>
+    <Product>PanoramicData.Chunker</Product>
+    <Description>A comprehensive document chunking library for .NET that intelligently splits various document formats (Markdown, HTML, DOCX, PPTX, XLSX, CSV, PDF, Plain Text) into semantic chunks optimized for RAG (Retrieval-Augmented Generation) and LLM processing. Features include hierarchical chunking, token counting, quality metrics, and support for multiple document formats.</Description>
+    <PackageTags>chunking;rag;llm;document-processing;markdown;html;docx;pptx;xlsx;csv;pdf;openai;embedding;semantic-search;document-intelligence</PackageTags>
+    <PackageProjectUrl>https://github.com/panoramicdata/PanoramicData.Chunker</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/panoramicdata/PanoramicData.Chunker</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright © Panoramic Data Limited 2025</Copyright>
+    <PackageReleaseNotes>
 			Version 0.9.0 (Beta Release)
 			- Initial beta release with 9 document formats supported
 			- Markdown, HTML, Plain Text, DOCX, PPTX, XLSX, CSV, PDF (basic text extraction)
@@ -29,60 +28,57 @@
 			- Quality metrics and validation
 			- Comprehensive documentation
 		</PackageReleaseNotes>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="..\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
-
-	<!-- Configuration Files - Copy to output directory and include in NuGet package -->
-	<ItemGroup>
-		<None Include="Configuration\RelationshipPatterns.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<Pack>true</Pack>
-			<PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
-		</None>
-		<None Include="Configuration\RelationshipPatternsSchema.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<Pack>true</Pack>
-			<PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
-		</None>
-		<None Include="Configuration\EntityPatterns.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<Pack>true</Pack>
-			<PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
-		</None>
-	</ItemGroup>
-
-	<!-- Runtime Dependencies -->
-	<ItemGroup>
-		<PackageReference Include="AngleSharp" Version="1.3.0" />
-		<PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
-		<PackageReference Include="Markdig" Version="0.43.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		  <PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.10" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.10" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-		<PackageReference Include="Ollama.Api" Version="1.0.7" />
-		<PackageReference Include="SharpToken" Version="2.0.4" />
-		<PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
-	</ItemGroup>
-
-	<!-- Development Dependencies -->
-	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-	</ItemGroup>
-
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <NeutralResourcesLanguage>en</NeutralResourcesLanguage>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <!-- Configuration Files - Copy to output directory and include in NuGet package -->
+  <ItemGroup>
+    <None Include="Configuration\RelationshipPatterns.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
+    </None>
+    <None Include="Configuration\RelationshipPatternsSchema.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
+    </None>
+    <None Include="Configuration\EntityPatterns.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>contentFiles\any\any\Configuration;content\Configuration</PackagePath>
+    </None>
+  </ItemGroup>
+  <!-- Runtime Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="1.8.4" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <PackageReference Include="Markdig" Version="1.4.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Ollama.Api" Version="1.0.30" />
+    <PackageReference Include="SharpToken" Version="2.0.6" />
+    <PackageReference Include="UglyToad.PdfPig" />
+  </ItemGroup>
+  <!-- Development Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.401">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 </Project>
