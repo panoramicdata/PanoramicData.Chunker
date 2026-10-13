@@ -7,6 +7,7 @@
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <LangVersion>12.0</LangVersion>
+    <NeutralResourcesLanguage>en</NeutralResourcesLanguage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
