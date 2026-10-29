@@ -39,9 +39,14 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 			var linesRead = 0;
 			var hasDelimiters = false;
 
-			while (linesRead < 10 && !reader.EndOfStream)
+			while (linesRead < 10)
 			{
 				var line = await reader.ReadLineAsync(cancellationToken);
+				if (line is null)
+				{
+					break;
+				}
+
 				if (string.IsNullOrWhiteSpace(line))
 				{
 					linesRead++;

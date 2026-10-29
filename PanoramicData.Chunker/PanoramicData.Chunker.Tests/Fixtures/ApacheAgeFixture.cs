@@ -65,8 +65,7 @@ public class ApacheAgeFixture : IAsyncLifetime
 
 			Console.WriteLine($"[ApacheAgeFixture] Starting PostgreSQL container with Apache AGE: {postgresImage}");
 
-			_postgresContainer = new PostgreSqlBuilder()
-				.WithImage(postgresImage)
+			_postgresContainer = new PostgreSqlBuilder(postgresImage)
 				.WithDatabase(database)
 				.WithUsername(username)
 				.WithPassword(password)
