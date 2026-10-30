@@ -46,6 +46,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TestData\Pptx\" />
-    <PackageReference Include="AwesomeAssertions" />
   </ItemGroup>
 </Project>

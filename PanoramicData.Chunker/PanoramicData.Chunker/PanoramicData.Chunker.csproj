@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <!-- NuGet Package Metadata -->
     <PackageId>PanoramicData.Chunker</PackageId>
-    <Version>0.9.0</Version>
     <Authors>Panoramic Data Limited</Authors>
     <Company>Panoramic Data Limited</Company>
     <Product>PanoramicData.Chunker</Product>
@@ -73,6 +72,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Ollama.Api" />
     <PackageReference Include="SharpToken" />
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
     <PackageReference Include="UglyToad.PdfPig" />
   </ItemGroup>
   <!-- Development Dependencies -->

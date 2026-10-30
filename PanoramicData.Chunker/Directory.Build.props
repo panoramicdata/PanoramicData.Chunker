@@ -1,5 +1,7 @@
 <Project>
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
   <PropertyGroup>
     <!-- Common properties for all projects -->
     <LangVersion>12.0</LangVersion>
@@ -14,7 +16,7 @@
     <!-- Package metadata -->
     <Authors>Panoramic Data Limited</Authors>
     <Company>Panoramic Data Limited</Company>
-    <Copyright>Copyright © Panoramic Data Limited $([System.DateTime]::Now.Year)</Copyright>
+    <Copyright>Copyright Â© Panoramic Data Limited $([System.DateTime]::Now.Year)</Copyright>
     <PackageProjectUrl>https://github.com/panoramicdata/PanoramicData.Chunker</PackageProjectUrl>
     <RepositoryUrl>https://github.com/panoramicdata/PanoramicData.Chunker</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -33,9 +35,5 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn><!-- Suppress missing XML comment warnings for now -->
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-  </ItemGroup>
 
 </Project>

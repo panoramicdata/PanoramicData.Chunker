@@ -502,7 +502,7 @@ public partial class XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<Xls
 		{
 			if (_sharedStringTable != null && int.TryParse(value, out var index))
 			{
-				var sharedStringItem = _sharedStringTable.SharedStringTable.Elements<SharedStringItem>().ElementAtOrDefault(index);
+				var sharedStringItem = _sharedStringTable.SharedStringTable?.Elements<SharedStringItem>().ElementAtOrDefault(index);
 				if (sharedStringItem != null)
 				{
 					return sharedStringItem.InnerText;
