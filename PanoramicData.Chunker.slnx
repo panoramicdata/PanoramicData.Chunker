@@ -1,7 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Solution>
   <Project Path="PanoramicData.Chunker/PanoramicData.Chunker.Benchmarks/PanoramicData.Chunker.Benchmarks.csproj" />
   <Project Path="PanoramicData.Chunker/PanoramicData.Chunker.GraphTrainer.Tests/PanoramicData.Chunker.GraphTrainer.Tests.csproj" />
   <Project Path="PanoramicData.Chunker/PanoramicData.Chunker.GraphTrainer/PanoramicData.Chunker.GraphTrainer.csproj" />
   <Project Path="PanoramicData.Chunker/PanoramicData.Chunker.Tests/PanoramicData.Chunker.Tests.csproj" />
   <Project Path="PanoramicData.Chunker/PanoramicData.Chunker/PanoramicData.Chunker.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="Publish.ps1" />
+    <File Path="README.md" />
+    <File Path="SECURITY.md" />
+    <File Path="version.json" />
+  </Folder>
 </Solution>
