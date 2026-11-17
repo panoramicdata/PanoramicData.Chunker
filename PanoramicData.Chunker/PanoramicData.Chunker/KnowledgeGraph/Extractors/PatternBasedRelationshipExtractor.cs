@@ -52,10 +52,10 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 	/// <param name="enablePatternMatching">Enable pattern-based relationship detection (default: true).</param>
 	/// <param name="enableProximityRelationships">Enable distance-based co-occurrence relationships (default: true).</param>
 	public PatternBasedRelationshipExtractor(
-		[Optional, DefaultParameterValue(500)] int maxDistance,
-		[Optional, DefaultParameterValue(0.3)] double minConfidence,
-		[Optional, DefaultParameterValue(true)] bool enablePatternMatching,
-		[Optional, DefaultParameterValue(true)] bool enableProximityRelationships)
+		[Optional][DefaultParameterValue(500)] int maxDistance,
+		[Optional][DefaultParameterValue(0.3)] double minConfidence,
+		[Optional][DefaultParameterValue(true)] bool enablePatternMatching,
+		[Optional][DefaultParameterValue(true)] bool enableProximityRelationships)
 	{
 		_maxDistance = maxDistance;
 		_minConfidence = minConfidence;
@@ -85,10 +85,10 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 	/// <param name="cancellationToken">Cancellation token.</param>
 	public static async Task<PatternBasedRelationshipExtractor> CreateAsync(
 		string patternFilePath,
-		[Optional, DefaultParameterValue(500)] int maxDistance,
-		[Optional, DefaultParameterValue(0.3)] double minConfidence,
-		[Optional, DefaultParameterValue(true)] bool enablePatternMatching,
-		[Optional, DefaultParameterValue(true)] bool enableProximityRelationships,
+		[Optional][DefaultParameterValue(500)] int maxDistance,
+		[Optional][DefaultParameterValue(0.3)] double minConfidence,
+		[Optional][DefaultParameterValue(true)] bool enablePatternMatching,
+		[Optional][DefaultParameterValue(true)] bool enableProximityRelationships,
 		[Optional] CancellationToken cancellationToken)
 	{
 		var patterns = await RelationshipPatternLoader.LoadPatternsAsync(patternFilePath, cancellationToken);

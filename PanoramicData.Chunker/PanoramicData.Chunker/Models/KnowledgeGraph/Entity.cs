@@ -78,7 +78,7 @@ public class Entity
 	/// <param name="type">The entity type.</param>
 	/// <param name="name">The entity name.</param>
 	/// <param name="confidence">The confidence score (default: 1.0).</param>
-	public Entity(EntityType type, string name, [Optional, DefaultParameterValue(1.0)] double confidence)
+	public Entity(EntityType type, string name, [Optional][DefaultParameterValue(1.0)] double confidence)
 	{
 		Type = type;
 		Name = name;
@@ -92,7 +92,7 @@ public class Entity
 	/// <param name="chunkId">The chunk ID.</param>
 	/// <param name="position">The position in the chunk where the entity appears.</param>
 	/// <param name="context">The surrounding context text.</param>
-	public void AddSource(Guid chunkId, int position, [Optional, DefaultParameterValue("")] string context) => Sources.Add(new EntitySource
+	public void AddSource(Guid chunkId, int position, [Optional][DefaultParameterValue("")] string context) => Sources.Add(new EntitySource
 	{
 		ChunkId = chunkId,
 		Position = position,

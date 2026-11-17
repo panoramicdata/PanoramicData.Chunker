@@ -147,7 +147,7 @@ public static class ChunkQueryExtensions
 	/// <param name="chunk">The chunk.</param>
 	/// <param name="allChunks">All chunks in the collection.</param>
 	/// <param name="includeSelf">Whether to include the chunk itself in the results.</param>
-	public static IEnumerable<ChunkerBase> GetSiblings(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks, [Optional, DefaultParameterValue(false)] bool includeSelf)
+	public static IEnumerable<ChunkerBase> GetSiblings(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks, [Optional][DefaultParameterValue(false)] bool includeSelf)
 	{
 		var siblings = allChunks.Where(c => c.ParentId == chunk.ParentId);
 		return includeSelf ? siblings : siblings.Where(c => c.Id != chunk.Id);
@@ -345,24 +345,20 @@ public static class ChunkQueryExtensions
 		bool ignoreCase)
 	{
 		var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-		return chunks.Where(c =>
-		{
-			if (c is ContentChunk contentChunk)
-			{
-				return contentChunk.Content?.Contains(searchText, comparison) == true;
-			}
-			if (c is StructuralChunk structuralChunk)
-			{
-				return structuralChunk.Summary?.Contains(searchText, comparison) == true;
-			}
-			if (c is VisualChunk visualChunk)
-			{
-				return (visualChunk.Caption?.Contains(searchText, comparison) == true) ||
-					   (visualChunk.GeneratedDescription?.Contains(searchText, comparison) == true);
-			}
-			return false;
-		});
+		return chunks.Where(c => MatchesText(c, searchText, comparison));
 	}
+
+	private static bool MatchesText(ChunkerBase chunk, string searchText, StringComparison comparison) => chunk switch
+	{
+		ContentChunk content => TextContains(content.Content, searchText, comparison),
+		StructuralChunk structural => TextContains(structural.Summary, searchText, comparison),
+		VisualChunk visual => TextContains(visual.Caption, searchText, comparison)
+			|| TextContains(visual.GeneratedDescription, searchText, comparison),
+		_ => false
+	};
+
+	private static bool TextContains(string? text, string searchText, StringComparison comparison)
+		=> text?.Contains(searchText, comparison) == true;
 
 	/// <summary>
 	/// Filters chunks that contain any of the specified keywords.
@@ -442,9 +438,9 @@ public static class ChunkQueryExtensions
 	public static IEnumerable<ChunkerBase> GetContext(
 		this ChunkerBase chunk,
 		IEnumerable<ChunkerBase> allChunks,
-		[Optional, DefaultParameterValue(1)] int before,
-		[Optional, DefaultParameterValue(1)] int after,
-		[Optional, DefaultParameterValue(true)] bool includeSelf)
+		[Optional][DefaultParameterValue(1)] int before,
+		[Optional][DefaultParameterValue(1)] int after,
+		[Optional][DefaultParameterValue(true)] bool includeSelf)
 	{
 		var chunkList = allChunks.OrderBy(c => c.SequenceNumber).ToList();
 		var currentIndex = chunkList.FindIndex(c => c.Id == chunk.Id);
@@ -528,6 +524,7 @@ public static class ChunkQueryExtensions
 	public static ChunkCollectionStats GetStatistics(this IEnumerable<ChunkerBase> chunks)
 	{
 		var chunkList = chunks.ToList();
+		var tokens = chunkList.Select(c => c.QualityMetrics?.TokenCount ?? 0).ToList();
 
 		return new ChunkCollectionStats
 		{
@@ -536,12 +533,10 @@ public static class ChunkQueryExtensions
 			ContentChunks = chunkList.OfType<ContentChunk>().Count(),
 			VisualChunks = chunkList.OfType<VisualChunk>().Count(),
 			TableChunks = chunkList.OfType<TableChunk>().Count(),
-			MaxDepth = chunkList.Count != 0 ? chunkList.Max(c => c.Depth) : 0,
-			AverageTokens = chunkList.Count != 0 ? chunkList.Average(c => c.QualityMetrics?.TokenCount ?? 0) : 0,
-			TotalTokens = chunkList.Sum(c => c.QualityMetrics?.TokenCount ?? 0),
-			AverageSemanticCompleteness = chunkList.Count != 0
-				? chunkList.Average(c => c.QualityMetrics?.SemanticCompleteness ?? 0)
-				: 0
+			MaxDepth = chunkList.Select(c => c.Depth).DefaultIfEmpty(0).Max(),
+			AverageTokens = tokens.DefaultIfEmpty(0).Average(),
+			TotalTokens = tokens.Sum(),
+			AverageSemanticCompleteness = chunkList.Select(c => c.QualityMetrics?.SemanticCompleteness ?? 0).DefaultIfEmpty(0).Average()
 		};
 	}
 }

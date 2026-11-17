@@ -28,7 +28,7 @@ public static class ChunkConversionExtensions
 	/// </summary>
 	/// <param name="chunks">The chunks to convert.</param>
 	/// <param name="separator">Separator between chunks (default: double newline).</param>
-	public static string ToPlainText(this IEnumerable<ChunkerBase> chunks, [Optional, DefaultParameterValue("\n\n")] string separator)
+	public static string ToPlainText(this IEnumerable<ChunkerBase> chunks, [Optional][DefaultParameterValue("\n\n")] string separator)
 		=> string.Join(separator, chunks.Select(c => c.ToPlainText()).Where(t => !string.IsNullOrWhiteSpace(t)));
 
 	/// <summary>
@@ -37,24 +37,26 @@ public static class ChunkConversionExtensions
 	public static string ToMarkdown(this ChunkerBase chunk) => chunk switch
 	{
 		MarkdownSectionChunk section => section.MarkdownSyntax,
-		MarkdownParagraphChunk paragraph => paragraph.MarkdownContent ?? paragraph.Content ?? string.Empty,
-		MarkdownListItemChunk listItem => listItem.MarkdownContent ?? listItem.Content ?? string.Empty,
+		MarkdownParagraphChunk paragraph => Prefer(paragraph.MarkdownContent, paragraph.Content),
+		MarkdownListItemChunk listItem => Prefer(listItem.MarkdownContent, listItem.Content),
 		MarkdownCodeBlockChunk codeBlock => codeBlock.MarkdownContent ?? $"```\n{codeBlock.Content}\n```",
 		MarkdownQuoteChunk quote => quote.MarkdownContent ?? $"> {quote.Content}",
-		MarkdownTableChunk table => table.MarkdownContent ?? table.Content ?? string.Empty,
+		MarkdownTableChunk table => Prefer(table.MarkdownContent, table.Content),
 		MarkdownImageChunk image => $"![{image.AltText}]({image.ImageUrl})",
-		ContentChunk contentChunk => contentChunk.MarkdownContent ?? contentChunk.Content ?? string.Empty,
+		ContentChunk contentChunk => Prefer(contentChunk.MarkdownContent, contentChunk.Content),
 		StructuralChunk => string.Empty,
 		VisualChunk visual => $"![{visual.Caption ?? "Image"}]({visual.BinaryReference})",
 		_ => string.Empty
 	};
+
+	private static string Prefer(string? preferred, string? fallback) => preferred ?? fallback ?? string.Empty;
 
 	/// <summary>
 	/// Converts a collection of chunks to Markdown format.
 	/// </summary>
 	/// <param name="chunks">The chunks to convert.</param>
 	/// <param name="includeHierarchy">Whether to indent based on depth.</param>
-	public static string ToMarkdown(this IEnumerable<ChunkerBase> chunks, [Optional, DefaultParameterValue(false)] bool includeHierarchy)
+	public static string ToMarkdown(this IEnumerable<ChunkerBase> chunks, [Optional][DefaultParameterValue(false)] bool includeHierarchy)
 	{
 		var sb = new StringBuilder();
 		var chunkList = chunks.OrderBy(c => c.SequenceNumber).ToList();
@@ -123,7 +125,7 @@ public static class ChunkConversionExtensions
 	/// </summary>
 	/// <param name="chunks">The chunks to convert.</param>
 	/// <param name="wrapInDocument">Whether to wrap in full HTML document.</param>
-	public static string ToHtml(this IEnumerable<ChunkerBase> chunks, [Optional, DefaultParameterValue(false)] bool wrapInDocument)
+	public static string ToHtml(this IEnumerable<ChunkerBase> chunks, [Optional][DefaultParameterValue(false)] bool wrapInDocument)
 	{
 		var sb = new StringBuilder();
 
@@ -181,7 +183,7 @@ public static class ChunkConversionExtensions
 	/// </summary>
 	/// <param name="chunk">The chunk to summarize.</param>
 	/// <param name="maxLength">Maximum length of summary (default: 100 characters).</param>
-	public static string ToSummary(this ChunkerBase chunk, [Optional, DefaultParameterValue(100)] int maxLength)
+	public static string ToSummary(this ChunkerBase chunk, [Optional][DefaultParameterValue(100)] int maxLength)
 	{
 		var text = chunk.ToPlainText();
 		if (string.IsNullOrWhiteSpace(text))

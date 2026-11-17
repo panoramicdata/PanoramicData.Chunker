@@ -72,7 +72,7 @@ public class Relationship
 	/// <param name="type">The relationship type.</param>
 	/// <param name="weight">The relationship weight (default: 1.0).</param>
 	/// <param name="confidence">The confidence score (default: 1.0).</param>
-	public Relationship(Guid fromEntityId, Guid toEntityId, RelationshipType type, [Optional, DefaultParameterValue(1.0)] double weight, [Optional, DefaultParameterValue(1.0)] double confidence)
+	public Relationship(Guid fromEntityId, Guid toEntityId, RelationshipType type, [Optional][DefaultParameterValue(1.0)] double weight, [Optional][DefaultParameterValue(1.0)] double confidence)
 	{
 		FromEntityId = fromEntityId;
 		ToEntityId = toEntityId;
@@ -87,7 +87,7 @@ public class Relationship
 	/// <param name="chunkId">The chunk ID where evidence was found.</param>
 	/// <param name="context">The context text supporting the relationship.</param>
 	/// <param name="confidence">The confidence score for this evidence.</param>
-	public void AddEvidence(Guid chunkId, string context, [Optional, DefaultParameterValue(1.0)] double confidence) => Evidence.Add(new RelationshipEvidence
+	public void AddEvidence(Guid chunkId, string context, [Optional][DefaultParameterValue(1.0)] double confidence) => Evidence.Add(new RelationshipEvidence
 	{
 		ChunkId = chunkId,
 		Context = context,
@@ -139,7 +139,7 @@ public class Relationship
 	/// <param name="other">The other relationship.</param>
 	/// <param name="ignoreDirection">If true, considers bidirectional equivalence.</param>
 	/// <returns>True if relationships are equivalent.</returns>
-	public bool IsEquivalentTo(Relationship other, [Optional, DefaultParameterValue(false)] bool ignoreDirection)
+	public bool IsEquivalentTo(Relationship other, [Optional][DefaultParameterValue(false)] bool ignoreDirection)
 	{
 		if (other == null || Type != other.Type)
 		{
