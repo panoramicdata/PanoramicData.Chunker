@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -34,7 +35,7 @@ public class RelationshipPatternLoader
 	/// <returns>Compiled relationship patterns.</returns>
 	public static async Task<List<CompiledRelationshipPattern>> LoadPatternsAsync(
 		string filePath,
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		if (!File.Exists(filePath))
 		{
@@ -98,7 +99,7 @@ public class RelationshipPatternLoader
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>Compiled relationship patterns.</returns>
 	public static async Task<List<CompiledRelationshipPattern>> LoadDefaultPatternsAsync(
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		// Try multiple locations in order of preference
 		var searchPaths = new[]
@@ -139,7 +140,7 @@ public class RelationshipPatternLoader
 	/// <returns>Validation result.</returns>
 	public static async Task<PatternValidationResult> ValidatePatternsAsync(
 		string filePath,
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		var result = new PatternValidationResult { IsValid = true };
 
@@ -216,7 +217,7 @@ public class RelationshipPatternLoader
 	public static async Task SavePatternsAsync(
 		RelationshipPatternsConfiguration config,
 		string filePath,
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		var json = JsonSerializer.Serialize(config, _jsonOptions);
 		await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -229,7 +230,7 @@ public class RelationshipPatternLoader
 	/// <param name="cancellationToken">Cancellation token.</param>
 	public static async Task CreateTemplateAsync(
 		string filePath,
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		var template = new RelationshipPatternsConfiguration
 		{

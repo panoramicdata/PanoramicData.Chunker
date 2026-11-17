@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Models;
 using System.Text;
@@ -27,7 +28,7 @@ public static class ChunkConversionExtensions
 	/// </summary>
 	/// <param name="chunks">The chunks to convert.</param>
 	/// <param name="separator">Separator between chunks (default: double newline).</param>
-	public static string ToPlainText(this IEnumerable<ChunkerBase> chunks, string separator = "\n\n")
+	public static string ToPlainText(this IEnumerable<ChunkerBase> chunks, [Optional, DefaultParameterValue("\n\n")] string separator)
 		=> string.Join(separator, chunks.Select(c => c.ToPlainText()).Where(t => !string.IsNullOrWhiteSpace(t)));
 
 	/// <summary>
@@ -53,7 +54,7 @@ public static class ChunkConversionExtensions
 	/// </summary>
 	/// <param name="chunks">The chunks to convert.</param>
 	/// <param name="includeHierarchy">Whether to indent based on depth.</param>
-	public static string ToMarkdown(this IEnumerable<ChunkerBase> chunks, bool includeHierarchy = false)
+	public static string ToMarkdown(this IEnumerable<ChunkerBase> chunks, [Optional, DefaultParameterValue(false)] bool includeHierarchy)
 	{
 		var sb = new StringBuilder();
 		var chunkList = chunks.OrderBy(c => c.SequenceNumber).ToList();
@@ -122,7 +123,7 @@ public static class ChunkConversionExtensions
 	/// </summary>
 	/// <param name="chunks">The chunks to convert.</param>
 	/// <param name="wrapInDocument">Whether to wrap in full HTML document.</param>
-	public static string ToHtml(this IEnumerable<ChunkerBase> chunks, bool wrapInDocument = false)
+	public static string ToHtml(this IEnumerable<ChunkerBase> chunks, [Optional, DefaultParameterValue(false)] bool wrapInDocument)
 	{
 		var sb = new StringBuilder();
 
@@ -180,7 +181,7 @@ public static class ChunkConversionExtensions
 	/// </summary>
 	/// <param name="chunk">The chunk to summarize.</param>
 	/// <param name="maxLength">Maximum length of summary (default: 100 characters).</param>
-	public static string ToSummary(this ChunkerBase chunk, int maxLength = 100)
+	public static string ToSummary(this ChunkerBase chunk, [Optional, DefaultParameterValue(100)] int maxLength)
 	{
 		var text = chunk.ToPlainText();
 		if (string.IsNullOrWhiteSpace(text))

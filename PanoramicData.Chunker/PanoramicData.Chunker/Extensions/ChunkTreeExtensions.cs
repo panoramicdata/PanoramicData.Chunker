@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Utilities;
 
@@ -120,7 +121,7 @@ public static class ChunkTreeExtensions
 	/// <param name="chunk">The chunk.</param>
 	/// <param name="allChunks">All chunks in the collection.</param>
 	/// <param name="separator">Separator between levels (default: " > ").</param>
-	public static string GetHierarchyPath(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks, string separator = " > ")
+	public static string GetHierarchyPath(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks, [Optional, DefaultParameterValue(" > ")] string separator)
 	{
 		var path = chunk.GetPathFromRoot(allChunks);
 		return string.Join(separator, path.Select(c => c.SpecificType));
@@ -162,7 +163,7 @@ public static class ChunkTreeExtensions
 	/// <param name="allChunks">All chunks in the collection.</param>
 	/// <param name="includeDescendants">Whether to include descendants.</param>
 	/// <returns>List of cloned chunks.</returns>
-	public static List<ChunkerBase> CloneSubtree(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks, bool includeDescendants = true)
+	public static List<ChunkerBase> CloneSubtree(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks, [Optional, DefaultParameterValue(true)] bool includeDescendants)
 	{
 		var result = new List<ChunkerBase> { chunk };
 

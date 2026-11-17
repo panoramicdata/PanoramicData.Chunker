@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 namespace PanoramicData.Chunker.Models.KnowledgeGraph;
 
 /// <summary>
@@ -71,7 +72,7 @@ public class Relationship
 	/// <param name="type">The relationship type.</param>
 	/// <param name="weight">The relationship weight (default: 1.0).</param>
 	/// <param name="confidence">The confidence score (default: 1.0).</param>
-	public Relationship(Guid fromEntityId, Guid toEntityId, RelationshipType type, double weight = 1.0, double confidence = 1.0)
+	public Relationship(Guid fromEntityId, Guid toEntityId, RelationshipType type, [Optional, DefaultParameterValue(1.0)] double weight, [Optional, DefaultParameterValue(1.0)] double confidence)
 	{
 		FromEntityId = fromEntityId;
 		ToEntityId = toEntityId;
@@ -86,7 +87,7 @@ public class Relationship
 	/// <param name="chunkId">The chunk ID where evidence was found.</param>
 	/// <param name="context">The context text supporting the relationship.</param>
 	/// <param name="confidence">The confidence score for this evidence.</param>
-	public void AddEvidence(Guid chunkId, string context, double confidence = 1.0) => Evidence.Add(new RelationshipEvidence
+	public void AddEvidence(Guid chunkId, string context, [Optional, DefaultParameterValue(1.0)] double confidence) => Evidence.Add(new RelationshipEvidence
 	{
 		ChunkId = chunkId,
 		Context = context,
@@ -138,23 +139,14 @@ public class Relationship
 	/// <param name="other">The other relationship.</param>
 	/// <param name="ignoreDirection">If true, considers bidirectional equivalence.</param>
 	/// <returns>True if relationships are equivalent.</returns>
-	public bool IsEquivalentTo(Relationship other, bool ignoreDirection = false)
+	public bool IsEquivalentTo(Relationship other, [Optional, DefaultParameterValue(false)] bool ignoreDirection)
 	{
-		if (other == null)
+		if (other == null || Type != other.Type)
 		{
 			return false;
 		}
 
-		if (FromEntityId == other.FromEntityId && ToEntityId == other.ToEntityId && Type == other.Type)
-		{
-			return true;
-		}
-
-		if (ignoreDirection && FromEntityId == other.ToEntityId && ToEntityId == other.FromEntityId && Type == other.Type)
-		{
-			return true;
-		}
-
-		return false;
+		return (FromEntityId == other.FromEntityId && ToEntityId == other.ToEntityId)
+			|| (ignoreDirection && FromEntityId == other.ToEntityId && ToEntityId == other.FromEntityId);
 	}
 }

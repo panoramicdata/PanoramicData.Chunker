@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 namespace PanoramicData.Chunker.Models.KnowledgeGraph;
 
 /// <summary>
@@ -140,7 +141,7 @@ public class Graph
 	/// <param name="entityId">The entity ID.</param>
 	/// <param name="includeIncoming">If true, includes relationships where the entity is the target.</param>
 	/// <returns>List of relationships.</returns>
-	public List<Relationship> GetRelationships(Guid entityId, bool includeIncoming = true)
+	public List<Relationship> GetRelationships(Guid entityId, [Optional, DefaultParameterValue(true)] bool includeIncoming)
 	{
 		EnsureIndexes();
 		var relationships = new List<Relationship>();

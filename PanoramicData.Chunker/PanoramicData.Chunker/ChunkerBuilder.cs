@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
@@ -102,7 +103,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable image extraction.
 	/// </summary>
-	public ChunkerBuilder ExtractImages(bool extract = true)
+	public ChunkerBuilder ExtractImages([Optional, DefaultParameterValue(true)] bool extract)
 	{
 		_options.ExtractImages = extract;
 		return this;
@@ -131,7 +132,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable keyword extraction.
 	/// </summary>
-	public ChunkerBuilder ExtractKeywords(bool extract = true)
+	public ChunkerBuilder ExtractKeywords([Optional, DefaultParameterValue(true)] bool extract)
 	{
 		_options.ExtractKeywords = extract;
 		return this;
@@ -140,7 +141,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable formatting preservation.
 	/// </summary>
-	public ChunkerBuilder PreserveFormatting(bool preserve = true)
+	public ChunkerBuilder PreserveFormatting([Optional, DefaultParameterValue(true)] bool preserve)
 	{
 		_options.PreserveFormatting = preserve;
 		return this;
@@ -167,7 +168,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable streaming.
 	/// </summary>
-	public ChunkerBuilder EnableStreaming(bool enable = true)
+	public ChunkerBuilder EnableStreaming([Optional, DefaultParameterValue(true)] bool enable)
 	{
 		_options.EnableStreaming = enable;
 		return this;
@@ -204,7 +205,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable quality metrics calculation.
 	/// </summary>
-	public ChunkerBuilder IncludeQualityMetrics(bool include = true)
+	public ChunkerBuilder IncludeQualityMetrics([Optional, DefaultParameterValue(true)] bool include)
 	{
 		_options.IncludeQualityMetrics = include;
 		return this;
