@@ -57,7 +57,6 @@ public class XlsxDocumentChunkerTests : BaseTest
 		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.xlsx")))
 		{
 			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
-			var originalPosition = stream.Position;
 
 			// Act
 			var result = await _chunker.CanHandleAsync(stream, CancellationToken);

@@ -7,6 +7,10 @@ namespace PanoramicData.Chunker.Configuration;
 /// </summary>
 public class EntityPatternLoader
 {
+	protected EntityPatternLoader()
+	{
+	}
+
 	private static readonly JsonSerializerOptions _jsonOptions = new()
 	{
 		PropertyNameCaseInsensitive = true,

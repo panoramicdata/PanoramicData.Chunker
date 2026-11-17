@@ -41,7 +41,6 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		_output.WriteLine(string.Empty);
 
 		// Compare
-		var comparison = new GroundTruthComparison();
 		var results = GroundTruthComparison.Compare(extractedGraph, groundTruth);
 
 		// Report

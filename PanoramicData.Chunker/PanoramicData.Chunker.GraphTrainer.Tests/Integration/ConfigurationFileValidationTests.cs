@@ -233,10 +233,6 @@ public class ConfigurationFileValidationTests
 		var relationshipPatterns = await RelationshipPatternLoader.LoadDefaultPatternsAsync();
 		var entityConfig = await EntityPatternLoader.LoadDefaultPatternsAsync();
 
-		// Load raw configs to get version
-		var relFilePath = Path.Combine(AppContext.BaseDirectory, "Configuration", "RelationshipPatterns.json");
-		var entFilePath = Path.Combine(AppContext.BaseDirectory, "Configuration", "EntityPatterns.json");
-
 		// Both files should have version 2.0 for Phase 12
 		entityConfig.Version.Should().Be("2.0");
 		

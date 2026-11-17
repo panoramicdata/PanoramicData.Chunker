@@ -40,7 +40,7 @@ public class ChunkingOptions
 	/// Useful for preventing oversized chunks that reduce entity extraction accuracy.
 	/// Recommended: 2000 characters (~400-500 tokens) for knowledge graph extraction.
 	/// </summary>
-	public int MaxCharactersPerChunk { get; set; } = 0;
+	public int MaxCharactersPerChunk { get; set; }
 
 	/// <summary>
 	/// When splitting large content, enforce sentence boundaries to maintain semantic coherence.
@@ -51,22 +51,22 @@ public class ChunkingOptions
 	/// <summary>
 	/// Preserve formatting information in chunks.
 	/// </summary>
-	public bool PreserveFormatting { get; set; } = false;
+	public bool PreserveFormatting { get; set; }
 
 	/// <summary>
 	/// Generate Markdown representation of content.
 	/// </summary>
-	public bool GenerateMarkdown { get; set; } = false;
+	public bool GenerateMarkdown { get; set; }
 
 	/// <summary>
 	/// Extract keywords from content.
 	/// </summary>
-	public bool ExtractKeywords { get; set; } = false;
+	public bool ExtractKeywords { get; set; }
 
 	/// <summary>
 	/// Generate summaries for structural chunks.
 	/// </summary>
-	public bool GenerateSummaries { get; set; } = false;
+	public bool GenerateSummaries { get; set; }
 
 	// Images
 	/// <summary>
@@ -77,7 +77,7 @@ public class ChunkingOptions
 	/// <summary>
 	/// Generate AI descriptions for images.
 	/// </summary>
-	public bool GenerateImageDescriptions { get; set; } = false;
+	public bool GenerateImageDescriptions { get; set; }
 
 	/// <summary>
 	/// Image description provider.
@@ -141,7 +141,7 @@ public class ChunkingOptions
 	/// <summary>
 	/// Enable streaming for large documents.
 	/// </summary>
-	public bool EnableStreaming { get; set; } = false;
+	public bool EnableStreaming { get; set; }
 
 	/// <summary>
 	/// Batch size for processing.
@@ -156,7 +156,7 @@ public class ChunkingOptions
 	/// <summary>
 	/// Enable caching of chunking results.
 	/// </summary>
-	public bool EnableCaching { get; set; } = false;
+	public bool EnableCaching { get; set; }
 
 	/// <summary>
 	/// Cache provider implementation.
@@ -172,7 +172,7 @@ public class ChunkingOptions
 	/// <summary>
 	/// Enable detailed logging.
 	/// </summary>
-	public bool EnableDetailedLogging { get; set; } = false;
+	public bool EnableDetailedLogging { get; set; }
 
 	// LLM Provider
 	/// <summary>
@@ -184,7 +184,7 @@ public class ChunkingOptions
 	/// <summary>
 	/// Enable LLM-based chunk enrichment.
 	/// </summary>
-	public bool EnableLLMEnrichment { get; set; } = false;
+	public bool EnableLLMEnrichment { get; set; }
 
 	/// <summary>
 	/// LLM enrichment options.
@@ -195,7 +195,7 @@ public class ChunkingOptions
 	/// <summary>
 	/// Enable knowledge graph extraction from chunks.
 	/// </summary>
-	public bool EnableKnowledgeGraph { get; set; } = false;
+	public bool EnableKnowledgeGraph { get; set; }
 
 	/// <summary>
 	/// Knowledge graph extraction options.

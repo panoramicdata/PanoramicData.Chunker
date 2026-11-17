@@ -62,7 +62,7 @@ public class KnowledgeGraphOptions
 	/// <summary>
 	/// Gets or sets a value indicating whether to store the graph in PostgreSQL + Apache AGE.
 	/// </summary>
-	public bool EnableGraphStorage { get; set; } = false;
+	public bool EnableGraphStorage { get; set; }
 
 	/// <summary>
 	/// Gets or sets the PostgreSQL connection string for graph storage.

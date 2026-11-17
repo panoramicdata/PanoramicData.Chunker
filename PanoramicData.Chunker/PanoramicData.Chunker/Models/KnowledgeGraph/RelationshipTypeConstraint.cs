@@ -25,7 +25,7 @@ public class RelationshipTypeConstraint
 	/// <summary>
 	/// Gets or sets the minimum confidence score required for this relationship type.
 	/// </summary>
-	public double MinConfidence { get; set; } = 0.0;
+	public double MinConfidence { get; set; }
 
 	/// <summary>
 	/// Gets or sets whether evidence is required for this relationship type.

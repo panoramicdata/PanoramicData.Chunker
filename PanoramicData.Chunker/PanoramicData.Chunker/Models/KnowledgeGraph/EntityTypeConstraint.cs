@@ -18,7 +18,7 @@ public class EntityTypeConstraint
 	/// <summary>
 	/// Gets or sets the minimum confidence score required for this entity type.
 	/// </summary>
-	public double MinConfidence { get; set; } = 0.0;
+	public double MinConfidence { get; set; }
 
 	/// <summary>
 	/// Gets or sets whether this entity type allows aliases.

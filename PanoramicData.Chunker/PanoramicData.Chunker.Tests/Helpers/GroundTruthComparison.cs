@@ -112,7 +112,7 @@ public enum MissCategory
 /// <summary>
 /// Compares extracted knowledge graph against ground truth relationships.
 /// </summary>
-public class GroundTruthComparison
+public static class GroundTruthComparison
 {
 	/// <summary>
 	/// Compares the extracted graph against ground truth.
@@ -209,96 +209,54 @@ public class GroundTruthComparison
 
 	private static Entity? FindEntity(Graph graph, string name)
 	{
-		// Step 1: Exact match
-		var entity = graph.GetEntitiesByName(name).FirstOrDefault();
-		if (entity != null) return entity;
-
-		// Step 2: Normalized match
 		var normalized = name.ToLowerInvariant().Trim();
-		entity = graph.Entities.FirstOrDefault(e =>
-			e.NormalizedName == normalized);
-		if (entity != null) return entity;
-
-		// Step 3: Alias match
-		entity = graph.Entities.FirstOrDefault(e =>
-			e.Aliases.Contains(name, StringComparer.OrdinalIgnoreCase));
-		if (entity != null) return entity;
-
-		// Step 4: Partial match (e.g., "Charles Darwin" -> "Darwin")
-		entity = graph.Entities.FirstOrDefault(e =>
-			e.Name.Contains(name, StringComparison.OrdinalIgnoreCase) ||
-			name.Contains(e.Name, StringComparison.OrdinalIgnoreCase));
-		if (entity != null) return entity;
-
-		// Step 5: NEW - Fuzzy word-by-word match for multi-word entities
-		// Handles cases like "HMS Beagle" matching "Beagle" or "'Beagle'"
 		var nameWords = SplitIntoSignificantWords(name);
-		if (nameWords.Count > 0)
+
+		return graph.GetEntitiesByName(name).FirstOrDefault()
+			?? graph.Entities.FirstOrDefault(e => e.NormalizedName == normalized)
+			?? graph.Entities.FirstOrDefault(e => e.Aliases.Contains(name, StringComparer.OrdinalIgnoreCase))
+			?? graph.Entities.FirstOrDefault(e => ContainsEitherWay(e.Name, name))
+			?? graph.Entities.FirstOrDefault(e => IsWordOverlapMatch(nameWords, e.Name))
+			?? graph.Entities.FirstOrDefault(e => e.Aliases.Any(alias => ContainsEitherWay(alias, name)));
+	}
+
+	private static bool ContainsEitherWay(string a, string b)
+		=> a.Contains(b, StringComparison.OrdinalIgnoreCase) || b.Contains(a, StringComparison.OrdinalIgnoreCase);
+
+	private static bool IsWordOverlapMatch(HashSet<string> nameWords, string entityName)
+	{
+		var entityWords = SplitIntoSignificantWords(entityName);
+		if (nameWords.Count == 0 || entityWords.Count == 0)
 		{
-			entity = graph.Entities.FirstOrDefault(e =>
-			{
-				var entityWords = SplitIntoSignificantWords(e.Name);
-				if (entityWords.Count == 0) return false;
-
-				// Calculate overlap: if 80%+ of words match, consider it a match
-				var matchCount = nameWords.Intersect(entityWords, StringComparer.OrdinalIgnoreCase).Count();
-				var minWords = Math.Min(nameWords.Count, entityWords.Count);
-				var maxWords = Math.Max(nameWords.Count, entityWords.Count);
-
-				// If one is a subset of the other (e.g., "Beagle" and "HMS Beagle")
-				if (matchCount == minWords && maxWords - minWords <= 1)
-				{
-					return true;
-				}
-
-				// If 80%+ overlap
-				return (double)matchCount / maxWords >= 0.8;
-			});
-			if (entity != null) return entity;
+			return false;
 		}
 
-		// Step 6: NEW - Check if ground truth name appears in entity aliases
-		entity = graph.Entities.FirstOrDefault(e =>
-		{
-			// Check if any alias contains the search name
-			return e.Aliases.Any(alias =>
-				alias.Contains(name, StringComparison.OrdinalIgnoreCase) ||
-				name.Contains(alias, StringComparison.OrdinalIgnoreCase));
-		});
+		var matchCount = nameWords.Intersect(entityWords, StringComparer.OrdinalIgnoreCase).Count();
+		var minWords = Math.Min(nameWords.Count, entityWords.Count);
+		var maxWords = Math.Max(nameWords.Count, entityWords.Count);
 
-		return entity;
+		return (matchCount == minWords && maxWords - minWords <= 1)
+			|| (double)matchCount / maxWords >= 0.8;
 	}
 
 	/// <summary>
 	/// Splits a name into significant words, filtering out common particles.
 	/// </summary>
 	private static HashSet<string> SplitIntoSignificantWords(string name)
-	{
-		var words = name.Split([' ', '\'', '"', ','], StringSplitOptions.RemoveEmptyEntries)
+		=> name.Split([' ', '\'', '"', ','], StringSplitOptions.RemoveEmptyEntries)
 			.Select(w => w.ToLowerInvariant().Trim())
-			.Where(w => w.Length > 2) // Skip very short words
-			.Where(w => w is not "the" and not "of" and not "and" and not "for") // Skip common particles
+			.Where(w => w.Length > 2)
+			.Where(w => w is not "the" and not "of" and not "and" and not "for")
 			.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-		return words;
-	}
-
 	private static string DetermineMissReason(Graph graph, GroundTruthRelationship gt)
-	{
-		var entity1 = FindEntity(graph, gt.Entity1);
-		var entity2 = FindEntity(graph, gt.Entity2);
-
-		if (entity1 == null)
-			return $"Entity '{gt.Entity1}' not extracted";
-		if (entity2 == null)
-			return $"Entity '{gt.Entity2}' not extracted";
-
-		var relationships = graph.GetRelationships(entity1.Id);
-		if (!relationships.Any(r => r.ToEntityId == entity2.Id))
-			return "No relationship detected between entities";
-
-		return "Relationship type mismatch";
-	}
+		=> CategorizeMiss(graph, gt) switch
+		{
+			MissCategory.EntityNotExtracted when FindEntity(graph, gt.Entity1) == null => $"Entity '{gt.Entity1}' not extracted",
+			MissCategory.EntityNotExtracted => $"Entity '{gt.Entity2}' not extracted",
+			MissCategory.RelationshipNotDetected => "No relationship detected between entities",
+			_ => "Relationship type mismatch"
+		};
 
 	private static MissCategory CategorizeMiss(Graph graph, GroundTruthRelationship gt)
 	{
@@ -306,12 +264,12 @@ public class GroundTruthComparison
 		var entity2 = FindEntity(graph, gt.Entity2);
 
 		if (entity1 == null || entity2 == null)
+		{
 			return MissCategory.EntityNotExtracted;
+		}
 
-		var relationships = graph.GetRelationships(entity1.Id);
-		if (!relationships.Any(r => r.ToEntityId == entity2.Id))
-			return MissCategory.RelationshipNotDetected;
-
-		return MissCategory.WrongRelationshipType;
+		return graph.GetRelationships(entity1.Id).Any(r => r.ToEntityId == entity2.Id)
+			? MissCategory.WrongRelationshipType
+			: MissCategory.RelationshipNotDetected;
 	}
 }

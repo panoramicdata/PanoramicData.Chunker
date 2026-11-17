@@ -2,7 +2,10 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using PanoramicData.Chunker.Interfaces.KnowledgeGraph;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace PanoramicData.Chunker.KnowledgeGraph.Storage;
 
@@ -15,7 +18,7 @@ namespace PanoramicData.Chunker.KnowledgeGraph.Storage;
 /// <param name="connectionString">PostgreSQL connection string.</param>
 /// <param name="graphName">Apache AGE graph name.</param>
 /// <param name="logger">Logger instance.</param>
-public class ApacheAgeCypherExecutor(
+public partial class ApacheAgeCypherExecutor(
 	string connectionString,
 	string graphName,
 	ILogger<ApacheAgeCypherExecutor> logger) : ICypherQueryExecutor
@@ -23,6 +26,9 @@ public class ApacheAgeCypherExecutor(
 	private readonly string _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
 	private readonly string _graphName = graphName ?? throw new ArgumentNullException(nameof(graphName));
 	private readonly ILogger<ApacheAgeCypherExecutor> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+	[GeneratedRegex("^[A-Za-z_][A-Za-z0-9_]*$")]
+	private static partial Regex GraphNameRegex();
 
 	/// <inheritdoc/>
 	public async Task<IEnumerable<T>> ExecuteQueryAsync<T>(
@@ -32,30 +38,18 @@ public class ApacheAgeCypherExecutor(
 	{
 		_logger.LogInformation("Executing Cypher query: {Query}", cypherQuery);
 
-		await using var connection = new NpgsqlConnection(_connectionString);
-		await connection.OpenAsync(cancellationToken);
-
-		// Set the search path to include the AGE extension
-		await using (var cmd = new NpgsqlCommand("SET search_path = ag_catalog, \"$user\", public;", connection))
-		{
-			await cmd.ExecuteNonQueryAsync(cancellationToken);
-		}
-
-		// Build the Cypher query with parameters
-		var query = BuildCypherQuery(cypherQuery, parameters);
-
-		await using var command = new NpgsqlCommand(query, connection);
-		await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+		await using var connection = await OpenConnectionAsync(cancellationToken);
+		await using var batch = CreateBatch(connection, BuildCypherQuery(cypherQuery, parameters));
+		await using var reader = await batch.ExecuteReaderAsync(cancellationToken);
 
 		var results = new List<T>();
 		while (await reader.ReadAsync(cancellationToken))
 		{
 			// Apache AGE returns results as JSON, parse them
-			var jsonResult = reader.GetString(0);
-			var result = JsonSerializer.Deserialize<T>(jsonResult);
-			if (result != null)
+			var result = JsonSerializer.Deserialize<T>(reader.GetString(0));
+			if (!EqualityComparer<T>.Default.Equals(result, default))
 			{
-				results.Add(result);
+				results.Add(result!);
 			}
 		}
 
@@ -71,20 +65,9 @@ public class ApacheAgeCypherExecutor(
 	{
 		_logger.LogInformation("Executing raw Cypher query: {Query}", cypherQuery);
 
-		await using var connection = new NpgsqlConnection(_connectionString);
-		await connection.OpenAsync(cancellationToken);
-
-		// Set the search path to include the AGE extension
-		await using (var cmd = new NpgsqlCommand("SET search_path = ag_catalog, \"$user\", public;", connection))
-		{
-			await cmd.ExecuteNonQueryAsync(cancellationToken);
-		}
-
-		// Build the Cypher query
-		var query = BuildCypherQuery(cypherQuery, parameters);
-
-		await using var command = new NpgsqlCommand(query, connection);
-		await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+		await using var connection = await OpenConnectionAsync(cancellationToken);
+		await using var batch = CreateBatch(connection, BuildCypherQuery(cypherQuery, parameters));
+		await using var reader = await batch.ExecuteReaderAsync(cancellationToken);
 
 		var results = new List<Dictionary<string, object>>();
 		while (await reader.ReadAsync(cancellationToken))
@@ -92,9 +75,9 @@ public class ApacheAgeCypherExecutor(
 			var row = new Dictionary<string, object>();
 			for (var i = 0; i < reader.FieldCount; i++)
 			{
-				var value = reader.GetValue(i);
-				row[reader.GetName(i)] = value;
+				row[reader.GetName(i)] = reader.GetValue(i);
 			}
+
 			results.Add(row);
 		}
 
@@ -113,7 +96,7 @@ public class ApacheAgeCypherExecutor(
 
 		var cypherQuery = $@"
 			MATCH path = shortestPath(
-				(from:Entity {{Id: '{fromEntityId}'}})-[*..{maxHops}]-(to:Entity {{Id: '{toEntityId}'}})
+				(from:Entity {{Id: '{fromEntityId}'}})-[*..{maxHops.ToString(CultureInfo.InvariantCulture)}]-(to:Entity {{Id: '{toEntityId}'}})
 			)
 			RETURN [node IN nodes(path) | node.Id] AS entityIds
 		";
@@ -139,7 +122,7 @@ public class ApacheAgeCypherExecutor(
 			: "";
 
 		var cypherQuery = $@"
-			MATCH (start:Entity {{Id: '{entityId}'}})-[{relationshipFilter}*1..{depth}]-(neighbor:Entity)
+			MATCH (start:Entity {{Id: '{entityId}'}})-[{relationshipFilter}*1..{depth.ToString(CultureInfo.InvariantCulture)}]-(neighbor:Entity)
 			RETURN DISTINCT neighbor
 		";
 
@@ -168,41 +151,11 @@ public class ApacheAgeCypherExecutor(
 		var rawResults = await ExecuteQueryRawAsync(cypherQuery, null, cancellationToken);
 
 		var result = new CypherMatchResult();
-
-		// Parse results into entities and relationships
-		foreach (var row in rawResults)
+		foreach (var kvp in rawResults.SelectMany(row => row))
 		{
-			foreach (var kvp in row)
+			if (kvp.Value is string json && !string.IsNullOrEmpty(json))
 			{
-				if (kvp.Value is string json && !string.IsNullOrEmpty(json))
-				{
-					try
-					{
-						// Try to deserialize as Entity
-						var entity = JsonSerializer.Deserialize<Entity>(json);
-						if (entity != null && !result.Entities.Any(e => e.Id == entity.Id))
-						{
-							result.Entities.Add(entity);
-						}
-					}
-					catch
-					{
-						try
-						{
-							// Try to deserialize as Relationship
-							var relationship = JsonSerializer.Deserialize<Relationship>(json);
-							if (relationship != null && !result.Relationships.Any(r => r.Id == relationship.Id))
-							{
-								result.Relationships.Add(relationship);
-							}
-						}
-						catch
-						{
-							// Store as additional data if not an entity or relationship
-							result.AdditionalData[kvp.Key] = kvp.Value;
-						}
-					}
-				}
+				AddParsedResult(result, kvp.Key, json);
 			}
 		}
 
@@ -212,33 +165,117 @@ public class ApacheAgeCypherExecutor(
 		return result;
 	}
 
+	private static void AddParsedResult(CypherMatchResult result, string key, string json)
+	{
+		try
+		{
+			var entity = JsonSerializer.Deserialize<Entity>(json);
+			if (entity != null && !result.Entities.Any(e => e.Id == entity.Id))
+			{
+				result.Entities.Add(entity);
+			}
+		}
+		catch (JsonException)
+		{
+			AddRelationshipOrData(result, key, json);
+		}
+	}
+
+	private static void AddRelationshipOrData(CypherMatchResult result, string key, string json)
+	{
+		try
+		{
+			var relationship = JsonSerializer.Deserialize<Relationship>(json);
+			if (relationship != null && !result.Relationships.Any(r => r.Id == relationship.Id))
+			{
+				result.Relationships.Add(relationship);
+			}
+		}
+		catch (JsonException)
+		{
+			result.AdditionalData[key] = json;
+		}
+	}
+
+	private async Task<NpgsqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+	{
+		var connection = new NpgsqlConnection(_connectionString);
+		try
+		{
+			await connection.OpenAsync(cancellationToken);
+
+			// Set the search path to include the AGE extension
+			await using var cmd = new NpgsqlCommand("SET search_path = ag_catalog, \"$user\", public;", connection);
+			await cmd.ExecuteNonQueryAsync(cancellationToken);
+			return connection;
+		}
+		catch
+		{
+			await connection.DisposeAsync();
+			throw;
+		}
+	}
+
+	private static NpgsqlBatch CreateBatch(NpgsqlConnection connection, string query)
+	{
+		var batch = connection.CreateBatch();
+		batch.BatchCommands.Add(new NpgsqlBatchCommand(query));
+		return batch;
+	}
+
 	/// <summary>
-	/// Builds a Cypher query for Apache AGE with parameters.
+	/// Builds a Cypher query for Apache AGE, inlining escaped parameter values.
 	/// </summary>
 	private string BuildCypherQuery(string cypherQuery, Dictionary<string, object>? parameters)
 	{
-		// Apache AGE requires wrapping Cypher queries in a SELECT statement
-		var query = $"SELECT * FROM ag_catalog.cypher('{_graphName}', $$\n{cypherQuery}\n$$) AS (result agtype);";
+		if (!GraphNameRegex().IsMatch(_graphName))
+		{
+			throw new InvalidOperationException($"Invalid Apache AGE graph name '{_graphName}'. Use letters, digits and underscores only.");
+		}
 
-		// Replace parameters in the query (simple implementation - should be enhanced for production)
+		if (cypherQuery.Contains("$$", StringComparison.Ordinal))
+		{
+			throw new ArgumentException("Cypher text must not contain a dollar-quote terminator.", nameof(cypherQuery));
+		}
+
+		// Apache AGE requires a constant graph name, so the validated name is part of the statement text
+		var query = string.Concat("SELECT * FROM ag_catalog.cypher('", _graphName, "', $$\n", cypherQuery, "\n$$) AS (result agtype);");
+
 		if (parameters != null)
 		{
 			foreach (var param in parameters)
 			{
-				var value = param.Value switch
-				{
-					string s => $"'{s}'",
-					Guid g => $"'{g}'",
-					int i => i.ToString(),
-					double d => d.ToString(),
-					bool b => b.ToString().ToLower(),
-					_ => JsonSerializer.Serialize(param.Value)
-				};
-
-				query = query.Replace($"${param.Key}", value);
+				query = query.Replace($"${param.Key}", FormatParameterValue(param.Value), StringComparison.Ordinal);
 			}
 		}
 
 		return query;
+	}
+
+	private static string FormatParameterValue(object? value) => value switch
+	{
+		string s => $"'{EscapeCypherString(s)}'",
+		Guid g => $"'{g}'",
+		int i => i.ToString(CultureInfo.InvariantCulture),
+		double d => d.ToString(CultureInfo.InvariantCulture),
+		bool b => b ? "true" : "false",
+		_ => JsonSerializer.Serialize(value).Replace("$", "\\u0024", StringComparison.Ordinal)
+	};
+
+	private static string EscapeCypherString(string value)
+	{
+		var builder = new StringBuilder(value.Length);
+		foreach (var c in value)
+		{
+			_ = c switch
+			{
+				'\\' => builder.Append("\\\\"),
+				'\'' => builder.Append("\\'"),
+				'$' => builder.Append("\\u0024"),
+				_ => builder.Append(c)
+			};
+		}
+
+		return builder.ToString();
 	}
 }

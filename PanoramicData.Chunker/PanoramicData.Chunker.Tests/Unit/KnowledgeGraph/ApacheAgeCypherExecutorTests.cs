@@ -104,7 +104,6 @@ public class ApacheAgeCypherExecutorTests(ITestOutputHelper output) : BaseTest(o
 	{
 		// Arrange
 		var executor = CreateExecutor();
-		var testGuid = Guid.NewGuid();
 
 		// Act & Assert
 		executor.Should().NotBeNull();
@@ -327,8 +326,6 @@ public class ApacheAgeCypherExecutorTests(ITestOutputHelper output) : BaseTest(o
 	{
 		// Arrange
 		var executor = CreateExecutor();
-		var fromId = Guid.NewGuid();
-		var toId = Guid.NewGuid();
 
 		// Act & Assert
 		executor.Should().NotBeNull();
@@ -339,7 +336,6 @@ public class ApacheAgeCypherExecutorTests(ITestOutputHelper output) : BaseTest(o
 	{
 		// Arrange
 		var executor = CreateExecutor();
-		var entityId = Guid.NewGuid();
 
 		// Act & Assert
 		executor.Should().NotBeNull();

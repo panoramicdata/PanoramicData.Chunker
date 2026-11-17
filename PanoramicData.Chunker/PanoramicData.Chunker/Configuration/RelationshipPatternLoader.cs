@@ -9,6 +9,10 @@ namespace PanoramicData.Chunker.Configuration;
 /// </summary>
 public class RelationshipPatternLoader
 {
+	protected RelationshipPatternLoader()
+	{
+	}
+
 	private static readonly JsonSerializerOptions _jsonOptions = new()
 	{
 		PropertyNameCaseInsensitive = true,
