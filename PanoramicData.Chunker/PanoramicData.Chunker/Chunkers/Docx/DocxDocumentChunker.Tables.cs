@@ -41,9 +41,9 @@ public partial class DocxDocumentChunker
 		return new DocxTableChunk
 		{
 			Content = serializedTable,
-			TableStyle = properties?.TableStyle?.Val?.Value,
-			Caption = properties?.TableCaption?.Val?.Value,
-			Description = properties?.TableDescription?.Val?.Value,
+			TableStyle = GetTableStyle(properties),
+			Caption = GetTableCaption(properties),
+			Description = GetTableDescription(properties),
 			HasBandedRows = false,
 			HasBandedColumns = false,
 			Position = "inline",
@@ -52,19 +52,27 @@ public partial class DocxDocumentChunker
 			SpecificType = "table",
 			SerializedTable = serializedTable,
 			SerializationFormat = TableSerializationFormat.Markdown,
-			TableInfo = new TableMetadata
-			{
-				RowCount = tableData.Count,
-				ColumnCount = GetColumnCount(headers, tableData),
-				Headers = [.. headers],
-				HasHeaderRow = hasHeaderRow,
-				HasMergedCells = HasMergedCells(table),
-				PreferredFormat = TableSerializationFormat.Markdown
-			},
+			TableInfo = CreateTableInfo(table, hasHeaderRow, headers, tableData),
 			Metadata = CreateMetadata("table", "table"),
 			QualityMetrics = CalculateQualityMetrics(allText)
 		};
 	}
+
+	private static string? GetTableStyle(TableProperties? properties) => properties?.TableStyle?.Val?.Value;
+
+	private static string? GetTableCaption(TableProperties? properties) => properties?.TableCaption?.Val?.Value;
+
+	private static string? GetTableDescription(TableProperties? properties) => properties?.TableDescription?.Val?.Value;
+
+	private static TableMetadata CreateTableInfo(Table table, bool hasHeaderRow, List<string> headers, List<List<string>> tableData) => new()
+	{
+		RowCount = tableData.Count,
+		ColumnCount = GetColumnCount(headers, tableData),
+		Headers = [.. headers],
+		HasHeaderRow = hasHeaderRow,
+		HasMergedCells = HasMergedCells(table),
+		PreferredFormat = TableSerializationFormat.Markdown
+	};
 
 	private static int GetColumnCount(List<string> headers, List<List<string>> tableData)
 	{
