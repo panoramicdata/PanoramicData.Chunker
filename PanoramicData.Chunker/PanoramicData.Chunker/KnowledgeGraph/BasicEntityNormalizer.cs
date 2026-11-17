@@ -68,28 +68,18 @@ public partial class BasicEntityNormalizer : IEntityNormalizer
 	/// <inheritdoc/>
 	public List<string> GenerateAliases(string name, EntityType entityType)
 	{
-		var aliases = new List<string>();
-
 		if (string.IsNullOrWhiteSpace(name))
 		{
-			return aliases;
+			return [];
 		}
 
-		// Type-specific alias generation
-		switch (entityType)
+		IEnumerable<string> aliases = entityType switch
 		{
-			case EntityType.Person:
-				aliases.AddRange(GeneratePersonAliases(name));
-				break;
-
-			case EntityType.Organization:
-				aliases.AddRange(GenerateOrganizationAliases(name));
-				break;
-
-			case EntityType.Keyword:
-				aliases.AddRange(GenerateKeywordAliases(name));
-				break;
-		}
+			EntityType.Person => GeneratePersonAliases(name),
+			EntityType.Organization => GenerateOrganizationAliases(name),
+			EntityType.Keyword => GenerateKeywordAliases(name),
+			_ => []
+		};
 
 		// Remove duplicates and the original name
 		return [.. aliases

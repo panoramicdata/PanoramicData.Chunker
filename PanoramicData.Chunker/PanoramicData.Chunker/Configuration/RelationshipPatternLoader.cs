@@ -163,37 +163,9 @@ public class RelationshipPatternLoader
 				return result;
 			}
 
-			// Validate each pattern
 			foreach (var pattern in config.Patterns)
 			{
-				// Test regex compilation
-				try
-				{
-					_ = pattern.CompileRegex();
-				}
-				catch (Exception ex)
-				{
-					result.IsValid = false;
-					result.Errors.Add($"Pattern '{pattern.Name}': Invalid regex - {ex.Message}");
-				}
-
-				// Validate relationship type
-				try
-				{
-					_ = pattern.GetRelationshipType();
-				}
-				catch (Exception ex)
-				{
-					result.IsValid = false;
-					result.Errors.Add($"Pattern '{pattern.Name}': {ex.Message}");
-				}
-
-				// Validate confidence range
-				if (pattern.Confidence is < 0.0 or > 1.0)
-				{
-					result.IsValid = false;
-					result.Errors.Add($"Pattern '{pattern.Name}': Confidence must be between 0.0 and 1.0");
-				}
+				ValidatePattern(pattern, result);
 			}
 
 			result.PatternCount = config.Patterns.Count;
@@ -206,6 +178,31 @@ public class RelationshipPatternLoader
 		}
 
 		return result;
+	}
+
+	private static void ValidatePattern(RelationshipPatternDefinition pattern, PatternValidationResult result)
+	{
+		TryValidate(() => pattern.CompileRegex(), $"Pattern '{pattern.Name}': Invalid regex - ", result);
+		TryValidate(() => pattern.GetRelationshipType(), $"Pattern '{pattern.Name}': ", result);
+
+		if (pattern.Confidence is < 0.0 or > 1.0)
+		{
+			result.IsValid = false;
+			result.Errors.Add($"Pattern '{pattern.Name}': Confidence must be between 0.0 and 1.0");
+		}
+	}
+
+	private static void TryValidate(Action validation, string errorPrefix, PatternValidationResult result)
+	{
+		try
+		{
+			validation();
+		}
+		catch (Exception ex)
+		{
+			result.IsValid = false;
+			result.Errors.Add($"{errorPrefix}{ex.Message}");
+		}
 	}
 
 	/// <summary>

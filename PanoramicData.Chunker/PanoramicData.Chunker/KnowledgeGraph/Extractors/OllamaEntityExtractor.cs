@@ -185,99 +185,84 @@ Output format:
 
 	private List<Entity> ParseNerResponse(string response, string sourceText, Guid chunkId)
 	{
-		var entities = new List<Entity>();
+		var json = ExtractEntitiesJson(response);
+		if (json == null)
+		{
+			return [];
+		}
 
 		try
 		{
-			// Try to extract JSON from response
-			var jsonMatch = Regex.Match(response, @"\{.*\}", RegexOptions.Singleline);
-			if (!jsonMatch.Success)
-			{
-				// Try to find just the entities array
-				jsonMatch = Regex.Match(response, @"""entities"":\s*\[(.*?)\]", RegexOptions.Singleline);
-				if (jsonMatch.Success)
-				{
-					response = $"{{\"entities\":[{jsonMatch.Groups[1].Value}]}}";
-				}
-				else
-				{
-					return entities;
-				}
-			}
-			else
-			{
-				response = jsonMatch.Value;
-			}
+			using var doc = JsonDocument.Parse(json);
 
-			var doc = JsonDocument.Parse(response);
-			if (!doc.RootElement.TryGetProperty("entities", out var entitiesArray))
-			{
-				return entities;
-			}
-
-			foreach (var entityElement in entitiesArray.EnumerateArray())
-			{
-				if (!entityElement.TryGetProperty("name", out var nameElement) ||
-					!entityElement.TryGetProperty("type", out var typeElement))
-				{
-					continue;
-				}
-
-				var name = nameElement.GetString();
-				var typeStr = typeElement.GetString();
-
-				if (string.IsNullOrWhiteSpace(name))
-				{
-					continue;
-				}
-
-				var entityType = MapEntityType(typeStr ?? "UNKNOWN");
-
-				// Find position in source text
-				var position = sourceText.IndexOf(name, StringComparison.OrdinalIgnoreCase);
-				if (position < 0)
-				{
-					// Try case-sensitive
-					position = sourceText.IndexOf(name, StringComparison.Ordinal);
-				}
-
-				var entity = new Entity(entityType, name, confidence: 0.9)
-				{
-					Frequency = 1,
-					Metadata = new EntityMetadata
-					{
-						ExtractorName = Name,
-						ExtractorVersion = Version,
-						ExtractedAt = DateTimeOffset.UtcNow,
-						ExtractionDetails = new Dictionary<string, object>
-						{
-							["extraction_method"] = "llm_ner",
-							["model"] = _modelName,
-							["llm_classified_type"] = typeStr ?? "UNKNOWN"
-						}
-					}
-				};
-
-				if (position >= 0)
-				{
-					entity.AddSource(chunkId, position, GetContext(sourceText, position, name.Length));
-				}
-
-				// Generate aliases
-				entity.Aliases = GenerateAliases(name);
-
-				entities.Add(entity);
-			}
+			return doc.RootElement.TryGetProperty("entities", out var entitiesArray)
+				? [.. entitiesArray.EnumerateArray()
+					.Select(element => CreateEntity(element, sourceText, chunkId))
+					.OfType<Entity>()]
+				: [];
 		}
 		catch (JsonException ex)
 		{
 			Console.WriteLine($"Failed to parse NER response as JSON: {ex.Message}");
-			Console.WriteLine($"Response: {response}");
+			Console.WriteLine($"Response: {json}");
+			return [];
 		}
-
-		return entities;
 	}
 
+	private static string? ExtractEntitiesJson(string response)
+	{
+		var jsonMatch = Regex.Match(response, @"\{.*\}", RegexOptions.Singleline);
+		if (jsonMatch.Success)
+		{
+			return jsonMatch.Value;
+		}
+
+		// Fall back to just the entities array
+		var arrayMatch = Regex.Match(response, @"""entities"":\s*\[(.*?)\]", RegexOptions.Singleline);
+		return arrayMatch.Success ? $"{{\"entities\":[{arrayMatch.Groups[1].Value}]}}" : null;
+	}
+
+	private Entity? CreateEntity(JsonElement element, string sourceText, Guid chunkId)
+	{
+		if (!element.TryGetProperty("name", out var nameElement) || !element.TryGetProperty("type", out var typeElement))
+		{
+			return null;
+		}
+
+		var name = nameElement.GetString();
+		if (string.IsNullOrWhiteSpace(name))
+		{
+			return null;
+		}
+
+		var typeStr = typeElement.GetString();
+
+		var entity = new Entity(MapEntityType(typeStr ?? "UNKNOWN"), name, confidence: 0.9)
+		{
+			Frequency = 1,
+			Metadata = new EntityMetadata
+			{
+				ExtractorName = Name,
+				ExtractorVersion = Version,
+				ExtractedAt = DateTimeOffset.UtcNow,
+				ExtractionDetails = new Dictionary<string, object>
+				{
+					["extraction_method"] = "llm_ner",
+					["model"] = _modelName,
+					["llm_classified_type"] = typeStr ?? "UNKNOWN"
+				}
+			},
+			Aliases = GenerateAliases(name)
+		};
+
+		var position = sourceText.IndexOf(name, StringComparison.OrdinalIgnoreCase);
+		if (position >= 0)
+		{
+			entity.AddSource(chunkId, position, GetContext(sourceText, position, name.Length));
+		}
+
+		return entity;
+	}
 	private static EntityType MapEntityType(string llmType) => llmType.ToUpperInvariant() switch
 	{
 		"PERSON" => EntityType.Person,
@@ -290,47 +275,42 @@ Output format:
 		_ => EntityType.ProperNoun
 	};
 
+	private static readonly string[] TitlePrefixes = ["Professor", "Captain", "Dr.", "Dr", "Sir", "Lord", "Mr.", "Mr"];
+
 	private static List<string> GenerateAliases(string name)
 	{
 		var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-		// Remove quotes
 		if (name.Contains('\'') || name.Contains('"'))
 		{
 			aliases.Add(name.Replace("'", "").Replace("\"", ""));
 		}
 
-		// HMS/USS prefix
-		if (name.StartsWith("HMS ", StringComparison.OrdinalIgnoreCase) ||
-			name.StartsWith("USS ", StringComparison.OrdinalIgnoreCase))
+		if (name.StartsWith("HMS ", StringComparison.OrdinalIgnoreCase) || name.StartsWith("USS ", StringComparison.OrdinalIgnoreCase))
 		{
 			aliases.Add(name[4..]);
 		}
 
-		// Multi-word: last name
-		if (name.Contains(' '))
+		var lastName = GetLastName(name);
+		if (lastName != null)
 		{
-			var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-			if (words.Length > 1 && words[^1].Length > 2)
-			{
-				aliases.Add(words[^1]);
-			}
+			aliases.Add(lastName);
 		}
 
-		// Title removal
-		var titlePrefixes = new[] { "Professor", "Captain", "Dr.", "Dr", "Sir", "Lord", "Mr.", "Mr" };
-		foreach (var prefix in titlePrefixes)
+		foreach (var prefix in TitlePrefixes.Where(prefix => name.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase)))
 		{
-			if (name.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase))
-			{
-				aliases.Add(name[(prefix.Length + 1)..]);
-			}
+			aliases.Add(name[(prefix.Length + 1)..]);
 		}
 
 		aliases.Remove(name);
 		return [.. aliases.Where(a => !string.IsNullOrWhiteSpace(a))];
 	}
 
+	private static string? GetLastName(string name)
+	{
+		var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+		return words.Length > 1 && words[^1].Length > 2 ? words[^1] : null;
+	}
 	private static string GetChunkContent(ChunkerBase chunk)
 	{
 		if (chunk is ContentChunk contentChunk)
@@ -346,8 +326,15 @@ Output format:
 		var end = Math.Min(text.Length, position + length + contextSize);
 		var context = text[start..end];
 
-		if (start > 0) context = "..." + context;
-		if (end < text.Length) context += "...";
+		if (start > 0)
+		{
+			context = "..." + context;
+		}
+
+		if (end < text.Length)
+		{
+			context += "...";
+		}
 
 		return context;
 	}

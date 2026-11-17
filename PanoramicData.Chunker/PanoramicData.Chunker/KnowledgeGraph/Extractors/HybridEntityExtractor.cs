@@ -157,6 +157,20 @@ public class HybridEntityExtractor(
 		return merged;
 	}
 
+	private static readonly string[] TitlePrefixes = ["Professor", "Captain", "Dr.", "Dr", "Sir", "Lord", "Mr.", "Mr", "Mrs.", "Mrs", "Miss", "Ms.", "Ms"];
+
+	// Multi-word names: the last word (e.g. "Robert Grant" gives "Grant") and the first word, when substantial
+	private static IEnumerable<string> GetEdgeWordAliases(string name)
+	{
+		var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+		if (words.Length <= 1)
+		{
+			return [];
+		}
+
+		return new[] { words[^1], words[0] }.Where(word => word.Length > 2 && char.IsUpper(word[0]));
+	}
+
 	/// <summary>
 	/// Generates name aliases for an entity to handle variations in text.
 	/// </summary>
@@ -178,37 +192,12 @@ public class HybridEntityExtractor(
 			aliases.Add(name[4..]); // Remove "HMS "
 		}
 
-		// Multi-word: Add last word as alias (e.g., "Robert Grant" → "Grant")
-		// But skip if it's a common word or very short
-		if (name.Contains(' '))
-		{
-			var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-			if (words.Length > 1)
-			{
-				var lastName = words[^1];
-				// Only add if it's substantial (not "of", "the", etc.)
-				if (lastName.Length > 2 && char.IsUpper(lastName[0]))
-				{
-					aliases.Add(lastName);
-				}
-
-				// Also add first word if it's a person's first name
-				var firstName = words[0];
-				if (firstName.Length > 2 && char.IsUpper(firstName[0]))
-				{
-					aliases.Add(firstName);
-				}
-			}
-		}
+		aliases.UnionWith(GetEdgeWordAliases(name));
 
 		// Title prefixes: "Professor Jameson" → "Jameson"
-		var titlePrefixes = new[] { "Professor", "Captain", "Dr.", "Dr", "Sir", "Lord", "Mr.", "Mr", "Mrs.", "Mrs", "Miss", "Ms.", "Ms" };
-		foreach (var prefix in titlePrefixes)
+		foreach (var prefix in TitlePrefixes.Where(prefix => name.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase)))
 		{
-			if (name.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase))
-			{
-				aliases.Add(name[(prefix.Length + 1)..]);
-			}
+			aliases.Add(name[(prefix.Length + 1)..]);
 		}
 
 		// Remove the original name from aliases (we don't need it as an alias of itself)

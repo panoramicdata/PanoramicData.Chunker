@@ -52,16 +52,8 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 			return [];
 		}
 
-		// Calculate term frequencies across all chunks
-		var termFrequencies = CalculateTermFrequencies(chunkList);
-
-		// Calculate document frequencies (how many chunks contain each term)
 		var documentFrequencies = CalculateDocumentFrequencies(chunkList);
 
-		// Calculate TF-IDF scores
-		var tfidfScores = CalculateTfIdf(termFrequencies, documentFrequencies, chunkList.Count);
-
-		// Extract top keywords as entities
 		var entities = new List<Entity>();
 		var entityMap = new Dictionary<string, Entity>(StringComparer.OrdinalIgnoreCase);
 
@@ -70,67 +62,71 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 			cancellationToken.ThrowIfCancellationRequested();
 
 			var content = GetChunkContent(chunk);
-			if (string.IsNullOrWhiteSpace(content))
+			if (!string.IsNullOrWhiteSpace(content))
 			{
-				continue;
-			}
-
-			var chunkTerms = ExtractTerms(content);
-			var chunkTfIdf = CalculateChunkTfIdf(chunkTerms, documentFrequencies, chunkList.Count);
-
-			// Get top keywords for this chunk
-			var topKeywords = chunkTfIdf
-				.Where(kvp => kvp.Value >= minConfidence)
-				.OrderByDescending(kvp => kvp.Value)
-				.Take(maxKeywords)
-				.ToList();
-
-			foreach (var (term, score) in topKeywords)
-			{
-				var normalizedTerm = term.ToLowerInvariant();
-
-				if (!entityMap.TryGetValue(normalizedTerm, out var entity))
-				{
-					entity = new Entity(EntityType.Keyword, term, score)
-					{
-						Metadata = new EntityMetadata
-						{
-							ExtractorName = Name,
-							ExtractorVersion = Version,
-							ExtractedAt = DateTimeOffset.UtcNow
-						}
-					};
-					entityMap[normalizedTerm] = entity;
-					entities.Add(entity);
-				}
-				else
-				{
-					// Update frequency and confidence
-					entity.Frequency++;
-					entity.Confidence = Math.Max(entity.Confidence, score);
-				}
-
-				// Add source reference
-				var position = content.IndexOf(term, StringComparison.OrdinalIgnoreCase);
-				if (position >= 0)
-				{
-					entity.AddSource(chunk.Id, position, GetContext(content, position, term.Length));
-				}
+				AddChunkKeywords(chunk, content, documentFrequencies, chunkList.Count, entityMap, entities);
 			}
 		}
 
-		// Update final frequencies
-		foreach (var entity in entities)
+		foreach (var entity in entities.Where(e => e.Frequency == 0))
 		{
-			if (entity.Frequency == 0)
-			{
-				entity.Frequency = 1;
-			}
+			entity.Frequency = 1;
 		}
 
 		return await Task.FromResult(entities);
 	}
 
+	private void AddChunkKeywords(
+		ChunkerBase chunk,
+		string content,
+		Dictionary<string, int> documentFrequencies,
+		int chunkCount,
+		Dictionary<string, Entity> entityMap,
+		List<Entity> entities)
+	{
+		var chunkTfIdf = CalculateChunkTfIdf(ExtractTerms(content), documentFrequencies, chunkCount);
+
+		var topKeywords = chunkTfIdf
+			.Where(kvp => kvp.Value >= minConfidence)
+			.OrderByDescending(kvp => kvp.Value)
+			.Take(maxKeywords)
+			.ToList();
+
+		foreach (var (term, score) in topKeywords)
+		{
+			UpsertKeyword(entityMap, entities, term, score);
+
+			var position = content.IndexOf(term, StringComparison.OrdinalIgnoreCase);
+			if (position >= 0)
+			{
+				entityMap[term.ToLowerInvariant()].AddSource(chunk.Id, position, GetContext(content, position, term.Length));
+			}
+		}
+	}
+
+	private void UpsertKeyword(Dictionary<string, Entity> entityMap, List<Entity> entities, string term, double score)
+	{
+		var normalizedTerm = term.ToLowerInvariant();
+
+		if (entityMap.TryGetValue(normalizedTerm, out var entity))
+		{
+			entity.Frequency++;
+			entity.Confidence = Math.Max(entity.Confidence, score);
+			return;
+		}
+
+		entity = new Entity(EntityType.Keyword, term, score)
+		{
+			Metadata = new EntityMetadata
+			{
+				ExtractorName = Name,
+				ExtractorVersion = Version,
+				ExtractedAt = DateTimeOffset.UtcNow
+			}
+		};
+		entityMap[normalizedTerm] = entity;
+		entities.Add(entity);
+	}
 	private static string GetChunkContent(ChunkerBase chunk)
 	{
 		// Try to get content from different chunk types
@@ -148,23 +144,6 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 		ChunkerBase chunk,
 		CancellationToken cancellationToken) => await ExtractEntitiesAsync([chunk], cancellationToken);
 
-	private Dictionary<string, int> CalculateTermFrequencies(List<ChunkerBase> chunks)
-	{
-		var frequencies = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-
-		foreach (var chunk in chunks)
-		{
-			var content = GetChunkContent(chunk);
-			var terms = ExtractTerms(content);
-			foreach (var term in terms)
-			{
-				frequencies[term] = frequencies.GetValueOrDefault(term) + 1;
-			}
-		}
-
-		return frequencies;
-	}
-
 	private Dictionary<string, int> CalculateDocumentFrequencies(List<ChunkerBase> chunks)
 	{
 		var frequencies = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -180,36 +159,6 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 		}
 
 		return frequencies;
-	}
-
-	private static Dictionary<string, double> CalculateTfIdf(
-		Dictionary<string, int> termFrequencies,
-		Dictionary<string, int> documentFrequencies,
-		int totalDocuments)
-	{
-		var tfidf = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-
-		foreach (var (term, tf) in termFrequencies)
-		{
-			var df = documentFrequencies[term];
-			var idf = Math.Log((double)totalDocuments / df);
-			tfidf[term] = tf * idf;
-		}
-
-		// Normalize to 0-1 range
-		if (tfidf.Count > 0)
-		{
-			var maxScore = tfidf.Values.Max();
-			if (maxScore > 0)
-			{
-				foreach (var term in tfidf.Keys.ToList())
-				{
-					tfidf[term] /= maxScore;
-				}
-			}
-		}
-
-		return tfidf;
 	}
 
 	private static Dictionary<string, double> CalculateChunkTfIdf(
