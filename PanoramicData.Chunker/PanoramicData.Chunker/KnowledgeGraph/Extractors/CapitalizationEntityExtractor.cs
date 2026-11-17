@@ -65,21 +65,8 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 		[Optional] int? minOccurrences,
 		[Optional] int? minWordLength,
 		[Optional] double? baseConfidence)
+		: this(LoadDefaultConfigSync(), minOccurrences, minWordLength, baseConfidence)
 	{
-		// Load default configuration
-		_config = LoadDefaultConfigSync();
-
-		// Apply parameter overrides
-		_minOccurrences = minOccurrences ?? _config.ExtractionRules?.MinOccurrences ?? 1;
-		_minWordLength = minWordLength ?? _config.ExtractionRules?.MinWordLength ?? 2;
-		_baseConfidence = baseConfidence ?? _config.ExtractionRules?.BaseConfidence ?? 0.7;
-
-		// Build cached lookups
-		_properNounDictionary = _config.GetAllProperNouns();
-		_titlePrefixes = _config.GetAllTitlePrefixes();
-		_organizationalSuffixes = new HashSet<string>(_config.OrganizationalSuffixes ?? [], StringComparer.OrdinalIgnoreCase);
-		_allowedConnectors = new HashSet<string>(_config.AllowedConnectors ?? [], StringComparer.OrdinalIgnoreCase);
-		_sentenceStarters = new HashSet<string>(_config.SentenceStarters ?? [], StringComparer.OrdinalIgnoreCase);
 	}
 
 	/// <summary>
@@ -107,25 +94,26 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 	/// </summary>
 	private CapitalizationEntityExtractor(
 		EntityPatternsConfiguration config,
-		[Optional] int? minOccurrences,
-		[Optional] int? minWordLength,
-		[Optional] double? baseConfidence)
+		int? minOccurrences,
+		int? minWordLength,
+		double? baseConfidence)
 	{
 		_config = config;
+		var rules = config.ExtractionRules;
 
-		// Apply parameter overrides
-		_minOccurrences = minOccurrences ?? _config.ExtractionRules?.MinOccurrences ?? 1;
-		_minWordLength = minWordLength ?? _config.ExtractionRules?.MinWordLength ?? 2;
-		_baseConfidence = baseConfidence ?? _config.ExtractionRules?.BaseConfidence ?? 0.7;
+		_minOccurrences = minOccurrences ?? rules?.MinOccurrences ?? 1;
+		_minWordLength = minWordLength ?? rules?.MinWordLength ?? 2;
+		_baseConfidence = baseConfidence ?? rules?.BaseConfidence ?? 0.7;
 
-		// Build cached lookups
-		_properNounDictionary = _config.GetAllProperNouns();
-		_titlePrefixes = _config.GetAllTitlePrefixes();
-		_organizationalSuffixes = new HashSet<string>(_config.OrganizationalSuffixes ?? [], StringComparer.OrdinalIgnoreCase);
-		_allowedConnectors = new HashSet<string>(_config.AllowedConnectors ?? [], StringComparer.OrdinalIgnoreCase);
-		_sentenceStarters = new HashSet<string>(_config.SentenceStarters ?? [], StringComparer.OrdinalIgnoreCase);
+		_properNounDictionary = config.GetAllProperNouns();
+		_titlePrefixes = config.GetAllTitlePrefixes();
+		_organizationalSuffixes = ToSet(config.OrganizationalSuffixes);
+		_allowedConnectors = ToSet(config.AllowedConnectors);
+		_sentenceStarters = ToSet(config.SentenceStarters);
 	}
 
+	private static HashSet<string> ToSet(IEnumerable<string>? values)
+		=> new(values ?? [], StringComparer.OrdinalIgnoreCase);
 	/// <summary>
 	/// Loads default configuration synchronously (for backward compatibility).
 	/// </summary>
@@ -159,7 +147,6 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 					capitalizedTerms[term] = candidate;
 				}
 
-				candidate.Frequency++;
 				candidate.Sources.Add(new EntitySource
 				{
 					ChunkId = chunk.Id,
@@ -172,33 +159,34 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 		// Filter: must appear at least N times and meet length requirement
 		var entities = capitalizedTerms.Values
 			.Where(c => c.Frequency >= _minOccurrences && c.Term.Length >= _minWordLength)
-			.Select(c => new Entity(
-				EntityType.ProperNoun,
-				c.Term,
-				confidence: CalculateConfidence(c))
-			{
-				Frequency = c.Frequency,
-				Sources = c.Sources,
-				Metadata = new EntityMetadata
-				{
-					ExtractorName = Name,
-					ExtractorVersion = Version,
-					ExtractedAt = DateTimeOffset.UtcNow,
-					ExtractionDetails = new Dictionary<string, object>
-					{
-						["extraction_method"] = "capitalization_enhanced",
-						["word_count"] = c.Term.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-						["has_title"] = HasTitlePrefix(c.Term),
-						["in_dictionary"] = IsInDictionary(c.Term),
-						["config_version"] = _config.Version ?? "unknown"
-					}
-				}
-			})
+			.Select(CreateEntity)
 			.ToList();
 
 		return await Task.FromResult(entities);
 	}
 
+	private Entity CreateEntity(EntityCandidate candidate) => new(
+		EntityType.ProperNoun,
+		candidate.Term,
+		confidence: CalculateConfidence(candidate))
+	{
+		Frequency = candidate.Frequency,
+		Sources = candidate.Sources,
+		Metadata = new EntityMetadata
+		{
+			ExtractorName = Name,
+			ExtractorVersion = Version,
+			ExtractedAt = DateTimeOffset.UtcNow,
+			ExtractionDetails = new Dictionary<string, object>
+			{
+				["extraction_method"] = "capitalization_enhanced",
+				["word_count"] = candidate.Term.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
+				["has_title"] = HasTitlePrefix(candidate.Term),
+				["in_dictionary"] = IsInDictionary(candidate.Term),
+				["config_version"] = _config.Version ?? "unknown"
+			}
+		}
+	};
 	/// <inheritdoc/>
 	public async Task<List<Entity>> ExtractEntitiesAsync(
 		ChunkerBase chunk,
@@ -218,142 +206,97 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 	private List<string> ExtractCapitalizedSequences(string text)
 	{
 		var results = new List<string>();
-		var sentences = text.Split(['.', '!', '?'], StringSplitOptions.RemoveEmptyEntries);
 
-		foreach (var sentence in sentences)
+		foreach (var sentence in text.Split(['.', '!', '?'], StringSplitOptions.RemoveEmptyEntries))
 		{
 			var words = sentence.Split([' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+			var index = 0;
 
-			// Process ALL words, with enhanced logic for first word
-			for (var i = 0; i < words.Length; i++)
+			while (index < words.Length)
 			{
-				var word = CleanWord(words[i]);
+				var word = CleanWord(words[index]);
+				var isCandidate = IsCapitalized(word) && !IsAcronym(word) && !IsAllCaps(word)
+					&& (index != 0 || ShouldExtractAtSentenceStart(word, words, index));
 
-				// Check if capitalized AND not an acronym AND not all-caps
-				if (IsCapitalized(word) && !IsAcronym(word) && !IsAllCaps(word))
+				if (!isCandidate)
 				{
-					// Phase 12: Enhanced sentence-start handling
-					if (i == 0)
-					{
-						// Check if this is a proper noun we should extract
-						var shouldExtractAtSentenceStart = ShouldExtractAtSentenceStart(word, words, i);
-
-						if (!shouldExtractAtSentenceStart)
-						{
-							continue;
-						}
-
-						// Extract the multi-word sequence
-						var sentenceStartSequence = ExtractMultiWordProperNoun(words, i);
-						results.Add(sentenceStartSequence);
-						i += sentenceStartSequence.Split(' ').Length - 1;
-						continue;
-					}
-
-					// Not first word - extract normally
-					var midSentenceSequence = ExtractMultiWordProperNoun(words, i);
-					results.Add(midSentenceSequence);
-					i += midSentenceSequence.Split(' ').Length - 1;  // Skip processed words
+					index++;
+					continue;
 				}
+
+				var sequence = ExtractMultiWordProperNoun(words, index);
+				results.Add(sequence);
+				index += sequence.Split(' ').Length;
 			}
 		}
 
 		return [.. results.Distinct(StringComparer.OrdinalIgnoreCase)];
 	}
-
 	/// <summary>
 	/// Phase 12: Determines if a capitalized word at sentence start should be extracted as a proper noun.
 	/// </summary>
 	private bool ShouldExtractAtSentenceStart(string firstWord, string[] words, int index)
 	{
-		// Strategy 1: Title prefix (e.g., "Professor Jameson", "HMS Beagle")
-		if (_titlePrefixes.Contains(firstWord))
+		// Title prefix (e.g. "Professor Jameson") or a known proper noun
+		if (_titlePrefixes.Contains(firstWord) || _properNounDictionary.Contains(firstWord))
 		{
 			return true;
 		}
 
-		// Strategy 2: In proper noun dictionary
-		if (_properNounDictionary.Contains(firstWord))
+		if (IsMultiWordStart(words, index))
 		{
 			return true;
 		}
 
-		// Strategy 3: Multi-word sequence with next word also capitalized or connector
-		if (index + 1 < words.Length)
-		{
-			var nextWord = CleanWord(words[index + 1]);
-
-			// Next word is capitalized proper noun
-			if (IsCapitalized(nextWord) && !IsAcronym(nextWord))
-			{
-				// Check if it's a known pattern (e.g., "Edinburgh University")
-				if (_properNounDictionary.Contains(nextWord) ||
-					_organizationalSuffixes.Contains(nextWord))
-				{
-					return true;
-				}
-
-				// Or if first word is in dictionary (e.g., "Plinian Society")
-				if (_properNounDictionary.Contains(firstWord))
-				{
-					return true;
-				}
-			}
-
-			// Next word is a connector (e.g., "University of Edinburgh")
-			if (_allowedConnectors.Contains(nextWord))
-			{
-				// Check if we have a third word that's capitalized
-				if (index + 2 < words.Length)
-				{
-					var thirdWord = CleanWord(words[index + 2]);
-					if (IsCapitalized(thirdWord) && !IsAcronym(thirdWord))
-					{
-						return true;
-					}
-				}
-			}
-		}
-
-		// Strategy 4: Ends with organizational suffix (e.g., "Society", "University")
-		// Look ahead to see if this becomes a multi-word org name
+		// "Society was founded..." is likely not the entity name
 		if (_organizationalSuffixes.Contains(firstWord))
 		{
-			return false; // "Society was founded..." - likely not the entity name
+			return false;
 		}
 
-		// Phase 12: Be more lenient - if it's part of a multi-word capitalized sequence, extract it
-		var peekAhead = PeekAheadForMultiWordSequence(words, index);
-		if (peekAhead >= 2) // At least 2 words in sequence
+		// Part of a multi-word capitalized sequence; single words are too often false positives
+		return PeekAheadForMultiWordSequence(words, index) >= 2;
+	}
+
+	private bool IsMultiWordStart(string[] words, int index)
+	{
+		if (index + 1 >= words.Length)
+		{
+			return false;
+		}
+
+		var nextWord = CleanWord(words[index + 1]);
+
+		// e.g. "Edinburgh University"
+		if (IsProperNounCandidate(nextWord) && (_properNounDictionary.Contains(nextWord) || _organizationalSuffixes.Contains(nextWord)))
 		{
 			return true;
 		}
 
-		// Default: Don't extract single words at sentence start (too many false positives)
-		return false;
+		// e.g. "University of Edinburgh"
+		return _allowedConnectors.Contains(nextWord)
+			&& index + 2 < words.Length
+			&& IsProperNounCandidate(CleanWord(words[index + 2]));
 	}
+
+	private bool IsProperNounCandidate(string word) => IsCapitalized(word) && !IsAcronym(word);
 
 	/// <summary>
 	/// Phase 12: Peeks ahead to count how many capitalized words follow in sequence.
 	/// </summary>
 	private int PeekAheadForMultiWordSequence(string[] words, int startIndex)
 	{
-		var count = 1; // Start with current word
+		var count = 1;
 
 		for (var i = startIndex + 1; i < words.Length && i < startIndex + 5; i++)
 		{
 			var word = CleanWord(words[i]);
 
-			if (IsCapitalized(word) && !IsAcronym(word) && !IsAllCaps(word))
+			if (IsProperNounCandidate(word) && !IsAllCaps(word))
 			{
 				count++;
 			}
-			else if (_allowedConnectors.Contains(word))
-			{
-				// Connector - continue counting
-				continue;
-			}
-			else
+			else if (!_allowedConnectors.Contains(word))
 			{
 				break;
 			}
@@ -361,7 +304,6 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 
 		return count;
 	}
-
 	private string ExtractMultiWordProperNoun(string[] words, int startIndex)
 	{
 		var sequence = new List<string> { CleanWord(words[startIndex]) };
@@ -436,9 +378,8 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 	/// </summary>
 	private bool HasTitlePrefix(string name)
 	{
-		var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-		if (words.Length == 0) return false;
-		return _titlePrefixes.Contains(words[0]);
+		var firstWord = name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+		return firstWord != null && _titlePrefixes.Contains(firstWord);
 	}
 
 	/// <summary>
@@ -532,7 +473,7 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 	private class EntityCandidate
 	{
 		public string Term { get; set; } = string.Empty;
-		public int Frequency { get; set; }
 		public List<EntitySource> Sources { get; set; } = [];
+		public int Frequency => Sources.Count;
 	}
 }

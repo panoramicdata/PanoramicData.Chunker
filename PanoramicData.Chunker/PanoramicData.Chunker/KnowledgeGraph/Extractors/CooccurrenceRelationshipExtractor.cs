@@ -44,10 +44,6 @@ public class CooccurrenceRelationshipExtractor(int maxDistance = 500, double min
 			return [];
 		}
 
-		// Build entity-to-chunks index
-		var entityChunks = BuildEntityChunkIndex(entityList);
-
-		// Extract relationships based on co-occurrence
 		var relationships = new List<Relationship>();
 		var relationshipMap = new Dictionary<string, Relationship>();
 
@@ -55,214 +51,72 @@ public class CooccurrenceRelationshipExtractor(int maxDistance = 500, double min
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			// Find all entities that appear in this chunk
-			var chunkEntities = entityList
-				.Where(e => e.Sources.Any(s => s.ChunkId == chunk.Id))
-				.ToList();
-
-			if (chunkEntities.Count < 2)
+			foreach (var pair in ExtractorHelpers.GetEntityPairs(entityList, chunk, maxDistance))
 			{
-				continue;
-			}
-
-			var content = GetChunkContent(chunk);
-			if (string.IsNullOrWhiteSpace(content))
-			{
-				continue;
-			}
-
-			// Create relationships for all pairs
-			for (var i = 0; i < chunkEntities.Count; i++)
-			{
-				for (var j = i + 1; j < chunkEntities.Count; j++)
-				{
-					var entity1 = chunkEntities[i];
-					var entity2 = chunkEntities[j];
-
-					// Get positions in this chunk
-					var positions1 = entity1.Sources
-						.Where(s => s.ChunkId == chunk.Id)
-						.Select(s => s.Position)
-						.ToList();
-
-					var positions2 = entity2.Sources
-						.Where(s => s.ChunkId == chunk.Id)
-						.Select(s => s.Position)
-						.ToList();
-
-					// Calculate minimum distance between entities in this chunk
-					var minDistance = CalculateMinDistance(positions1, positions2);
-
-					if (minDistance <= maxDistance)
-					{
-						// Calculate confidence based on distance (closer = higher confidence)
-						var confidence = CalculateConfidence(minDistance);
-
-						if (confidence >= minConfidence)
-						{
-							// Create or update relationship
-							var relationshipKey = GetRelationshipKey(entity1.Id, entity2.Id);
-
-							if (!relationshipMap.TryGetValue(relationshipKey, out var relationship))
-							{
-								relationship = new Relationship(
-									entity1.Id,
-									entity2.Id,
-									RelationshipType.Mentions,
-									weight: 1.0,
-									confidence: confidence)
-								{
-									Bidirectional = true,
-									Metadata = new RelationshipMetadata
-									{
-										ExtractorName = Name,
-										ExtractorVersion = Version,
-										ExtractedAt = DateTimeOffset.UtcNow
-									}
-								};
-								relationshipMap[relationshipKey] = relationship;
-								relationships.Add(relationship);
-							}
-							else
-							{
-								// Update existing relationship
-								relationship.Weight += 1.0;
-								relationship.Confidence = Math.Max(relationship.Confidence, confidence);
-							}
-
-							// Add evidence
-							relationship.AddEvidence(
-								chunk.Id,
-								GetContext(content, positions1.Min(), positions2.Max()),
-								confidence);
-
-							// Store distance in properties
-							if (!relationship.Properties.TryGetValue("MinDistance", out var value))
-							{
-								relationship.Properties["MinDistance"] = minDistance;
-							}
-							else
-							{
-								relationship.Properties["MinDistance"] = Math.Min(
-									(int)value,
-									minDistance);
-							}
-						}
-					}
-				}
+				AddCooccurrence(pair, chunk.Id, relationships, relationshipMap);
 			}
 		}
 
-		// Normalize relationship weights based on co-occurrence frequency
-		if (relationships.Count > 0)
-		{
-			var maxWeight = relationships.Max(r => r.Weight);
-			foreach (var relationship in relationships)
-			{
-				relationship.Weight /= maxWeight;
-			}
-		}
+		ExtractorHelpers.NormalizeWeights(relationships);
 
 		return await Task.FromResult(relationships);
 	}
 
-	private static string GetChunkContent(ChunkerBase chunk)
+	private void AddCooccurrence(
+		EntityPair pair,
+		Guid chunkId,
+		List<Relationship> relationships,
+		Dictionary<string, Relationship> relationshipMap)
 	{
-		// Try to get content from different chunk types
-		if (chunk is ContentChunk contentChunk)
+		var confidence = ExtractorHelpers.InterpolateConfidence(pair.MinDistance, maxDistance, minConfidence);
+		if (confidence < minConfidence)
 		{
-			return contentChunk.Content;
+			return;
 		}
 
-		// For other chunk types, return empty string
-		return string.Empty;
+		var key = GetRelationshipKey(pair.Entity1.Id, pair.Entity2.Id);
+		if (relationshipMap.TryGetValue(key, out var relationship))
+		{
+			relationship.Weight += 1.0;
+			relationship.Confidence = Math.Max(relationship.Confidence, confidence);
+		}
+		else
+		{
+			relationship = CreateRelationship(pair, confidence);
+			relationshipMap[key] = relationship;
+			relationships.Add(relationship);
+		}
+
+		relationship.AddEvidence(
+			chunkId,
+			ExtractorHelpers.GetContext(pair.Content, pair.Positions1.Min(), pair.Positions2.Max(), 100),
+			confidence);
+
+		relationship.Properties["MinDistance"] = relationship.Properties.TryGetValue("MinDistance", out var existing)
+			? Math.Min((int)existing, pair.MinDistance)
+			: pair.MinDistance;
 	}
 
-	private static Dictionary<Guid, List<Guid>> BuildEntityChunkIndex(List<Entity> entities)
+	private Relationship CreateRelationship(EntityPair pair, double confidence) => new(
+		pair.Entity1.Id,
+		pair.Entity2.Id,
+		RelationshipType.Mentions,
+		weight: 1.0,
+		confidence: confidence)
 	{
-		var index = new Dictionary<Guid, List<Guid>>();
-
-		foreach (var entity in entities)
+		Bidirectional = true,
+		Metadata = new RelationshipMetadata
 		{
-			var chunkIds = entity.Sources.Select(s => s.ChunkId).Distinct().ToList();
-			index[entity.Id] = chunkIds;
+			ExtractorName = Name,
+			ExtractorVersion = Version,
+			ExtractedAt = DateTimeOffset.UtcNow
 		}
-
-		return index;
-	}
-
-	private static int CalculateMinDistance(List<int> positions1, List<int> positions2)
-	{
-		var minDistance = int.MaxValue;
-
-		foreach (var pos1 in positions1)
-		{
-			foreach (var pos2 in positions2)
-			{
-				var distance = Math.Abs(pos1 - pos2);
-				minDistance = Math.Min(minDistance, distance);
-			}
-		}
-
-		return minDistance;
-	}
-
-	private double CalculateConfidence(int distance)
-	{
-		// Confidence decreases with distance
-		// Close entities (< 50 chars) get high confidence (0.9+)
-		// Distant entities (near maxDistance) get low confidence (near minConfidence)
-
-		if (distance <= 50)
-		{
-			return 1.0;
-		}
-
-		if (distance >= maxDistance)
-		{
-			return minConfidence;
-		}
-
-		// Linear interpolation
-		var ratio = (double)distance / maxDistance;
-		return 1.0 - (ratio * (1.0 - minConfidence));
-	}
+	};
 
 	private static string GetRelationshipKey(Guid entityId1, Guid entityId2)
 	{
-		// Create a consistent key regardless of order
+		// Same key regardless of order
 		var ids = new[] { entityId1, entityId2 }.OrderBy(id => id).ToArray();
 		return $"{ids[0]}_{ids[1]}";
-	}
-
-	private static string GetContext(string text, int startPos, int endPos, int contextSize = 100)
-	{
-		// Ensure startPos <= endPos
-		if (startPos > endPos)
-		{
-			(startPos, endPos) = (endPos, startPos);
-		}
-
-		var start = Math.Max(0, startPos - contextSize);
-		var end = Math.Min(text.Length, endPos + contextSize);
-		
-		// Ensure we don't have invalid range
-		if (start >= text.Length || end <= 0 || start >= end)
-		{
-			return string.Empty;
-		}
-
-		var context = text[start..end];
-
-		if (start > 0)
-		{
-			context = "..." + context;
-		}
-		if (end < text.Length)
-		{
-			context += "...";
-		}
-
-		return context;
 	}
 }

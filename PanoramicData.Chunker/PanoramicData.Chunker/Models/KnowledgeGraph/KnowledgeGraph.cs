@@ -141,7 +141,7 @@ public class Graph
 	/// <param name="entityId">The entity ID.</param>
 	/// <param name="includeIncoming">If true, includes relationships where the entity is the target.</param>
 	/// <returns>List of relationships.</returns>
-	public List<Relationship> GetRelationships(Guid entityId, [Optional, DefaultParameterValue(true)] bool includeIncoming)
+	public List<Relationship> GetRelationships(Guid entityId, [Optional][DefaultParameterValue(true)] bool includeIncoming)
 	{
 		EnsureIndexes();
 		var relationships = new List<Relationship>();

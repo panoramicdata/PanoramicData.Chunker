@@ -69,7 +69,7 @@ public class OpenAITokenCounter(string encodingName) : ITokenCounter
 	/// <summary>
 	/// Split text at token boundaries to fit within maxTokens.
 	/// </summary>
-	public IEnumerable<string> SplitIntoTokenBatches(string text, int maxTokens, [Optional, DefaultParameterValue(0)] int overlap)
+	public IEnumerable<string> SplitIntoTokenBatches(string text, int maxTokens, [Optional][DefaultParameterValue(0)] int overlap)
 	{
 		if (string.IsNullOrEmpty(text))
 		{
