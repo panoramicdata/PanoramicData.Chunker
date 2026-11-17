@@ -1,6 +1,7 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Utilities;
 
 namespace PanoramicData.Chunker.Chunkers.Xlsx;
 
@@ -99,7 +100,7 @@ public partial class XlsxDocumentChunker
 		var headerRow = rows[0];
 		var headers = ReadRowValues(headerRow);
 		var tableData = rows.Skip(1).Select(row => PadRow(ReadRowValues(row), headers.Count)).ToList();
-		var serializedTable = SerializeTableAsMarkdown(headers, tableData);
+		var serializedTable = MarkdownTableSerializer.Serialize(headers, tableData);
 
 		var firstCellRef = headerRow.Elements<Cell>().FirstOrDefault()?.CellReference?.Value ?? "A1";
 		var lastCellRef = rows.Last().Elements<Cell>().LastOrDefault()?.CellReference?.Value ?? $"A{rows.Count}";

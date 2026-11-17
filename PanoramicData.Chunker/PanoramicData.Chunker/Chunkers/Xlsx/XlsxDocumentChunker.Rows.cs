@@ -210,27 +210,6 @@ public partial class XlsxDocumentChunker
 	private static List<string> ExtractReferencedCells(string formula)
 		=> [.. CellReferenceRegex().Matches(formula).Select(match => match.Value)];
 
-	private static string SerializeTableAsMarkdown(List<string> headers, List<List<string>> rows)
-	{
-		var sb = new StringBuilder();
-
-		if (headers.Count > 0)
-		{
-			AppendMarkdownRow(sb, headers);
-			AppendMarkdownRow(sb, headers.Select(_ => "---"));
-		}
-
-		foreach (var row in rows)
-		{
-			AppendMarkdownRow(sb, row);
-		}
-
-		return sb.ToString();
-	}
-
-	private static void AppendMarkdownRow(StringBuilder sb, IEnumerable<string> cells)
-		=> sb.Append("| ").AppendJoin(" | ", cells).AppendLine(" |");
-
 	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
 	{
 		TokenCount = _tokenCounter.CountTokens(text),
