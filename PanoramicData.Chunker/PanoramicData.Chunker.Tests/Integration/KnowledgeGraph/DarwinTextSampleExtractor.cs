@@ -13,6 +13,7 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 /// This helps us understand why relationship patterns are failing.
 /// </summary>
 [Collection("PostgreSQL")]
+[Trait("Category", "Integration")]
 public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelper output)
 	: IClassFixture<ApacheAgeFixture>
 {

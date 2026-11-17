@@ -15,6 +15,7 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 /// Phase 2: Baseline comparison tests - compares extracted knowledge graph against ground truth.
 /// </summary>
 [Collection("PostgreSQL")]
+[Trait("Category", "Integration")]
 public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHelper output)
 	: IClassFixture<ApacheAgeFixture>
 {

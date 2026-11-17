@@ -16,6 +16,7 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 /// Deep dive debug test - extract from the exact chunk that contains "Plinian Society".
 /// </summary>
 [Collection("PostgreSQL")]
+[Trait("Category", "Integration")]
 public class PlinianSocietyDebugTests(ApacheAgeFixture fixture, ITestOutputHelper output)
 	: IClassFixture<ApacheAgeFixture>
 {

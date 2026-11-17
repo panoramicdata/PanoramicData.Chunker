@@ -19,6 +19,7 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 ///    Full Darwin extraction takes 4-8 hours. Use for validation only.
 /// </summary>
 [Collection("PostgreSQL")]
+[Trait("Category", "Integration")]
 public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutputHelper output)
 	: IClassFixture<ApacheAgeFixture>
 {

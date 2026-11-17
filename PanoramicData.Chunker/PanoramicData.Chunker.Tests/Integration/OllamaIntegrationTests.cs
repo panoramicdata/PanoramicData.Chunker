@@ -10,6 +10,7 @@ using PanoramicData.Chunker.Models.Llm;
 
 namespace PanoramicData.Chunker.Tests.Integration;
 
+[Trait("Category", "Integration")]
 public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 {
 	private static bool IsOllamaAvailable()

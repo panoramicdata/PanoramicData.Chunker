@@ -11,6 +11,7 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 /// Diagnostic test to search for ground truth entities in actual chunk content.
 /// </summary>
 [Collection("PostgreSQL")]
+[Trait("Category", "Integration")]
 public class ChunkContentSearchTests(ApacheAgeFixture fixture, ITestOutputHelper output)
 	: IClassFixture<ApacheAgeFixture>
 {
