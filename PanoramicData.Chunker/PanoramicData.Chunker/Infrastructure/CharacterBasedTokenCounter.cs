@@ -43,76 +43,67 @@ public partial class CharacterBasedTokenCounter : ITokenCounter
 
 		var maxChars = maxTokens * CharsPerToken;
 		var overlapChars = overlap * CharsPerToken;
-
-		// Try to split at sentence boundaries
-		var sentences = SentenceRegex().Split(text);
 		var currentBatch = new List<string>();
 		var currentLength = 0;
 
-		foreach (var sentence in sentences)
+		foreach (var sentence in SentenceRegex().Split(text).Where(s => !string.IsNullOrWhiteSpace(s)))
 		{
-			if (string.IsNullOrWhiteSpace(sentence))
+			if (currentLength + sentence.Length > maxChars && currentBatch.Count > 0)
 			{
-				continue;
+				yield return string.Concat(currentBatch);
+				(currentBatch, currentLength) = StartNextBatch(currentBatch, overlap > 0, overlapChars);
 			}
 
-			var sentenceLength = sentence.Length;
-
-			// If adding this sentence would exceed the limit, yield current batch
-			if (currentLength + sentenceLength > maxChars && currentBatch.Count > 0)
+			if (sentence.Length > maxChars)
 			{
-				yield return string.Join("", currentBatch);
-
-				// Keep overlap
-				if (overlap > 0 && currentBatch.Count > 0)
-				{
-					var overlapText = string.Join("", currentBatch);
-					if (overlapText.Length > overlapChars)
-					{
-						overlapText = overlapText[^overlapChars..];
-					}
-					currentBatch = [overlapText];
-					currentLength = overlapText.Length;
-				}
-				else
-				{
-					currentBatch.Clear();
-					currentLength = 0;
-				}
-			}
-
-			// If a single sentence is too long, split it
-			if (sentenceLength > maxChars)
-			{
-				// Yield what we have
 				if (currentBatch.Count > 0)
 				{
-					yield return string.Join("", currentBatch);
+					yield return string.Concat(currentBatch);
 					currentBatch.Clear();
 					currentLength = 0;
 				}
 
-				// Split long sentence into chunks
-				for (var i = 0; i < sentenceLength; i += maxChars - overlapChars)
+				foreach (var piece in SplitLongSentence(sentence, maxChars, overlapChars))
 				{
-					var chunkLength = Math.Min(maxChars, sentenceLength - i);
-					yield return sentence.Substring(i, chunkLength);
+					yield return piece;
 				}
 			}
 			else
 			{
 				currentBatch.Add(sentence);
-				currentLength += sentenceLength;
+				currentLength += sentence.Length;
 			}
 		}
 
-		// Yield remaining batch
 		if (currentBatch.Count > 0)
 		{
-			yield return string.Join("", currentBatch);
+			yield return string.Concat(currentBatch);
 		}
 	}
 
+	private static (List<string> Batch, int Length) StartNextBatch(List<string> previous, bool keepOverlap, int overlapChars)
+	{
+		if (!keepOverlap)
+		{
+			return ([], 0);
+		}
+
+		var overlapText = string.Concat(previous);
+		if (overlapText.Length > overlapChars)
+		{
+			overlapText = overlapText[^overlapChars..];
+		}
+
+		return ([overlapText], overlapText.Length);
+	}
+
+	private static IEnumerable<string> SplitLongSentence(string sentence, int maxChars, int overlapChars)
+	{
+		for (var i = 0; i < sentence.Length; i += maxChars - overlapChars)
+		{
+			yield return sentence.Substring(i, Math.Min(maxChars, sentence.Length - i));
+		}
+	}
 	[GeneratedRegex(@"(?<=[.!?])\s+", RegexOptions.Compiled)]
 	private static partial Regex SentenceRegex();
 }

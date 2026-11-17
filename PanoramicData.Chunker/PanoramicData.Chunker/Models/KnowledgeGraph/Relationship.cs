@@ -141,21 +141,12 @@ public class Relationship
 	/// <returns>True if relationships are equivalent.</returns>
 	public bool IsEquivalentTo(Relationship other, [Optional, DefaultParameterValue(false)] bool ignoreDirection)
 	{
-		if (other == null)
+		if (other == null || Type != other.Type)
 		{
 			return false;
 		}
 
-		if (FromEntityId == other.FromEntityId && ToEntityId == other.ToEntityId && Type == other.Type)
-		{
-			return true;
-		}
-
-		if (ignoreDirection && FromEntityId == other.ToEntityId && ToEntityId == other.FromEntityId && Type == other.Type)
-		{
-			return true;
-		}
-
-		return false;
+		return (FromEntityId == other.FromEntityId && ToEntityId == other.ToEntityId)
+			|| (ignoreDirection && FromEntityId == other.ToEntityId && ToEntityId == other.FromEntityId);
 	}
 }
