@@ -30,31 +30,17 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 	{
 		try
 		{
-			// Save position to restore later
 			var originalPosition = documentStream.Position;
 
-			// Read first few lines to check if it looks like CSV
+			// Read the first few lines to check whether it looks like CSV
 			using var reader = new StreamReader(documentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
 
 			var linesRead = 0;
 			var hasDelimiters = false;
 
-			while (linesRead < 10)
+			while (linesRead < 10 && await reader.ReadLineAsync(cancellationToken) is { } line)
 			{
-				var line = await reader.ReadLineAsync(cancellationToken);
-				if (line is null)
-				{
-					break;
-				}
-
-				if (string.IsNullOrWhiteSpace(line))
-				{
-					linesRead++;
-					continue;
-				}
-
-				// Check for common delimiters
-				if (line.Contains(',') || line.Contains('\t') || line.Contains(';') || line.Contains('|'))
+				if (!string.IsNullOrWhiteSpace(line) && ContainsDelimiter(line))
 				{
 					hasDelimiters = true;
 					break;
@@ -63,7 +49,6 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 				linesRead++;
 			}
 
-			// Restore position
 			documentStream.Position = originalPosition;
 
 			return hasDelimiters;
@@ -89,133 +74,85 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 
 		try
 		{
-			// Read all content
 			using var reader = new StreamReader(documentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
 			var content = await reader.ReadToEndAsync(cancellationToken);
 
-			if (string.IsNullOrWhiteSpace(content))
-			{
-				logger?.LogInformation("Empty CSV document");
-				return CreateEmptyResult(startTime);
-			}
-
-			// Split into lines
 			var lines = content.Split(["\r\n", "\r", "\n"], StringSplitOptions.None)
 				.Where(l => !string.IsNullOrWhiteSpace(l))
 				.ToList();
 
 			if (lines.Count == 0)
 			{
-				logger?.LogInformation("CSV document has no valid lines");
+				logger?.LogInformation("CSV document has no content");
 				return CreateEmptyResult(startTime);
 			}
 
-			// Detect delimiter
 			var delimiter = DetectDelimiter(lines);
 			logger?.LogInformation("Detected CSV delimiter: '{Delimiter}'", delimiter);
 
-			// Parse header
 			var headers = ParseCsvLine(lines[0], delimiter);
 			var hasHeader = DetectHeaderRow(headers);
+			logger?.LogInformation("CSV has {ColumnCount} columns, header detected: {HasHeader}", headers.Count, hasHeader);
 
-			logger?.LogInformation("CSV has {ColumnCount} columns, header detected: {HasHeader}",
-				headers.Count, hasHeader);
-
-			// Create document chunk
-			var documentChunk = new CsvDocumentChunk
-			{
-				Delimiter = delimiter,
-				TotalRows = lines.Count,
-				ColumnCount = headers.Count,
-				HasHeaderRow = hasHeader,
-				Headers = hasHeader ? headers : [],
-				Encoding = reader.CurrentEncoding.WebName,
-				ParentId = null,
-				SequenceNumber = _sequenceNumber++,
-				SpecificType = "csv-document",
-				Metadata = new ChunkMetadata
-				{
-					DocumentType = "CSV",
-					SourceId = string.Empty,
-					Hierarchy = "csv",
-					Tags = ["csv", "tabular"],
-					CreatedAt = DateTimeOffset.UtcNow
-				},
-				QualityMetrics = new ChunkQualityMetrics
-				{
-					TokenCount = 0,
-					CharacterCount = content.Length,
-					WordCount = 0,
-					SemanticCompleteness = 1.0
-				}
-			};
-
+			var documentChunk = CreateDocumentChunk(delimiter, lines.Count, headers, hasHeader, reader.CurrentEncoding.WebName, content.Length);
 			_chunks.Add(documentChunk);
 
-			// Process data rows
-			var dataLines = hasHeader ? lines.Skip(1) : lines;
-			var rowNumber = 1;
+			var dataRows = AddRowChunks(hasHeader ? lines.Skip(1) : lines, headers, delimiter, documentChunk.Id, hasHeader);
 
-			foreach (var line in dataLines)
-			{
-				var fields = ParseCsvLine(line, delimiter);
-
-				// Skip rows that don't match column count
-				if (fields.Count != headers.Count && hasHeader)
-				{
-					logger?.LogWarning("Skipping row {RowNumber} with {FieldCount} fields (expected {ColumnCount})",
-						rowNumber, fields.Count, headers.Count);
-					rowNumber++;
-					continue;
-				}
-
-				var rowChunk = CreateRowChunk(rowNumber, line, fields, headers, delimiter, documentChunk.Id, hasHeader);
-				_chunks.Add(rowChunk);
-				rowNumber++;
-			}
-
-			// Build hierarchy
 			HierarchyBuilder.BuildHierarchy(_chunks);
+			logger?.LogInformation("Extracted {ChunkCount} chunks from CSV ({DataRows} data rows)", _chunks.Count, dataRows);
 
-			logger?.LogInformation("Extracted {ChunkCount} chunks from CSV ({DataRows} data rows)",
-				_chunks.Count, rowNumber - 1);
-
-			// Calculate statistics
-			var statistics = CalculateStatistics(_chunks, startTime);
-
-			// Perform validation if requested
-			var validationResult = options.ValidateChunks
-				? ValidateChunks(_chunks)
-				: null;
-
-			return new ChunkingResult
-			{
-				Chunks = _chunks,
-				Statistics = statistics,
-				ValidationResult = validationResult,
-				Warnings = [],
-				Success = true
-			};
+			return ChunkResultHelper.CreateSuccess(_chunks, startTime, options);
 		}
 		catch (Exception ex)
 		{
 			logger?.LogError(ex, "Error chunking CSV document");
-			return new ChunkingResult
-			{
-				Chunks = [],
-				Statistics = new ChunkingStatistics(),
-				Warnings =
-				[
-					new ChunkingWarning
-					{
-						Level = WarningLevel.Error,
-						Message = $"Failed to chunk CSV document: {ex.Message}"
-					}
-				],
-				Success = false
-			};
+			return ChunkResultHelper.CreateFailure("CSV", ex);
 		}
 	}
+
+	private int AddRowChunks(IEnumerable<string> dataLines, List<string> headers, char delimiter, Guid documentId, bool hasHeader)
+	{
+		var rowNumber = 0;
+
+		foreach (var line in dataLines)
+		{
+			rowNumber++;
+			var fields = ParseCsvLine(line, delimiter);
+
+			// Rows that do not match the header's column count are skipped
+			if (hasHeader && fields.Count != headers.Count)
+			{
+				logger?.LogWarning("Skipping row {RowNumber} with {FieldCount} fields (expected {ColumnCount})", rowNumber, fields.Count, headers.Count);
+				continue;
+			}
+
+			_chunks.Add(CreateRowChunk(rowNumber, line, fields, headers, delimiter, documentId, hasHeader));
+		}
+
+		return rowNumber;
+	}
+
+	private CsvDocumentChunk CreateDocumentChunk(char delimiter, int totalRows, List<string> headers, bool hasHeader, string encoding, int contentLength) => new()
+	{
+		Delimiter = delimiter,
+		TotalRows = totalRows,
+		ColumnCount = headers.Count,
+		HasHeaderRow = hasHeader,
+		Headers = hasHeader ? headers : [],
+		Encoding = encoding,
+		ParentId = null,
+		SequenceNumber = _sequenceNumber++,
+		SpecificType = "csv-document",
+		Metadata = CreateMetadata("csv", "csv", "tabular"),
+		QualityMetrics = new ChunkQualityMetrics
+		{
+			TokenCount = 0,
+			CharacterCount = contentLength,
+			WordCount = 0,
+			SemanticCompleteness = 1.0
+		}
+	};
 
 	private CsvRowChunk CreateRowChunk(
 		int rowNumber,
@@ -226,33 +163,12 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 		Guid documentId,
 		bool hasHeader)
 	{
-		// Build content with header context if available
-		var contentBuilder = new StringBuilder();
+		// With a header, each field becomes a "name: value" pair for context
+		var content = hasHeader && headers.Count > 0
+			? string.Join(", ", headers.Zip(fields, (header, field) => $"{header}: {field}"))
+			: string.Join(", ", fields);
 
-		if (hasHeader && headers.Count > 0)
-		{
-			// Create key-value pairs for better context
-			for (var i = 0; i < Math.Min(fields.Count, headers.Count); i++)
-			{
-				_ = contentBuilder.Append($"{headers[i]}: {fields[i]}");
-				if (i < Math.Min(fields.Count, headers.Count) - 1)
-				{
-					_ = contentBuilder.Append(", ");
-				}
-			}
-		}
-		else
-		{
-			// Just join fields with commas
-			_ = contentBuilder.AppendJoin(", ", fields);
-		}
-
-		var content = contentBuilder.ToString();
-
-		// Build serialized table (single row with header)
-		var serializedTable = SerializeRowAsMarkdown(headers, fields, hasHeader);
-
-		var chunk = new CsvRowChunk
+		return new CsvRowChunk
 		{
 			Content = content,
 			RowNumber = rowNumber,
@@ -264,7 +180,7 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 			ParentId = documentId,
 			SequenceNumber = _sequenceNumber++,
 			SpecificType = "csv-row",
-			SerializedTable = serializedTable,
+			SerializedTable = SerializeRowAsMarkdown(headers, fields, hasHeader),
 			SerializationFormat = TableSerializationFormat.Markdown,
 			TableInfo = new TableMetadata
 			{
@@ -275,212 +191,20 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 				HasMergedCells = false,
 				PreferredFormat = TableSerializationFormat.Markdown
 			},
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "CSV",
-				SourceId = string.Empty,
-				Hierarchy = $"csv/row{rowNumber}",
-				Tags = ["csv-row", "tabular"],
-				CreatedAt = DateTimeOffset.UtcNow
-			},
-			// Calculate quality metrics
+			Metadata = CreateMetadata($"csv/row{rowNumber}", "csv-row", "tabular"),
 			QualityMetrics = CalculateQualityMetrics(content)
 		};
-
-		return chunk;
 	}
 
-	private static char DetectDelimiter(List<string> lines)
+	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => new()
 	{
-		// Try common delimiters and count occurrences in first few lines
-		var delimiters = new[] { ',', '\t', ';', '|' };
-		var scores = new Dictionary<char, int>();
-
-		var sampleLines = lines.Take(Math.Min(5, lines.Count)).ToList();
-
-		foreach (var delimiter in delimiters)
-		{
-			var counts = sampleLines.Select(line => CountDelimiter(line, delimiter)).ToList();
-
-			// Check if counts are consistent (same number of delimiters per line)
-			if (counts.Count > 0 && counts.Distinct().Count() == 1 && counts[0] > 0)
-			{
-				scores[delimiter] = counts[0] * 100; // Bonus for consistency
-			}
-			else if (counts.Count > 0)
-			{
-				scores[delimiter] = counts.Max();
-			}
-		}
-
-		// Return delimiter with highest score, default to comma
-		return scores.Count > 0 ? scores.OrderByDescending(kvp => kvp.Value).First().Key : ',';
-	}
-
-	private static int CountDelimiter(string line, char delimiter)
-	{
-		var count = 0;
-		var inQuotes = false;
-
-		foreach (var ch in line)
-		{
-			if (ch == '"')
-			{
-				inQuotes = !inQuotes;
-			}
-			else if (ch == delimiter && !inQuotes)
-			{
-				count++;
-			}
-		}
-
-		return count;
-	}
-
-	private static bool DetectHeaderRow(List<string> fields)
-	{
-		// Heuristic: if most fields are non-numeric, likely a header
-		var nonNumericCount = 0;
-
-		foreach (var field in fields)
-		{
-			if (!string.IsNullOrWhiteSpace(field) && !IsNumeric(field))
-			{
-				nonNumericCount++;
-			}
-		}
-
-		// If more than 70% are non-numeric, treat as header
-		return fields.Count > 0 && (double)nonNumericCount / fields.Count >= 0.7;
-	}
-
-	private static bool IsNumeric(string value) => double.TryParse(value, out _) ||
-			   DateTime.TryParse(value, out _) ||
-			   value.Equals("true", StringComparison.OrdinalIgnoreCase) ||
-		 value.Equals("false", StringComparison.OrdinalIgnoreCase);
-
-	private static List<string> ParseCsvLine(string line, char delimiter)
-	{
-		var fields = new List<string>();
-		var currentField = new StringBuilder();
-		var inQuotes = false;
-
-		for (var i = 0; i < line.Length; i++)
-		{
-			var ch = line[i];
-
-			if (ch == '"')
-			{
-				if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
-				{
-					// Escaped quote
-					_ = currentField.Append('"');
-					i++; // Skip next quote
-				}
-				else
-				{
-					// Toggle quotes
-					inQuotes = !inQuotes;
-				}
-			}
-			else if (ch == delimiter && !inQuotes)
-			{
-				// End of field
-				fields.Add(currentField.ToString().Trim());
-				_ = currentField.Clear();
-			}
-			else
-			{
-				_ = currentField.Append(ch);
-			}
-		}
-
-		// Add last field
-		fields.Add(currentField.ToString().Trim());
-
-		return fields;
-	}
-
-	private static string SerializeRowAsMarkdown(List<string> headers, List<string> fields, bool hasHeader)
-	{
-		var sb = new StringBuilder();
-
-		if (hasHeader && headers.Count > 0)
-		{
-			// Header row
-			_ = sb.Append("| ");
-			_ = sb.AppendJoin(" | ", headers);
-			_ = sb.AppendLine(" |");
-
-			// Separator
-			_ = sb.Append("| ");
-			_ = sb.AppendJoin(" | ", headers.Select(_ => "---"));
-			_ = sb.AppendLine(" |");
-		}
-
-		// Data row
-		_ = sb.Append("| ");
-		_ = sb.AppendJoin(" | ", fields);
-		_ = sb.AppendLine(" |");
-
-		return sb.ToString();
-	}
-
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
-	{
-		TokenCount = _tokenCounter.CountTokens(text),
-		CharacterCount = text.Length,
-		WordCount = text.Split([' ', ','], StringSplitOptions.RemoveEmptyEntries).Length,
-		SemanticCompleteness = 1.0
+		DocumentType = "CSV",
+		SourceId = string.Empty,
+		Hierarchy = hierarchy,
+		Tags = [.. tags],
+		CreatedAt = DateTimeOffset.UtcNow
 	};
 
-	private static ChunkingStatistics CalculateStatistics(List<ChunkerBase> chunks, DateTime startTime)
-	{
-		var processingTime = DateTime.UtcNow - startTime;
-
-		return new ChunkingStatistics
-		{
-			TotalChunks = chunks.Count,
-			StructuralChunks = chunks.OfType<StructuralChunk>().Count(),
-			ContentChunks = chunks.OfType<ContentChunk>().Count(),
-			VisualChunks = chunks.OfType<VisualChunk>().Count(),
-			TableChunks = chunks.OfType<TableChunk>().Count(),
-			MaxDepth = chunks.Count != 0 ? chunks.Max(c => c.Depth) : 0,
-			ProcessingTime = processingTime,
-			AverageTokensPerChunk = chunks.Count != 0 ? (int)chunks.Average(c => c.QualityMetrics?.TokenCount ?? 0) : 0,
-			TotalTokens = chunks.Sum(c => c.QualityMetrics?.TokenCount ?? 0),
-			MaxTokensInChunk = chunks.Count != 0 ? chunks.Max(c => c.QualityMetrics?.TokenCount ?? 0) : 0,
-			MinTokensInChunk = chunks.Count != 0 ? chunks.Min(c => c.QualityMetrics?.TokenCount ?? 0) : 0
-		};
-	}
-
-	private static ValidationResult ValidateChunks(List<ChunkerBase> chunks)
-	{
-		var issues = new List<ValidationIssue>();
-		var chunkIds = new HashSet<Guid>(chunks.Select(c => c.Id));
-
-		// Check for orphaned chunks
-		foreach (var chunk in chunks.Where(c => c.ParentId.HasValue))
-		{
-			if (!chunkIds.Contains(chunk.ParentId!.Value))
-			{
-				issues.Add(new ValidationIssue
-				{
-					Severity = ValidationSeverity.Warning,
-					Message = $"Chunk {chunk.Id} references non-existent parent {chunk.ParentId.Value}",
-					ChunkId = chunk.Id,
-					Code = "ORPHANED_CHUNK"
-				});
-			}
-		}
-
-		return new ValidationResult
-		{
-			IsValid = issues.Count == 0,
-			Issues = issues,
-			HasOrphanedChunks = issues.Any(i => i.Code == "ORPHANED_CHUNK")
-		};
-	}
 
 	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()
 	{
