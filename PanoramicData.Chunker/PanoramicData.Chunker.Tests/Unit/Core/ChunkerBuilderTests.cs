@@ -9,12 +9,12 @@ namespace PanoramicData.Chunker.Tests.Unit.Core;
 
 public class ChunkerBuilderTests
 {
-	private static MemoryStream Text(string text) => new(Encoding.UTF8.GetBytes(text));
+	private static MemoryStream StreamOf(string content) => new(Encoding.UTF8.GetBytes(content));
 
 	[Fact]
 	public async Task ChunkAsync_ChunksAStreamWithTheConfiguredOptions()
 	{
-		await using var stream = Text("First paragraph.\n\nSecond paragraph.");
+		await using var stream = StreamOf("First paragraph.\n\nSecond paragraph.");
 
 		var result = await DocumentChunker.CreateBuilder()
 			.WithDocument(stream, DocumentType.PlainText)
@@ -39,7 +39,7 @@ public class ChunkerBuilderTests
 	[Fact]
 	public async Task ChunkAsync_AutoDetectsAStreamWithoutAType()
 	{
-		await using var stream = Text("# Title\n\nSome markdown text.");
+		await using var stream = StreamOf("# Title\n\nSome markdown text.");
 
 		var result = await DocumentChunker.CreateBuilder()
 			.WithDocument(stream, DocumentType.Markdown)
