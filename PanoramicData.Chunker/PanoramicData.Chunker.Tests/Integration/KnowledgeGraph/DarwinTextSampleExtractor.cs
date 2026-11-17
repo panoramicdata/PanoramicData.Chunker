@@ -169,7 +169,9 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 	private static bool ContainsEntity(string content, string entity)
 	{
 		if (string.IsNullOrWhiteSpace(content) || string.IsNullOrWhiteSpace(entity))
+		{
 			return false;
+		}
 
 		// Case-insensitive search, also check for partial matches
 		var normalizedContent = content.ToLowerInvariant();
@@ -177,7 +179,9 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 
 		// Check exact match
 		if (normalizedContent.Contains(normalizedEntity))
+		{
 			return true;
+		}
 
 		// Check for word-by-word match (e.g., "Charles Darwin" might appear as just "Darwin")
 		var entityWords = normalizedEntity.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -200,7 +204,9 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 		var pos2 = content.IndexOf(entity2, StringComparison.OrdinalIgnoreCase);
 
 		if (pos1 < 0 || pos2 < 0)
+		{
 			return TruncateText(content, windowSize);
+		}
 
 		// Find the earlier and later positions
 		var earlierPos = Math.Min(pos1, pos2);
@@ -263,7 +269,9 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 	private static string TruncateText(string text, int maxLength)
 	{
 		if (text.Length <= maxLength)
+		{
 			return text;
+		}
 
 		return string.Concat(text.AsSpan(0, maxLength), "...");
 	}
