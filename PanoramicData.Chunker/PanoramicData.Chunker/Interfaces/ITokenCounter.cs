@@ -28,5 +28,5 @@ public interface ITokenCounter
 	/// <param name="maxTokens">Maximum tokens per segment.</param>
 	/// <param name="overlap">Number of tokens to overlap.</param>
 	/// <returns>Enumerable of text segments.</returns>
-	IEnumerable<string> SplitIntoTokenBatches(string text, int maxTokens, [Optional, DefaultParameterValue(0)] int overlap);
+	IEnumerable<string> SplitIntoTokenBatches(string text, int maxTokens, [Optional][DefaultParameterValue(0)] int overlap);
 }

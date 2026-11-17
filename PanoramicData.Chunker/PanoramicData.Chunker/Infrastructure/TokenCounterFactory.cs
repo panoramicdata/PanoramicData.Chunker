@@ -17,7 +17,7 @@ public static class TokenCounterFactory
 	/// <param name="customCounter">Optional custom counter to use when method is Custom.</param>
 	/// <returns>An instance of ITokenCounter.</returns>
 	/// <exception cref="NotSupportedException">Thrown when the method is not supported.</exception>
-	public static ITokenCounter Create(TokenCountingMethod method, [Optional, DefaultParameterValue(null)] ITokenCounter? customCounter) => method switch
+	public static ITokenCounter Create(TokenCountingMethod method, [Optional][DefaultParameterValue(null)] ITokenCounter? customCounter) => method switch
 	{
 		TokenCountingMethod.CharacterBased => new CharacterBasedTokenCounter(),
 		TokenCountingMethod.OpenAI_CL100K => OpenAITokenCounter.ForGpt4(),

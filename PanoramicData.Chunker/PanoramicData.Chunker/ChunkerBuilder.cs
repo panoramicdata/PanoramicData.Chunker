@@ -103,7 +103,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable image extraction.
 	/// </summary>
-	public ChunkerBuilder ExtractImages([Optional, DefaultParameterValue(true)] bool extract)
+	public ChunkerBuilder ExtractImages([Optional][DefaultParameterValue(true)] bool extract)
 	{
 		_options.ExtractImages = extract;
 		return this;
@@ -132,7 +132,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable keyword extraction.
 	/// </summary>
-	public ChunkerBuilder ExtractKeywords([Optional, DefaultParameterValue(true)] bool extract)
+	public ChunkerBuilder ExtractKeywords([Optional][DefaultParameterValue(true)] bool extract)
 	{
 		_options.ExtractKeywords = extract;
 		return this;
@@ -141,7 +141,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable formatting preservation.
 	/// </summary>
-	public ChunkerBuilder PreserveFormatting([Optional, DefaultParameterValue(true)] bool preserve)
+	public ChunkerBuilder PreserveFormatting([Optional][DefaultParameterValue(true)] bool preserve)
 	{
 		_options.PreserveFormatting = preserve;
 		return this;
@@ -168,7 +168,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable streaming.
 	/// </summary>
-	public ChunkerBuilder EnableStreaming([Optional, DefaultParameterValue(true)] bool enable)
+	public ChunkerBuilder EnableStreaming([Optional][DefaultParameterValue(true)] bool enable)
 	{
 		_options.EnableStreaming = enable;
 		return this;
@@ -205,7 +205,7 @@ public class ChunkerBuilder
 	/// <summary>
 	/// Enable or disable quality metrics calculation.
 	/// </summary>
-	public ChunkerBuilder IncludeQualityMetrics([Optional, DefaultParameterValue(true)] bool include)
+	public ChunkerBuilder IncludeQualityMetrics([Optional][DefaultParameterValue(true)] bool include)
 	{
 		_options.IncludeQualityMetrics = include;
 		return this;

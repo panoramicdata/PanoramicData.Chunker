@@ -26,7 +26,7 @@ public class OllamaLlmProvider : ILlmProvider
 	public OllamaLlmProvider(
 		OllamaOptions options,
 		ILogger<OllamaLlmProvider> logger,
-		[Optional, DefaultParameterValue(null)] HttpClient? httpClient)
+		[Optional][DefaultParameterValue(null)] HttpClient? httpClient)
 	{
 		_options = options ?? throw new ArgumentNullException(nameof(options));
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));

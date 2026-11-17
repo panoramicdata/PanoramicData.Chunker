@@ -147,7 +147,7 @@ public static class ChunkQueryExtensions
 	/// <param name="chunk">The chunk.</param>
 	/// <param name="allChunks">All chunks in the collection.</param>
 	/// <param name="includeSelf">Whether to include the chunk itself in the results.</param>
-	public static IEnumerable<ChunkerBase> GetSiblings(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks, [Optional, DefaultParameterValue(false)] bool includeSelf)
+	public static IEnumerable<ChunkerBase> GetSiblings(this ChunkerBase chunk, IEnumerable<ChunkerBase> allChunks, [Optional][DefaultParameterValue(false)] bool includeSelf)
 	{
 		var siblings = allChunks.Where(c => c.ParentId == chunk.ParentId);
 		return includeSelf ? siblings : siblings.Where(c => c.Id != chunk.Id);
@@ -442,9 +442,9 @@ public static class ChunkQueryExtensions
 	public static IEnumerable<ChunkerBase> GetContext(
 		this ChunkerBase chunk,
 		IEnumerable<ChunkerBase> allChunks,
-		[Optional, DefaultParameterValue(1)] int before,
-		[Optional, DefaultParameterValue(1)] int after,
-		[Optional, DefaultParameterValue(true)] bool includeSelf)
+		[Optional][DefaultParameterValue(1)] int before,
+		[Optional][DefaultParameterValue(1)] int after,
+		[Optional][DefaultParameterValue(true)] bool includeSelf)
 	{
 		var chunkList = allChunks.OrderBy(c => c.SequenceNumber).ToList();
 		var currentIndex = chunkList.FindIndex(c => c.Id == chunk.Id);

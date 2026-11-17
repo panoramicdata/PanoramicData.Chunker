@@ -32,6 +32,8 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 	private readonly double _minConfidence;
 	private readonly bool _enablePatternMatching;
 	private readonly bool _enableProximityRelationships;
+	private const int ContextSize = 150;
+
 	private readonly List<CompiledRelationshipPattern> _patterns;
 
 	/// <inheritdoc/>
@@ -52,10 +54,10 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 	/// <param name="enablePatternMatching">Enable pattern-based relationship detection (default: true).</param>
 	/// <param name="enableProximityRelationships">Enable distance-based co-occurrence relationships (default: true).</param>
 	public PatternBasedRelationshipExtractor(
-		[Optional, DefaultParameterValue(500)] int maxDistance,
-		[Optional, DefaultParameterValue(0.3)] double minConfidence,
-		[Optional, DefaultParameterValue(true)] bool enablePatternMatching,
-		[Optional, DefaultParameterValue(true)] bool enableProximityRelationships)
+		[Optional][DefaultParameterValue(500)] int maxDistance,
+		[Optional][DefaultParameterValue(0.3)] double minConfidence,
+		[Optional][DefaultParameterValue(true)] bool enablePatternMatching,
+		[Optional][DefaultParameterValue(true)] bool enableProximityRelationships)
 	{
 		_maxDistance = maxDistance;
 		_minConfidence = minConfidence;
@@ -85,10 +87,10 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 	/// <param name="cancellationToken">Cancellation token.</param>
 	public static async Task<PatternBasedRelationshipExtractor> CreateAsync(
 		string patternFilePath,
-		[Optional, DefaultParameterValue(500)] int maxDistance,
-		[Optional, DefaultParameterValue(0.3)] double minConfidence,
-		[Optional, DefaultParameterValue(true)] bool enablePatternMatching,
-		[Optional, DefaultParameterValue(true)] bool enableProximityRelationships,
+		[Optional][DefaultParameterValue(500)] int maxDistance,
+		[Optional][DefaultParameterValue(0.3)] double minConfidence,
+		[Optional][DefaultParameterValue(true)] bool enablePatternMatching,
+		[Optional][DefaultParameterValue(true)] bool enableProximityRelationships,
 		[Optional] CancellationToken cancellationToken)
 	{
 		var patterns = await RelationshipPatternLoader.LoadPatternsAsync(patternFilePath, cancellationToken);
@@ -153,107 +155,52 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			// Find all entities that appear in this chunk
-			var chunkEntities = entityList
-				.Where(e => e.Sources.Any(s => s.ChunkId == chunk.Id))
-				.ToList();
-
-			if (chunkEntities.Count < 2)
+			foreach (var pair in ExtractorHelpers.GetEntityPairs(entityList, chunk, _maxDistance))
 			{
-				continue;
-			}
-
-			var content = GetChunkContent(chunk);
-			if (string.IsNullOrWhiteSpace(content))
-			{
-				continue;
-			}
-
-			// Extract relationships for all entity pairs
-			for (var i = 0; i < chunkEntities.Count; i++)
-			{
-				for (var j = i + 1; j < chunkEntities.Count; j++)
+				foreach (var detected in DetectRelationships(pair).Where(d => d.Confidence >= _minConfidence))
 				{
-					var entity1 = chunkEntities[i];
-					var entity2 = chunkEntities[j];
-
-					// Get positions in this chunk
-					var positions1 = entity1.Sources
-						.Where(s => s.ChunkId == chunk.Id)
-						.Select(s => s.Position)
-						.ToList();
-
-					var positions2 = entity2.Sources
-						.Where(s => s.ChunkId == chunk.Id)
-						.Select(s => s.Position)
-						.ToList();
-
-					// Calculate minimum distance
-					var minDistance = CalculateMinDistance(positions1, positions2);
-
-					if (minDistance > _maxDistance)
-					{
-						continue;
-					}
-
-					// Try pattern-based extraction first
-					List<DetectedRelationship>? detectedRelationships = null;
-					if (_enablePatternMatching)
-					{
-						detectedRelationships = DetectPatternBasedRelationships(
-							content,
-							entity1,
-							entity2,
-							positions1,
-							positions2);
-					}
-
-					// If no patterns matched and proximity is enabled, create co-occurrence relationship
-					if ((detectedRelationships == null || detectedRelationships.Count == 0) && _enableProximityRelationships)
-					{
-						var proximityConfidence = CalculateProximityConfidence(minDistance);
-						if (proximityConfidence >= _minConfidence)
-						{
-							detectedRelationships =
-							[
-								new DetectedRelationship
-								{
-									Type = minDistance < 100 ? RelationshipType.Mentions : RelationshipType.CooccursWith,
-									FromEntityId = entity1.Id,
-									ToEntityId = entity2.Id,
-									Confidence = proximityConfidence,
-									IsDirectional = false,
-									Context = GetContext(content, positions1.Min(), positions2.Max())
-								}
-							];
-						}
-					}
-
-					// Add detected relationships
-					if (detectedRelationships != null)
-					{
-						foreach (var detected in detectedRelationships)
-						{
-							if (detected.Confidence < _minConfidence)
-							{
-								continue;
-							}
-
-							AddOrUpdateRelationship(
-								relationshipMap,
-								relationships,
-								detected,
-								chunk.Id);
-						}
-					}
+					AddOrUpdateRelationship(relationshipMap, relationships, detected, chunk.Id);
 				}
 			}
 		}
 
-		// Normalize relationship weights
-		NormalizeRelationshipWeights(relationships);
+		ExtractorHelpers.NormalizeWeights(relationships);
 
 		return await Task.FromResult(relationships);
+	}
+
+	private List<DetectedRelationship> DetectRelationships(EntityPair pair)
+	{
+		var detected = _enablePatternMatching
+			? DetectPatternBasedRelationships(pair.Content, pair.Entity1, pair.Entity2, pair.Positions1, pair.Positions2)
+			: [];
+
+		// Fall back to a co-occurrence relationship when no pattern matched
+		return detected.Count == 0 && _enableProximityRelationships
+			? CreateProximityRelationship(pair)
+			: detected;
+	}
+
+	private List<DetectedRelationship> CreateProximityRelationship(EntityPair pair)
+	{
+		var proximityConfidence = ExtractorHelpers.InterpolateConfidence(pair.MinDistance, _maxDistance, _minConfidence);
+		if (proximityConfidence < _minConfidence)
+		{
+			return [];
+		}
+
+		return
+		[
+			new DetectedRelationship
+			{
+				Type = pair.MinDistance < 100 ? RelationshipType.Mentions : RelationshipType.CooccursWith,
+				FromEntityId = pair.Entity1.Id,
+				ToEntityId = pair.Entity2.Id,
+				Confidence = proximityConfidence,
+				IsDirectional = false,
+				Context = ExtractorHelpers.GetContext(pair.Content, pair.Positions1.Min(), pair.Positions2.Max(), ContextSize)
+			}
+		];
 	}
 
 	private List<DetectedRelationship> DetectPatternBasedRelationships(
@@ -265,51 +212,42 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 	{
 		var detected = new List<DetectedRelationship>();
 
-		// Determine order (which entity comes first in text)
-		var firstEntity = positions1.Min() < positions2.Min() ? entity1 : entity2;
-		var secondEntity = firstEntity == entity1 ? entity2 : entity1;
-		var firstPos = firstEntity == entity1 ? positions1.Min() : positions2.Min();
-		var secondPos = secondEntity == entity2 ? positions2.Min() : positions1.Min();
+		var (firstEntity, secondEntity, firstPos, secondPos) = OrderByPosition(entity1, entity2, positions1.Min(), positions2.Min());
 
-		// Extract text between entities
 		var betweenText = GetTextBetween(content, firstPos, secondPos, firstEntity.Name.Length);
-
 		if (string.IsNullOrWhiteSpace(betweenText))
 		{
 			return detected;
 		}
 
-		// Check each pattern
-		foreach (var pattern in _patterns)
+		var context = ExtractorHelpers.GetContext(content, firstPos, secondPos, ContextSize);
+		foreach (var pattern in _patterns.Where(p => p.Regex.IsMatch(betweenText)))
 		{
-			var match = pattern.Regex.Match(betweenText);
-			if (match.Success)
+			var fromEntity = pattern.IsDirectional ? firstEntity : entity1;
+			var toEntity = pattern.IsDirectional ? secondEntity : entity2;
+
+			detected.Add(new DetectedRelationship
 			{
-				// Determine directionality
-				var fromEntity = pattern.IsDirectional ? firstEntity : entity1;
-				var toEntity = pattern.IsDirectional ? secondEntity : entity2;
+				Type = pattern.Type,
+				FromEntityId = fromEntity.Id,
+				ToEntityId = toEntity.Id,
+				Confidence = pattern.Confidence,
+				IsDirectional = pattern.IsDirectional,
+				Context = context,
+				PatternName = pattern.Name
+			});
 
-				detected.Add(new DetectedRelationship
-				{
-					Type = pattern.Type,
-					FromEntityId = fromEntity.Id,
-					ToEntityId = toEntity.Id,
-					Confidence = pattern.Confidence,
-					IsDirectional = pattern.IsDirectional,
-					Context = GetContext(content, firstPos, secondPos),
-					PatternName = pattern.Name
-				});
-
-				// If it's a high-confidence pattern, don't check other patterns
-				if (pattern.Confidence >= 0.9)
-				{
-					break;
-				}
+			// A high-confidence pattern ends the search
+			if (pattern.Confidence >= 0.9)
+			{
+				break;
 			}
 		}
 
 		return detected;
 	}
+	private static (Entity First, Entity Second, int FirstPos, int SecondPos) OrderByPosition(Entity entity1, Entity entity2, int pos1, int pos2)
+		=> pos1 < pos2 ? (entity1, entity2, pos1, pos2) : (entity2, entity1, pos2, pos1);
 
 	private void AddOrUpdateRelationship(
 		Dictionary<string, Relationship> relationshipMap,
@@ -355,101 +293,6 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 
 		// Add evidence
 		relationship.AddEvidence(chunkId, detected.Context, detected.Confidence);
-	}
-
-	private static void NormalizeRelationshipWeights(List<Relationship> relationships)
-	{
-		if (relationships.Count == 0)
-		{
-			return;
-		}
-
-		var maxWeight = relationships.Max(r => r.Weight);
-		if (maxWeight > 0)
-		{
-			foreach (var relationship in relationships)
-			{
-				relationship.Weight /= maxWeight;
-			}
-		}
-	}
-
-	// Helper methods
-
-	private static string GetChunkContent(ChunkerBase chunk)
-	{
-		if (chunk is ContentChunk contentChunk)
-		{
-			return contentChunk.Content;
-		}
-
-		return string.Empty;
-	}
-
-	private static int CalculateMinDistance(List<int> positions1, List<int> positions2)
-	{
-		var minDistance = int.MaxValue;
-
-		foreach (var pos1 in positions1)
-		{
-			foreach (var pos2 in positions2)
-			{
-				var distance = Math.Abs(pos1 - pos2);
-				minDistance = Math.Min(minDistance, distance);
-			}
-		}
-
-		return minDistance;
-	}
-
-	private double CalculateProximityConfidence(int distance)
-	{
-		// Very close entities (< 50 chars) get high confidence
-		if (distance <= 50)
-		{
-			return 1.0;
-		}
-
-		// Far entities (near maxDistance) get low confidence
-		if (distance >= _maxDistance)
-		{
-			return _minConfidence;
-		}
-
-		// Linear interpolation
-		var ratio = (double)distance / _maxDistance;
-		return 1.0 - (ratio * (1.0 - _minConfidence));
-	}
-
-	private static string GetContext(string text, int startPos, int endPos, int contextSize = 150)
-	{
-		// Ensure startPos <= endPos
-		if (startPos > endPos)
-		{
-			(startPos, endPos) = (endPos, startPos);
-		}
-
-		var start = Math.Max(0, startPos - contextSize);
-		var end = Math.Min(text.Length, endPos + contextSize);
-
-		// Ensure valid range
-		if (start >= text.Length || end <= 0 || start >= end)
-		{
-			return string.Empty;
-		}
-
-		var context = text[start..end];
-
-		if (start > 0)
-		{
-			context = "..." + context;
-		}
-		if (end < text.Length)
-		{
-			context += "...";
-		}
-
-		return context;
 	}
 
 	private static string GetTextBetween(string content, int start, int end, int entityLength)
