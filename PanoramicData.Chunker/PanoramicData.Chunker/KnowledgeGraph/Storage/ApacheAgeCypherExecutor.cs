@@ -233,8 +233,8 @@ public partial class ApacheAgeCypherExecutor(
 			throw new InvalidOperationException($"Invalid Apache AGE graph name '{_graphName}'. Use letters, digits and underscores only.");
 		}
 
-		// Apache AGE requires wrapping Cypher queries in a SELECT statement
-		var query = $"SELECT * FROM ag_catalog.cypher('{_graphName}', $$\n{cypherQuery}\n$$) AS (result agtype);";
+		// Apache AGE requires a constant graph name, so the validated name is part of the statement text
+		var query = string.Concat("SELECT * FROM ag_catalog.cypher('", _graphName, "', $$\n", cypherQuery, "\n$$) AS (result agtype);");
 
 		if (parameters != null)
 		{
