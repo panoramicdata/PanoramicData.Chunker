@@ -54,26 +54,22 @@ public partial class PptxDocumentChunker
 
 	private PptxNotesChunk? ExtractNotesChunk(NotesSlidePart notesSlidePart, int slideNumber, Guid slideId)
 	{
-		var shapes = notesSlidePart.NotesSlide?.CommonSlideData?.ShapeTree?.Elements<P.Shape>();
-		if (notesSlidePart.NotesSlide?.CommonSlideData == null)
+		var commonSlideData = notesSlidePart.NotesSlide?.CommonSlideData;
+		if (commonSlideData == null)
 		{
 			return null;
 		}
 
-		var notesText = new StringBuilder();
-		foreach (var shape in (shapes ?? []).Where(s => GetPlaceholderType(s) != "sldImg"))
-		{
-			var text = GetShapeText(shape);
-			if (!string.IsNullOrWhiteSpace(text))
-			{
-				_ = notesText.AppendLine(text);
-			}
-		}
-
-		var notesContent = notesText.ToString().Trim();
+		var notesContent = string.Join(Environment.NewLine, GetNotesTexts(commonSlideData)).Trim();
 		return string.IsNullOrWhiteSpace(notesContent) ? null : CreateNotesChunk(notesContent, slideNumber, slideId);
 	}
 
+	// The slide image placeholder carries no text
+	private static IEnumerable<string> GetNotesTexts(CommonSlideData commonSlideData)
+		=> (commonSlideData.ShapeTree?.Elements<P.Shape>() ?? [])
+			.Where(shape => GetPlaceholderType(shape) != "sldImg")
+			.Select(GetShapeText)
+			.Where(text => !string.IsNullOrWhiteSpace(text));
 	private PptxNotesChunk CreateNotesChunk(string notesContent, int slideNumber, Guid slideId) => new()
 	{
 		Content = notesContent,
