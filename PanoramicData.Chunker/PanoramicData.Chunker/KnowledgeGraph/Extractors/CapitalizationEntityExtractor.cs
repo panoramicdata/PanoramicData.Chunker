@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces.KnowledgeGraph;
 using PanoramicData.Chunker.Models;
@@ -61,9 +62,9 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 	/// <param name="minWordLength">Minimum word length to consider (overrides config if specified).</param>
 	/// <param name="baseConfidence">Base confidence score (overrides config if specified).</param>
 	public CapitalizationEntityExtractor(
-		int? minOccurrences = null,
-		int? minWordLength = null,
-		double? baseConfidence = null)
+		[Optional] int? minOccurrences,
+		[Optional] int? minWordLength,
+		[Optional] double? baseConfidence)
 	{
 		// Load default configuration
 		_config = LoadDefaultConfigSync();
@@ -92,10 +93,10 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 	/// <param name="cancellationToken">Cancellation token.</param>
 	public static async Task<CapitalizationEntityExtractor> CreateAsync(
 		string configFilePath,
-		int? minOccurrences = null,
-		int? minWordLength = null,
-		double? baseConfidence = null,
-		CancellationToken cancellationToken = default)
+		[Optional] int? minOccurrences,
+		[Optional] int? minWordLength,
+		[Optional] double? baseConfidence,
+		[Optional] CancellationToken cancellationToken)
 	{
 		var config = await EntityPatternLoader.LoadPatternsAsync(configFilePath, cancellationToken);
 		return new CapitalizationEntityExtractor(config, minOccurrences, minWordLength, baseConfidence);
@@ -106,9 +107,9 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 	/// </summary>
 	private CapitalizationEntityExtractor(
 		EntityPatternsConfiguration config,
-		int? minOccurrences = null,
-		int? minWordLength = null,
-		double? baseConfidence = null)
+		[Optional] int? minOccurrences,
+		[Optional] int? minWordLength,
+		[Optional] double? baseConfidence)
 	{
 		_config = config;
 

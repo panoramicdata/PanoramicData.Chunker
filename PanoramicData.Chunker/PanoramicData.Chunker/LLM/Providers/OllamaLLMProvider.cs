@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Interfaces;
@@ -25,7 +26,7 @@ public class OllamaLlmProvider : ILlmProvider
 	public OllamaLlmProvider(
 		OllamaOptions options,
 		ILogger<OllamaLlmProvider> logger,
-		HttpClient? httpClient = null)
+		[Optional, DefaultParameterValue(null)] HttpClient? httpClient)
 	{
 		_options = options ?? throw new ArgumentNullException(nameof(options));
 		_logger = logger ?? throw new ArgumentNullException(nameof(logger));

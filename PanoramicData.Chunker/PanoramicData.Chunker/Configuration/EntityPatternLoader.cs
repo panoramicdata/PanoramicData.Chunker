@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace PanoramicData.Chunker.Configuration;
@@ -32,7 +33,7 @@ public class EntityPatternLoader
 	/// <returns>Entity patterns configuration.</returns>
 	public static async Task<EntityPatternsConfiguration> LoadPatternsAsync(
 		string filePath,
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		if (!File.Exists(filePath))
 		{
@@ -52,7 +53,7 @@ public class EntityPatternLoader
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns>Entity patterns configuration.</returns>
 	public static async Task<EntityPatternsConfiguration> LoadDefaultPatternsAsync(
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		// Try multiple locations in order of preference
 		var searchPaths = new[]
@@ -94,7 +95,7 @@ public class EntityPatternLoader
 	public static async Task SavePatternsAsync(
 		EntityPatternsConfiguration config,
 		string filePath,
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		var json = JsonSerializer.Serialize(config, _jsonOptions);
 		await File.WriteAllTextAsync(filePath, json, cancellationToken);
@@ -107,7 +108,7 @@ public class EntityPatternLoader
 	/// <param name="cancellationToken">Cancellation token.</param>
 	public static async Task CreateTemplateAsync(
 		string filePath,
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		var template = new EntityPatternsConfiguration
 		{

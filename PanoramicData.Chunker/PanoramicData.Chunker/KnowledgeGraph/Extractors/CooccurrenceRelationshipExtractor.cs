@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using PanoramicData.Chunker.Interfaces.KnowledgeGraph;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
@@ -33,7 +34,7 @@ public class CooccurrenceRelationshipExtractor(int maxDistance = 500, double min
 	public async Task<List<Relationship>> ExtractRelationshipsAsync(
 		IEnumerable<Entity> entities,
 		IEnumerable<ChunkerBase> chunks,
-		CancellationToken cancellationToken = default)
+		[Optional] CancellationToken cancellationToken)
 	{
 		var entityList = entities.ToList();
 		var chunkList = chunks.ToList();

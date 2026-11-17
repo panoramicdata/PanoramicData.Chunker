@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using PanoramicData.Chunker.Chunkers.Csv;
 using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Chunkers.Html;
@@ -23,7 +24,7 @@ public class ChunkerFactory : IChunkerFactory
 	/// Initializes a new instance of the <see cref="ChunkerFactory"/> class.
 	/// </summary>
 	/// <param name="tokenCounter">Optional token counter to use for chunkers. If not provided, uses CharacterBasedTokenCounter.</param>
-	public ChunkerFactory(ITokenCounter? tokenCounter = null)
+	public ChunkerFactory([Optional, DefaultParameterValue(null)] ITokenCounter? tokenCounter)
 	{
 		_defaultTokenCounter = tokenCounter ?? new CharacterBasedTokenCounter();
 		RegisterDefaultChunkers();
