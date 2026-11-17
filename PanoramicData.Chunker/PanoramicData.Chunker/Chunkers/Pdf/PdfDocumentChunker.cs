@@ -4,7 +4,6 @@ using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Utilities;
 using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
 using DocType = PanoramicData.Chunker.Configuration.DocumentType;
 
 namespace PanoramicData.Chunker.Chunkers.Pdf;
@@ -17,8 +16,10 @@ namespace PanoramicData.Chunker.Chunkers.Pdf;
 /// </remarks>
 /// <param name="tokenCounter">Token counter for calculating chunk sizes.</param>
 /// <param name="logger">Optional logger for diagnostic information.</param>
-public class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfDocumentChunker>? logger = null) : IDocumentChunker
+public partial class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfDocumentChunker>? logger = null) : IDocumentChunker
 {
+	private static readonly byte[] PdfSignature = [0x25, 0x50, 0x44, 0x46, 0x2D];
+
 	private readonly ITokenCounter _tokenCounter = tokenCounter ?? throw new ArgumentNullException(nameof(tokenCounter));
 	private readonly List<ChunkerBase> _chunks = [];
 	private int _sequenceNumber;
@@ -31,27 +32,15 @@ public class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfDocumentC
 	{
 		try
 		{
-			// Save position to restore later
 			var originalPosition = documentStream.Position;
 
-			// Check PDF signature (%PDF-)
-			var buffer = new byte[5];
+			var buffer = new byte[PdfSignature.Length];
 			var bytesRead = await documentStream.ReadAsync(buffer, cancellationToken);
 
-			// Restore position
 			documentStream.Position = originalPosition;
 
-			if (bytesRead < 5)
-			{
-				return false;
-			}
-
 			// PDF files start with %PDF-
-			return buffer[0] == 0x25 && // %
-				   buffer[1] == 0x50 && // P
-				   buffer[2] == 0x44 && // D
-				buffer[3] == 0x46 && // F
-				   buffer[4] == 0x2D;   // -
+			return bytesRead >= PdfSignature.Length && buffer.AsSpan().SequenceEqual(PdfSignature);
 		}
 		catch
 		{
@@ -74,17 +63,7 @@ public class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfDocumentC
 
 		try
 		{
-			// Copy stream to memory if needed (PdfPig requires seekable stream)
-			var workingStream = documentStream;
-			if (!documentStream.CanSeek)
-			{
-				var memoryStream = new MemoryStream();
-				await documentStream.CopyToAsync(memoryStream, cancellationToken);
-				memoryStream.Position = 0;
-				workingStream = memoryStream;
-			}
-
-			// Open PDF document
+			var workingStream = await GetSeekableStreamAsync(documentStream, cancellationToken);
 			using var pdf = PdfDocument.Open(workingStream);
 
 			if (pdf.NumberOfPages == 0)
@@ -93,276 +72,48 @@ public class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfDocumentC
 				return CreateEmptyResult(startTime);
 			}
 
-			// Create document chunk
-			var documentChunk = CreateDocumentChunk(pdf);
-			_chunks.Add(documentChunk);
-
 			logger?.LogInformation("Processing PDF with {PageCount} pages", pdf.NumberOfPages);
+			ExtractDocument(pdf);
 
-			// Process each page
-			for (var pageIndex = 0; pageIndex < pdf.NumberOfPages; pageIndex++)
-			{
-				var page = pdf.GetPage(pageIndex + 1); // Pages are 1-based in PdfPig
-
-				var pageChunk = CreatePageChunk(page, documentChunk.Id);
-				_chunks.Add(pageChunk);
-
-				// Extract paragraphs from page
-				var paragraphs = ExtractParagraphsFromPage(page, pageChunk.Id);
-				_chunks.AddRange(paragraphs);
-			}
-
-			// Build hierarchy
 			HierarchyBuilder.BuildHierarchy(_chunks);
+			logger?.LogInformation("Extracted {ChunkCount} chunks from PDF ({PageCount} pages)", _chunks.Count, pdf.NumberOfPages);
 
-			logger?.LogInformation("Extracted {ChunkCount} chunks from PDF ({PageCount} pages)",
-				_chunks.Count, pdf.NumberOfPages);
-
-			// Calculate statistics
-			var statistics = CalculateStatistics(_chunks, startTime);
-
-			// Perform validation if requested
-			var validationResult = options.ValidateChunks
-				? ValidateChunks(_chunks)
-				: null;
-
-			return new ChunkingResult
-			{
-				Chunks = _chunks,
-				Statistics = statistics,
-				ValidationResult = validationResult,
-				Warnings = [],
-				Success = true
-			};
+			return ChunkResultHelper.CreateSuccess(_chunks, startTime, options);
 		}
 		catch (Exception ex)
 		{
 			logger?.LogError(ex, "Error chunking PDF document");
-			return new ChunkingResult
-			{
-				Chunks = [],
-				Statistics = new ChunkingStatistics(),
-				Warnings =
-				[
-					new ChunkingWarning
-					{
-						Level = WarningLevel.Error,
-						Message = $"Failed to chunk PDF document: {ex.Message}"
-					}
-				],
-				Success = false
-			};
+			return ChunkResultHelper.CreateFailure("PDF", ex);
 		}
 	}
 
-	private PdfDocumentChunk CreateDocumentChunk(PdfDocument pdf)
+	// PdfPig requires a seekable stream
+	private static async Task<Stream> GetSeekableStreamAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
-		var info = pdf.Information;
-
-		var chunk = new PdfDocumentChunk
+		if (documentStream.CanSeek)
 		{
-			PdfVersion = pdf.Version.ToString(),
-			PageCount = pdf.NumberOfPages,
-			Title = info?.Title,
-			Author = info?.Author,
-			Subject = info?.Subject,
-			CreationDate = TryParseDate(info?.CreationDate),
-			ModificationDate = TryParseDate(info?.ModifiedDate),
-			IsEncrypted = false, // PdfPig handles decryption automatically
-			ParentId = null,
-			SequenceNumber = _sequenceNumber++,
-			SpecificType = "pdf-document",
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "PDF",
-				SourceId = string.Empty,
-				Hierarchy = "pdf",
-				Tags = ["pdf", "document"],
-				CreatedAt = DateTimeOffset.UtcNow
-			},
-			QualityMetrics = new ChunkQualityMetrics
-			{
-				TokenCount = 0,
-				CharacterCount = 0,
-				WordCount = 0,
-				SemanticCompleteness = 1.0
-			}
-		};
+			return documentStream;
+		}
 
-		return chunk;
+		var memoryStream = new MemoryStream();
+		await documentStream.CopyToAsync(memoryStream, cancellationToken);
+		memoryStream.Position = 0;
+		return memoryStream;
 	}
 
-	private PdfPageChunk CreatePageChunk(Page page, Guid documentId)
+	private void ExtractDocument(PdfDocument pdf)
 	{
-		var text = page.Text;
-		var wordCount = string.IsNullOrWhiteSpace(text) ? 0 : text.Split([' ', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries).Length;
+		var documentChunk = CreateDocumentChunk(pdf);
+		_chunks.Add(documentChunk);
 
-		var chunk = new PdfPageChunk
+		for (var pageNumber = 1; pageNumber <= pdf.NumberOfPages; pageNumber++)
 		{
-			PageNumber = page.Number,
-			Width = (double)page.Width,
-			Height = (double)page.Height,
-			Rotation = (int)page.Rotation.Value,
-			ExtractedText = text,
-			WordCount = wordCount,
-			ParentId = documentId,
-			SequenceNumber = _sequenceNumber++,
-			SpecificType = "pdf-page",
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "PDF",
-				SourceId = string.Empty,
-				Hierarchy = $"pdf/page{page.Number}",
-				Tags = ["pdf-page"],
-				CreatedAt = DateTimeOffset.UtcNow
-			},
-			// Calculate quality metrics
-			QualityMetrics = CalculateQualityMetrics(text)
-		};
+			var page = pdf.GetPage(pageNumber);
 
-		return chunk;
-	}
-
-	private List<PdfParagraphChunk> ExtractParagraphsFromPage(Page page, Guid pageId)
-	{
-		var paragraphs = new List<PdfParagraphChunk>();
-		var text = page.Text;
-
-		if (string.IsNullOrWhiteSpace(text))
-		{
-			return paragraphs;
+			var pageChunk = CreatePageChunk(page, documentChunk.Id);
+			_chunks.Add(pageChunk);
+			_chunks.AddRange(ExtractParagraphsFromPage(page, pageChunk.Id));
 		}
-
-		// Split text into paragraphs (simple heuristic: double newline or significant spacing)
-		var paragraphTexts = text.Split(["\n\n", "\r\n\r\n"], StringSplitOptions.RemoveEmptyEntries);
-
-		for (var i = 0; i < paragraphTexts.Length; i++)
-		{
-			var paragraphText = paragraphTexts[i].Trim();
-
-			if (string.IsNullOrWhiteSpace(paragraphText))
-			{
-				continue;
-			}
-
-			// Detect if this is likely a heading (short text, often larger font)
-			var isLikelyHeading = IsLikelyHeading(paragraphText);
-
-			var chunk = new PdfParagraphChunk
-			{
-				Content = paragraphText,
-				PageNumber = page.Number,
-				ParagraphIndex = i,
-				YPosition = 0, // Would need more complex analysis to determine exact position
-				FontSize = null, // Would need letter-level analysis
-				IsLikelyHeading = isLikelyHeading,
-				ParentId = pageId,
-				SequenceNumber = _sequenceNumber++,
-				SpecificType = "pdf-paragraph",
-				Metadata = new ChunkMetadata
-				{
-					DocumentType = "PDF",
-					SourceId = string.Empty,
-					Hierarchy = $"pdf/page{page.Number}/para{i}",
-					Tags = isLikelyHeading ? ["pdf-paragraph", "heading"] : ["pdf-paragraph"],
-					CreatedAt = DateTimeOffset.UtcNow
-				},
-				// Calculate quality metrics
-				QualityMetrics = CalculateQualityMetrics(paragraphText)
-			};
-
-			paragraphs.Add(chunk);
-		}
-
-		return paragraphs;
-	}
-
-	private static bool IsLikelyHeading(string text)
-	{
-		// Heuristic: Short text (< 100 chars), no ending punctuation, often contains uppercase
-		if (text.Length > 100)
-		{
-			return false;
-		}
-
-		// Check if ends with period (headings typically don't)
-		if (text.EndsWith('.') || text.EndsWith(','))
-		{
-			return false;
-		}
-
-		// Check if has significant uppercase content
-		var uppercaseRatio = text.Count(char.IsUpper) / (double)text.Length;
-		if (uppercaseRatio > 0.3) // More than 30% uppercase
-		{
-			return true;
-		}
-
-		// Check for common heading patterns
-		if (text.StartsWith("Chapter ", StringComparison.OrdinalIgnoreCase) ||
-			text.StartsWith("Section ", StringComparison.OrdinalIgnoreCase) ||
-			text.StartsWith("Part ", StringComparison.OrdinalIgnoreCase))
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
-	{
-		TokenCount = _tokenCounter.CountTokens(text),
-		CharacterCount = text.Length,
-		WordCount = string.IsNullOrWhiteSpace(text) ? 0 : text.Split([' ', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries).Length,
-		SemanticCompleteness = 1.0
-	};
-
-	private static ChunkingStatistics CalculateStatistics(List<ChunkerBase> chunks, DateTime startTime)
-	{
-		var processingTime = DateTime.UtcNow - startTime;
-
-		return new ChunkingStatistics
-		{
-			TotalChunks = chunks.Count,
-			StructuralChunks = chunks.OfType<StructuralChunk>().Count(),
-			ContentChunks = chunks.OfType<ContentChunk>().Count(),
-			VisualChunks = chunks.OfType<VisualChunk>().Count(),
-			TableChunks = chunks.OfType<TableChunk>().Count(),
-			MaxDepth = chunks.Count != 0 ? chunks.Max(c => c.Depth) : 0,
-			ProcessingTime = processingTime,
-			AverageTokensPerChunk = chunks.Count != 0 ? (int)chunks.Average(c => c.QualityMetrics?.TokenCount ?? 0) : 0,
-			TotalTokens = chunks.Sum(c => c.QualityMetrics?.TokenCount ?? 0),
-			MaxTokensInChunk = chunks.Count != 0 ? chunks.Max(c => c.QualityMetrics?.TokenCount ?? 0) : 0,
-			MinTokensInChunk = chunks.Count != 0 ? chunks.Min(c => c.QualityMetrics?.TokenCount ?? 0) : 0
-		};
-	}
-
-	private static ValidationResult ValidateChunks(List<ChunkerBase> chunks)
-	{
-		var issues = new List<ValidationIssue>();
-		var chunkIds = new HashSet<Guid>(chunks.Select(c => c.Id));
-
-		// Check for orphaned chunks
-		foreach (var chunk in chunks.Where(c => c.ParentId.HasValue))
-		{
-			if (!chunkIds.Contains(chunk.ParentId!.Value))
-			{
-				issues.Add(new ValidationIssue
-				{
-					Severity = ValidationSeverity.Warning,
-					Message = $"Chunk {chunk.Id} references non-existent parent {chunk.ParentId.Value}",
-					ChunkId = chunk.Id,
-					Code = "ORPHANED_CHUNK"
-				});
-			}
-		}
-
-		return new ValidationResult
-		{
-			IsValid = issues.Count == 0,
-			Issues = issues,
-			HasOrphanedChunks = issues.Any(i => i.Code == "ORPHANED_CHUNK")
-		};
 	}
 
 	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()
@@ -375,33 +126,4 @@ public class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfDocumentC
 		Warnings = [],
 		Success = true
 	};
-
-	private static DateTime? TryParseDate(string? dateString)
-	{
-		if (string.IsNullOrWhiteSpace(dateString))
-		{
-			return null;
-		}
-
-		// PDF dates are in format: D:YYYYMMDDHHmmSS
-		if (dateString.StartsWith("D:") && dateString.Length >= 16)
-		{
-			var year = int.Parse(dateString.Substring(2, 4));
-			var month = int.Parse(dateString.Substring(6, 2));
-			var day = int.Parse(dateString.Substring(8, 2));
-			var hour = int.Parse(dateString.Substring(10, 2));
-			var minute = int.Parse(dateString.Substring(12, 2));
-			var second = int.Parse(dateString.Substring(14, 2));
-
-			return new DateTime(year, month, day, hour, minute, second);
-		}
-
-		// Fallback to standard parsing
-		if (DateTime.TryParse(dateString, out var result))
-		{
-			return result;
-		}
-
-		return null;
-	}
 }
