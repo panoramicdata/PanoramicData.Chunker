@@ -15,6 +15,7 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 /// builds a knowledge graph, and queries it to answer questions.
 /// </summary>
 [Collection("PostgreSQL")]
+[Trait("Category", "Integration")]
 public class EndToEndKnowledgeGraphTests(ApacheAgeFixture fixture, ITestOutputHelper output) : IClassFixture<ApacheAgeFixture>
 {
 	private readonly ApacheAgeFixture _fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));

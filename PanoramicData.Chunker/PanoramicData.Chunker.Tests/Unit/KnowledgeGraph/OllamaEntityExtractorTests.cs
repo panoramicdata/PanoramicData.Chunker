@@ -11,6 +11,7 @@ namespace PanoramicData.Chunker.Tests.Unit.KnowledgeGraph;
 /// NOTE: These tests require Ollama to be running locally with llama3.2 model available.
 /// Skip these tests if Ollama is not available in your environment.
 /// </summary>
+[Trait("Category", "Integration")]
 public class OllamaEntityExtractorTests(ITestOutputHelper output) : BaseTest(output)
 {
 	[Fact]
