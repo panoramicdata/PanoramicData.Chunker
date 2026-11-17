@@ -420,8 +420,13 @@ public class ApacheAgeGraphStore(
 	{
 		try
 		{
-			await ExecuteSqlAsync(connection, "LOAD 'age';", cancellationToken);
-			await ExecuteSqlAsync(connection, "SET search_path = ag_catalog, public;", cancellationToken);
+			await using (var load = new NpgsqlCommand("LOAD 'age';", connection))
+			{
+				await load.ExecuteNonQueryAsync(cancellationToken);
+			}
+
+			await using var setPath = new NpgsqlCommand("SET search_path = ag_catalog, public;", connection);
+			await setPath.ExecuteNonQueryAsync(cancellationToken);
 		}
 		catch (Exception ex)
 		{
@@ -429,9 +434,7 @@ public class ApacheAgeGraphStore(
 		}
 	}
 
-	private static async Task CreateMetadataTableIfNotExistsAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
-	{
-		var sql = @"
+	private const string CreateMetadataTablesSql = @"
 			CREATE TABLE IF NOT EXISTS age_graph_metadata (
 				id UUID PRIMARY KEY,
 				name TEXT NOT NULL,
@@ -469,7 +472,10 @@ public class ApacheAgeGraphStore(
 			CREATE INDEX IF NOT EXISTS idx_age_relationships_to ON age_relationships(to_entity_id);
 		";
 
-		await ExecuteSqlAsync(connection, sql, cancellationToken);
+	private static async Task CreateMetadataTableIfNotExistsAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
+	{
+		await using var cmd = new NpgsqlCommand(CreateMetadataTablesSql, connection);
+		await cmd.ExecuteNonQueryAsync(cancellationToken);
 	}
 
 	private static async Task SaveGraphMetadataAsync(NpgsqlConnection connection, Graph graph, CancellationToken cancellationToken)
@@ -595,11 +601,5 @@ public class ApacheAgeGraphStore(
 		}
 
 		return relationships;
-	}
-
-	private static async Task ExecuteSqlAsync(NpgsqlConnection connection, string sql, CancellationToken cancellationToken)
-	{
-		await using var cmd = new NpgsqlCommand(sql, connection);
-		await cmd.ExecuteNonQueryAsync(cancellationToken);
 	}
 }

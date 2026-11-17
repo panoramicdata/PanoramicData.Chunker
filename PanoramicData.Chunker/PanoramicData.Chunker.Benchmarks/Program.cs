@@ -5,14 +5,10 @@ namespace PanoramicData.Chunker.Benchmarks;
 /// <summary>
 /// Entry point for running benchmarks.
 /// </summary>
-public class Program
+public static class Program
 {
-	public static void Main(string[] args)
+	public static void Main()
 	{
-		// Run all benchmarks
-		var summary = BenchmarkRunner.Run(typeof(Program).Assembly);
-		
-		// Or run specific benchmark:
-		// BenchmarkRunner.Run<MarkdownChunkingBenchmarks>();
+		_ = BenchmarkRunner.Run(typeof(Program).Assembly);
 	}
 }

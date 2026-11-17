@@ -115,9 +115,6 @@ public class ApacheAgeFixture : IAsyncLifetime
 	/// </summary>
 	private async Task InitializeApacheAgeAsync()
 	{
-		using var scope = _serviceProvider!.CreateScope();
-		var graphStore = scope.ServiceProvider.GetRequiredService<IGraphStore>();
-
 		// The ApacheAgeGraphStore.SaveGraphAsync will automatically create tables
 		// on first use via CreateMetadataTableIfNotExistsAsync
 		// We just need to verify the extension is available

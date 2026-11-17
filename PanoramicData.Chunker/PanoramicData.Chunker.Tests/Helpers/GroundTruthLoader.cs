@@ -57,8 +57,7 @@ public static class GroundTruthLoader
 	/// <exception cref="InvalidDataException">If the file format is invalid.</exception>
 	public static List<GroundTruthRelationship> Load(string filePath)
 	{
-		// Resolve path relative to test project
-		var fullPath = Path.Combine(AppContext.BaseDirectory, filePath);
+		var fullPath = Path.Combine(AppContext.BaseDirectory, "TestData", Path.GetFileName(filePath));
 
 		if (!File.Exists(fullPath))
 		{
@@ -83,37 +82,7 @@ public static class GroundTruthLoader
 
 			try
 			{
-				var parts = line.Split('\t');
-
-				if (parts.Length < 6)
-				{
-					throw new InvalidDataException(
-						$"Line {lineNumber}: Expected 6 columns, got {parts.Length}");
-				}
-
-				// Parse confidence score
-				if (!double.TryParse(parts[3], out var confidence))
-				{
-					throw new InvalidDataException(
-						$"Line {lineNumber}: Invalid confidence score '{parts[3]}'");
-				}
-
-				// Validate confidence range
-				if (confidence is < 0.0 or > 1.0)
-				{
-					throw new InvalidDataException(
-						$"Line {lineNumber}: Confidence {confidence} out of range [0.0, 1.0]");
-				}
-
-				relationships.Add(new GroundTruthRelationship
-				{
-					Entity1 = parts[0].Trim(),
-					RelationType = parts[1].Trim(),
-					Entity2 = parts[2].Trim(),
-					Confidence = confidence,
-					Section = parts[4].Trim(),
-					Notes = parts[5].Trim()
-				});
+				relationships.Add(ParseLine(line, lineNumber));
 			}
 			catch (Exception ex) when (ex is not InvalidDataException)
 			{
@@ -128,6 +97,39 @@ public static class GroundTruthLoader
 		}
 
 		return relationships;
+	}
+
+	private static GroundTruthRelationship ParseLine(string line, int lineNumber)
+	{
+		var parts = line.Split('\t');
+
+		if (parts.Length < 6)
+		{
+			throw new InvalidDataException(
+				$"Line {lineNumber}: Expected 6 columns, got {parts.Length}");
+		}
+
+		if (!double.TryParse(parts[3], out var confidence))
+		{
+			throw new InvalidDataException(
+				$"Line {lineNumber}: Invalid confidence score '{parts[3]}'");
+		}
+
+		if (confidence is < 0.0 or > 1.0)
+		{
+			throw new InvalidDataException(
+				$"Line {lineNumber}: Confidence {confidence} out of range [0.0, 1.0]");
+		}
+
+		return new GroundTruthRelationship
+		{
+			Entity1 = parts[0].Trim(),
+			RelationType = parts[1].Trim(),
+			Entity2 = parts[2].Trim(),
+			Confidence = confidence,
+			Section = parts[4].Trim(),
+			Notes = parts[5].Trim()
+		};
 	}
 
 	/// <summary>

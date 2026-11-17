@@ -18,7 +18,7 @@ public record LLMEnrichmentOptions
 	/// <summary>
 	/// Enable preliminary named entity recognition.
 	/// </summary>
-	public bool EnablePreliminaryNER { get; init; } = false;
+	public bool EnablePreliminaryNER { get; init; }
 
 	/// <summary>
 	/// Model to use for enrichment.
