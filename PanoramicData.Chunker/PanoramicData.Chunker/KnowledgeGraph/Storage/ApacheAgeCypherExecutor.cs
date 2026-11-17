@@ -39,8 +39,8 @@ public partial class ApacheAgeCypherExecutor(
 		_logger.LogInformation("Executing Cypher query: {Query}", cypherQuery);
 
 		await using var connection = await OpenConnectionAsync(cancellationToken);
-		await using var command = CreateCommand(connection, BuildCypherQuery(cypherQuery, parameters));
-		await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+		await using var batch = CreateBatch(connection, BuildCypherQuery(cypherQuery, parameters));
+		await using var reader = await batch.ExecuteReaderAsync(cancellationToken);
 
 		var results = new List<T>();
 		while (await reader.ReadAsync(cancellationToken))
@@ -66,8 +66,8 @@ public partial class ApacheAgeCypherExecutor(
 		_logger.LogInformation("Executing raw Cypher query: {Query}", cypherQuery);
 
 		await using var connection = await OpenConnectionAsync(cancellationToken);
-		await using var command = CreateCommand(connection, BuildCypherQuery(cypherQuery, parameters));
-		await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+		await using var batch = CreateBatch(connection, BuildCypherQuery(cypherQuery, parameters));
+		await using var reader = await batch.ExecuteReaderAsync(cancellationToken);
 
 		var results = new List<Dictionary<string, object>>();
 		while (await reader.ReadAsync(cancellationToken))
@@ -216,11 +216,11 @@ public partial class ApacheAgeCypherExecutor(
 		}
 	}
 
-	private static NpgsqlCommand CreateCommand(NpgsqlConnection connection, string query)
+	private static NpgsqlBatch CreateBatch(NpgsqlConnection connection, string query)
 	{
-		var command = connection.CreateCommand();
-		command.CommandText = query;
-		return command;
+		var batch = connection.CreateBatch();
+		batch.BatchCommands.Add(new NpgsqlBatchCommand(query));
+		return batch;
 	}
 
 	/// <summary>
@@ -231,6 +231,11 @@ public partial class ApacheAgeCypherExecutor(
 		if (!GraphNameRegex().IsMatch(_graphName))
 		{
 			throw new InvalidOperationException($"Invalid Apache AGE graph name '{_graphName}'. Use letters, digits and underscores only.");
+		}
+
+		if (cypherQuery.Contains("$$", StringComparison.Ordinal))
+		{
+			throw new ArgumentException("Cypher text must not contain a dollar-quote terminator.", nameof(cypherQuery));
 		}
 
 		// Apache AGE requires a constant graph name, so the validated name is part of the statement text

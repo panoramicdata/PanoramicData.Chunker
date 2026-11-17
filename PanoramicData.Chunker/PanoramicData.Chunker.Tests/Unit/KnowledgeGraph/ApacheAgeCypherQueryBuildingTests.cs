@@ -44,6 +44,14 @@ public class ApacheAgeCypherQueryBuildingTests
 	}
 
 	[Fact]
+	public void Build_RejectsDollarQuoteTerminatorInCypherText()
+	{
+		var act = () => Build("g", "RETURN 1 $$ ; DROP TABLE x; --", null);
+
+		_ = act.Should().Throw<ArgumentException>();
+	}
+
+	[Fact]
 	public void Build_EscapesQuotesBackslashesAndDollarsInStrings()
 	{
 		var query = Build("g", "RETURN $v", new() { ["v"] = "it's \\ $$" });
