@@ -14,7 +14,17 @@ public static class PdfTestFileGenerator
 	/// <summary>
 	/// Generate all test PDF files.
 	/// </summary>
+	private static readonly object _generationLock = new();
+
 	public static void GenerateAllTestFiles()
+	{
+		lock (_generationLock)
+		{
+			GenerateAllTestFilesCore();
+		}
+	}
+
+	private static void GenerateAllTestFilesCore()
 	{
 		// Configure QuestPDF license (community license)
 		QuestPDF.Settings.License = LicenseType.Community;
@@ -22,7 +32,7 @@ public static class PdfTestFileGenerator
 		_ = Directory.CreateDirectory(_testDataPath);
 
 		// If files already exist, skip generation
-		if (File.Exists(Path.Combine(_testDataPath, "simple.pdf")))
+		if (File.Exists(Path.Combine(_testDataPath, "large.pdf")))
 		{
 			return;
 		}
@@ -247,9 +257,9 @@ public static class PdfTestFileGenerator
 						x.Spacing(15);
 
 						_ = x.Item().Text("Unordered List:").SemiBold();
-						_ = x.Item().Text("� First item");
-						_ = x.Item().Text("� Second item");
-						_ = x.Item().Text("� Third item");
+						_ = x.Item().Text("\u2022 First item");
+						_ = x.Item().Text("\u2022 Second item");
+						_ = x.Item().Text("\u2022 Third item");
 
 						_ = x.Item().PaddingTop(10).Text("Ordered List:").SemiBold();
 						_ = x.Item().Text("1. First item");

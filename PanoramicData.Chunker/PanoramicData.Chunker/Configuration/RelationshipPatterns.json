@@ -280,7 +280,7 @@
     },
     {
       "name": "Influences",
-      "regex": "\\b(influences?|affects?|impacts?|shapes?|sways?)\\b",
+      "regex": "\\b(influences?|influenced|affects?|impacts?|shapes?|sways?)\\b",
    "relationshipType": "Influences",
       "confidence": 0.75,
 "isDirectional": true,

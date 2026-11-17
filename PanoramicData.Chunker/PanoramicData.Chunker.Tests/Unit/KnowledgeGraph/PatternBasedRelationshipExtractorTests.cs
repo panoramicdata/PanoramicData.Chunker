@@ -103,10 +103,10 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 			QualityMetrics = new ChunkQualityMetrics()
 		};
 
-		jamesonEntity.AddSource(chunk1.Id, 40, chunk1.Content);
+		jamesonEntity.AddSource(chunk1.Id, chunk1.Content.IndexOf("Professor Jameson", StringComparison.Ordinal), chunk1.Content);
 		societyEntity.AddSource(chunk1.Id, 4, chunk1.Content);
 		societyEntity.AddSource(chunk2.Id, 23, chunk2.Content);
-		universityEntity.AddSource(chunk1.Id, 64, chunk1.Content);
+		universityEntity.AddSource(chunk1.Id, chunk1.Content.IndexOf("Edinburgh University", StringComparison.Ordinal), chunk1.Content);
 		darwinEntity.AddSource(chunk2.Id, 0, chunk2.Content);
 
 		var entities = new List<Entity> { jamesonEntity, darwinEntity, societyEntity, universityEntity };
@@ -268,7 +268,7 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 		};
 
 		theoryEntity.AddSource(chunk.Id, 4, chunk.Content);
-		personEntity.AddSource(chunk.Id, 38, chunk.Content);
+		personEntity.AddSource(chunk.Id, chunk.Content.IndexOf("modern biologists", StringComparison.Ordinal), chunk.Content);
 
 		var entities = new List<Entity> { theoryEntity, personEntity };
 		var chunks = new List<ChunkerBase> { chunk };
