@@ -12,7 +12,17 @@ public static class CsvTestFileGenerator
 	/// <summary>
 	/// Generate all test CSV files.
 	/// </summary>
+	private static readonly object _generationLock = new();
+
 	public static void GenerateAllTestFiles()
+	{
+		lock (_generationLock)
+		{
+			GenerateAllTestFilesCore();
+		}
+	}
+
+	private static void GenerateAllTestFilesCore()
 	{
 		_ = Directory.CreateDirectory(_testDataPath);
 
