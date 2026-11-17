@@ -31,33 +31,22 @@ public partial class XlsxDocumentChunker
 
 	private XlsxRowChunk? CreateRowChunk(Row row, string sheetName, Guid worksheetId)
 	{
-		var rowNumber = (int)(row.RowIndex?.Value ?? 0);
+		var rowNumber = GetRowNumber(row);
 		if (rowNumber == 0)
 		{
 			return null;
 		}
 
-		var cells = new List<XlsxCellData>();
-		var rowText = new StringBuilder();
+		var (cells, rowText) = ReadCells(row);
+		return cells.Count == 0 || rowText.Length == 0
+			? null
+			: BuildRowChunk(row, rowNumber, cells, rowText.ToString().Trim(), sheetName, worksheetId);
+	}
 
-		foreach (var cell in row.Elements<Cell>())
-		{
-			var value = GetCellValue(cell);
-			cells.Add(CreateCellData(cell, value));
+	private static int GetRowNumber(Row row) => (int)(row.RowIndex?.Value ?? 0);
 
-			if (!string.IsNullOrWhiteSpace(value))
-			{
-				_ = rowText.Append(value).Append(' ');
-			}
-		}
-
-		if (cells.Count == 0 || rowText.Length == 0)
-		{
-			return null;
-		}
-
-		var content = rowText.ToString().Trim();
-
+	private XlsxRowChunk BuildRowChunk(Row row, int rowNumber, List<XlsxCellData> cells, string content, string sheetName, Guid worksheetId)
+	{
 		return new XlsxRowChunk
 		{
 			Content = content,
@@ -73,6 +62,25 @@ public partial class XlsxDocumentChunker
 			Metadata = CreateMetadata(sheetName, $"{sheetName}/row{rowNumber}", "row", sheetName),
 			QualityMetrics = CalculateQualityMetrics(content)
 		};
+	}
+
+	private (List<XlsxCellData> Cells, StringBuilder Text) ReadCells(Row row)
+	{
+		var cells = new List<XlsxCellData>();
+		var rowText = new StringBuilder();
+
+		foreach (var cell in row.Elements<Cell>())
+		{
+			var value = GetCellValue(cell);
+			cells.Add(CreateCellData(cell, value));
+
+			if (!string.IsNullOrWhiteSpace(value))
+			{
+				_ = rowText.Append(value).Append(' ');
+			}
+		}
+
+		return (cells, rowText);
 	}
 
 	private static XlsxCellData CreateCellData(Cell cell, string? value)
@@ -133,14 +141,13 @@ public partial class XlsxDocumentChunker
 		}
 
 		var value = cell.CellValue.Text;
-		if (cell.DataType?.Value != CellValues.SharedString || _sharedStringTable == null || !int.TryParse(value, out var index))
-		{
-			return value;
-		}
-
-		var sharedStringItem = _sharedStringTable.SharedStringTable?.Elements<SharedStringItem>().ElementAtOrDefault(index);
-		return sharedStringItem?.InnerText ?? value;
+		return cell.DataType?.Value == CellValues.SharedString ? ResolveSharedString(value) ?? value : value;
 	}
+
+	private string? ResolveSharedString(string value)
+		=> _sharedStringTable != null && int.TryParse(value, out var index)
+			? _sharedStringTable.SharedStringTable?.Elements<SharedStringItem>().ElementAtOrDefault(index)?.InnerText
+			: null;
 
 	private static XlsxCellType DetermineCellType(Cell cell)
 	{
