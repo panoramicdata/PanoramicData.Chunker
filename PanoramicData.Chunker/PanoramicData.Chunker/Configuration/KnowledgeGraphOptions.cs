@@ -106,48 +106,18 @@ public class KnowledgeGraphOptions
 	/// <returns>A list of validation errors, or an empty list if valid.</returns>
 	public List<string> Validate()
 	{
-		var errors = new List<string>();
+		(bool IsInvalid, string Message)[] checks =
+		[
+			(MinEntityConfidence is < 0.0 or > 1.0, "MinEntityConfidence must be between 0.0 and 1.0."),
+			(MinRelationshipConfidence is < 0.0 or > 1.0, "MinRelationshipConfidence must be between 0.0 and 1.0."),
+			(MaxKeywordsPerChunk < 1, "MaxKeywordsPerChunk must be at least 1."),
+			(MinWordLength < 1, "MinWordLength must be at least 1."),
+			(MaxCooccurrenceDistance < 1, "MaxCooccurrenceDistance must be at least 1."),
+			(EntitySimilarityThreshold is < 0.0 or > 1.0, "EntitySimilarityThreshold must be between 0.0 and 1.0."),
+			(EnableGraphStorage && string.IsNullOrWhiteSpace(PostgresConnectionString), "PostgresConnectionString is required when EnableGraphStorage is true."),
+			(string.IsNullOrWhiteSpace(GraphName), "GraphName cannot be empty.")
+		];
 
-		if (MinEntityConfidence is < 0.0 or > 1.0)
-		{
-			errors.Add("MinEntityConfidence must be between 0.0 and 1.0.");
-		}
-
-		if (MinRelationshipConfidence is < 0.0 or > 1.0)
-		{
-			errors.Add("MinRelationshipConfidence must be between 0.0 and 1.0.");
-		}
-
-		if (MaxKeywordsPerChunk < 1)
-		{
-			errors.Add("MaxKeywordsPerChunk must be at least 1.");
-		}
-
-		if (MinWordLength < 1)
-		{
-			errors.Add("MinWordLength must be at least 1.");
-		}
-
-		if (MaxCooccurrenceDistance < 1)
-		{
-			errors.Add("MaxCooccurrenceDistance must be at least 1.");
-		}
-
-		if (EntitySimilarityThreshold is < 0.0 or > 1.0)
-		{
-			errors.Add("EntitySimilarityThreshold must be between 0.0 and 1.0.");
-		}
-
-		if (EnableGraphStorage && string.IsNullOrWhiteSpace(PostgresConnectionString))
-		{
-			errors.Add("PostgresConnectionString is required when EnableGraphStorage is true.");
-		}
-
-		if (string.IsNullOrWhiteSpace(GraphName))
-		{
-			errors.Add("GraphName cannot be empty.");
-		}
-
-		return errors;
+		return [.. checks.Where(check => check.IsInvalid).Select(check => check.Message)];
 	}
 }

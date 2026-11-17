@@ -45,27 +45,7 @@ public class OllamaLlmProvider : ILlmProvider
 
 		try
 		{
-			var requestBody = new
-			{
-				model = request.Model,
-				prompt = request.Prompt,
-				system = request.SystemPrompt,
-				stream = false,
-				options = new
-				{
-					temperature = request.Temperature,
-					num_predict = request.MaxTokens
-				}
-			};
-
-			var response = await _httpClient.PostAsJsonAsync(
-				$"{_options.BaseUrl}/api/generate",
-				requestBody,
-				cancellationToken);
-
-			_ = response.EnsureSuccessStatusCode();
-
-			var result = await response.Content.ReadFromJsonAsync<OllamaGenerateResponse>(cancellationToken);
+			var result = await PostGenerateAsync(request, cancellationToken);
 
 			stopwatch.Stop();
 
@@ -100,6 +80,30 @@ public class OllamaLlmProvider : ILlmProvider
 		}
 	}
 
+	private async Task<OllamaGenerateResponse?> PostGenerateAsync(LlmRequest request, CancellationToken cancellationToken)
+	{
+		var requestBody = new
+		{
+			model = request.Model,
+			prompt = request.Prompt,
+			system = request.SystemPrompt,
+			stream = false,
+			options = new
+			{
+				temperature = request.Temperature,
+				num_predict = request.MaxTokens
+			}
+		};
+
+		var response = await _httpClient.PostAsJsonAsync(
+			$"{_options.BaseUrl}/api/generate",
+			requestBody,
+			cancellationToken);
+
+		_ = response.EnsureSuccessStatusCode();
+
+		return await response.Content.ReadFromJsonAsync<OllamaGenerateResponse>(cancellationToken);
+	}
 	/// <inheritdoc/>
 	public async Task<IEnumerable<LlmResponse>> GenerateBatchAsync(
 		IEnumerable<LlmRequest> requests,

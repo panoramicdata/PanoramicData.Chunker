@@ -37,17 +37,19 @@ public static class ChunkConversionExtensions
 	public static string ToMarkdown(this ChunkerBase chunk) => chunk switch
 	{
 		MarkdownSectionChunk section => section.MarkdownSyntax,
-		MarkdownParagraphChunk paragraph => paragraph.MarkdownContent ?? paragraph.Content ?? string.Empty,
-		MarkdownListItemChunk listItem => listItem.MarkdownContent ?? listItem.Content ?? string.Empty,
+		MarkdownParagraphChunk paragraph => Prefer(paragraph.MarkdownContent, paragraph.Content),
+		MarkdownListItemChunk listItem => Prefer(listItem.MarkdownContent, listItem.Content),
 		MarkdownCodeBlockChunk codeBlock => codeBlock.MarkdownContent ?? $"```\n{codeBlock.Content}\n```",
 		MarkdownQuoteChunk quote => quote.MarkdownContent ?? $"> {quote.Content}",
-		MarkdownTableChunk table => table.MarkdownContent ?? table.Content ?? string.Empty,
+		MarkdownTableChunk table => Prefer(table.MarkdownContent, table.Content),
 		MarkdownImageChunk image => $"![{image.AltText}]({image.ImageUrl})",
-		ContentChunk contentChunk => contentChunk.MarkdownContent ?? contentChunk.Content ?? string.Empty,
+		ContentChunk contentChunk => Prefer(contentChunk.MarkdownContent, contentChunk.Content),
 		StructuralChunk => string.Empty,
 		VisualChunk visual => $"![{visual.Caption ?? "Image"}]({visual.BinaryReference})",
 		_ => string.Empty
 	};
+
+	private static string Prefer(string? preferred, string? fallback) => preferred ?? fallback ?? string.Empty;
 
 	/// <summary>
 	/// Converts a collection of chunks to Markdown format.

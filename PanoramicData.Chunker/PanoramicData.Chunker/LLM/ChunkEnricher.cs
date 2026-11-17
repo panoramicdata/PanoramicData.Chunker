@@ -41,7 +41,6 @@ public class ChunkEnricher(
 	{
 		var stopwatch = Stopwatch.StartNew();
 
-		// Get content from chunk (handle different chunk types)
 		var content = GetChunkContent(chunk);
 		if (string.IsNullOrWhiteSpace(content))
 		{
@@ -56,55 +55,16 @@ public class ChunkEnricher(
 
 		var cacheKey = GenerateCacheKey(content);
 
-		// Check cache first
 		if (_options.EnableCaching && _cache.TryGet(cacheKey, out var cachedResult))
 		{
 			_logger.LogDebug("Cache hit for chunk {ChunkId}", chunk.Id);
-			// Update ChunkId to match current chunk
 			return cachedResult! with { ChunkId = chunk.Id };
 		}
 
-		var enriched = new EnrichedChunk
-		{
-			ChunkId = chunk.Id,
-			OriginalContent = content
-		};
-
-		var totalTokens = 0;
-
-		// Generate summary
-		if (_options.EnableSummarization)
-		{
-			var (summary, tokens) = await GenerateSummaryAsync(content, cancellationToken);
-			enriched = enriched with { Summary = summary };
-			totalTokens += tokens;
-		}
-
-		// Extract keywords
-		if (_options.EnableKeywordExtraction)
-		{
-			var (keywords, tokens) = await ExtractKeywordsAsync(content, cancellationToken);
-			enriched = enriched with { Keywords = keywords };
-			totalTokens += tokens;
-		}
-
-		// Extract preliminary entities
-		if (_options.EnablePreliminaryNER)
-		{
-			var (entities, tokens) = await ExtractEntitiesAsync(content, cancellationToken);
-			enriched = enriched with { PreliminaryEntities = entities };
-			totalTokens += tokens;
-		}
-
+		var enriched = await RunEnrichmentStepsAsync(chunk.Id, content, cancellationToken);
 		stopwatch.Stop();
+		enriched = enriched with { EnrichmentDuration = stopwatch.Elapsed };
 
-		enriched = enriched with
-		{
-			TokensUsed = totalTokens,
-			EnrichmentDuration = stopwatch.Elapsed
-		};
-
-		// Cache result
 		if (_options.EnableCaching)
 		{
 			_cache.Set(cacheKey, enriched, _options.CacheDuration);
@@ -114,11 +74,44 @@ public class ChunkEnricher(
 			"Enriched chunk {ChunkId} in {Duration}ms with {Tokens} tokens",
 			chunk.Id,
 			stopwatch.ElapsedMilliseconds,
-			totalTokens);
+			enriched.TokensUsed);
 
 		return enriched;
 	}
 
+	private async Task<EnrichedChunk> RunEnrichmentStepsAsync(Guid chunkId, string content, CancellationToken cancellationToken)
+	{
+		var enriched = new EnrichedChunk
+		{
+			ChunkId = chunkId,
+			OriginalContent = content
+		};
+
+		var totalTokens = 0;
+
+		if (_options.EnableSummarization)
+		{
+			var (summary, tokens) = await GenerateSummaryAsync(content, cancellationToken);
+			enriched = enriched with { Summary = summary };
+			totalTokens += tokens;
+		}
+
+		if (_options.EnableKeywordExtraction)
+		{
+			var (keywords, tokens) = await ExtractKeywordsAsync(content, cancellationToken);
+			enriched = enriched with { Keywords = keywords };
+			totalTokens += tokens;
+		}
+
+		if (_options.EnablePreliminaryNER)
+		{
+			var (entities, tokens) = await ExtractEntitiesAsync(content, cancellationToken);
+			enriched = enriched with { PreliminaryEntities = entities };
+			totalTokens += tokens;
+		}
+
+		return enriched with { TokensUsed = totalTokens };
+	}
 	/// <inheritdoc/>
 	public async Task<IEnumerable<EnrichedChunk>> EnrichBatchAsync(
 		IEnumerable<ChunkerBase> chunks,
