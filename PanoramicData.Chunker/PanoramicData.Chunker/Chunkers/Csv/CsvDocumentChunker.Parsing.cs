@@ -1,3 +1,4 @@
+using PanoramicData.Chunker.Models;
 using System.Text;
 
 namespace PanoramicData.Chunker.Chunkers.Csv;
@@ -5,6 +6,14 @@ namespace PanoramicData.Chunker.Chunkers.Csv;
 public partial class CsvDocumentChunker
 {
 	private static readonly char[] CandidateDelimiters = [',', '\t', ';', '|'];
+
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
+	{
+		TokenCount = _tokenCounter.CountTokens(text),
+		CharacterCount = text.Length,
+		WordCount = text.Split([' ', ','], StringSplitOptions.RemoveEmptyEntries).Length,
+		SemanticCompleteness = 1.0
+	};
 
 	private static bool ContainsDelimiter(string line) => line.IndexOfAny(CandidateDelimiters) >= 0;
 

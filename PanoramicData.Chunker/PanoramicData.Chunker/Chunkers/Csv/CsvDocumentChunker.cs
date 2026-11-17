@@ -205,13 +205,6 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 		CreatedAt = DateTimeOffset.UtcNow
 	};
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
-	{
-		TokenCount = _tokenCounter.CountTokens(text),
-		CharacterCount = text.Length,
-		WordCount = text.Split([' ', ','], StringSplitOptions.RemoveEmptyEntries).Length,
-		SemanticCompleteness = 1.0
-	};
 
 	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()
 	{
