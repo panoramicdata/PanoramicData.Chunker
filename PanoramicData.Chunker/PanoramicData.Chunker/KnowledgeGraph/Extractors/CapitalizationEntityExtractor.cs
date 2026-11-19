@@ -101,9 +101,9 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 		_config = config;
 		var rules = config.ExtractionRules;
 
-		_minOccurrences = minOccurrences ?? rules?.MinOccurrences ?? 1;
-		_minWordLength = minWordLength ?? rules?.MinWordLength ?? 2;
-		_baseConfidence = baseConfidence ?? rules?.BaseConfidence ?? 0.7;
+		_minOccurrences = Pick(minOccurrences, rules?.MinOccurrences, 1);
+		_minWordLength = Pick(minWordLength, rules?.MinWordLength, 2);
+		_baseConfidence = Pick(baseConfidence, rules?.BaseConfidence, 0.7);
 
 		_properNounDictionary = config.GetAllProperNouns();
 		_titlePrefixes = config.GetAllTitlePrefixes();
@@ -114,6 +114,11 @@ public class CapitalizationEntityExtractor : IEntityExtractor
 
 	private static HashSet<string> ToSet(IEnumerable<string>? values)
 		=> new(values ?? [], StringComparer.OrdinalIgnoreCase);
+
+	private static T Pick<T>(T? overrideValue, T? configured, T fallback)
+		where T : struct
+		=> overrideValue ?? configured ?? fallback;
+
 	/// <summary>
 	/// Loads default configuration synchronously (for backward compatibility).
 	/// </summary>

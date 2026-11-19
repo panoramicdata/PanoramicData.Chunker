@@ -59,134 +59,169 @@ public class KnowledgeGraphBuilder(IEntityResolver? entityResolver = null)
 
 		try
 		{
-			var chunkList = chunks.ToList();
-			result.Statistics.ChunksProcessed = chunkList.Count;
-
-			if (chunkList.Count == 0)
-			{
-				result.AddWarning("No chunks provided for graph extraction.");
-				result.Success = true;
-				result.Graph = new Graph(graphName);
-				result.Complete();
-				return result;
-			}
-
-			var graph = new Graph(graphName);
-
-			// Step 1: Extract entities
-			var entityStopwatch = Stopwatch.StartNew();
-			var allEntities = new List<Entity>();
-
-			foreach (var extractor in _entityExtractors)
-			{
-				cancellationToken.ThrowIfCancellationRequested();
-
-				var entities = await extractor.ExtractEntitiesAsync(chunkList, cancellationToken);
-				allEntities.AddRange(entities);
-				result.Statistics.ExtractorsUsed.Add(extractor.Name);
-			}
-
-			result.Statistics.EntitiesExtracted = allEntities.Count;
-			entityStopwatch.Stop();
-			result.Statistics.EntityExtractionTime = entityStopwatch.Elapsed;
-
-			if (allEntities.Count == 0)
-			{
-				result.AddWarning("No entities extracted from chunks.");
-				result.Success = true;
-				result.Graph = graph;
-				result.Complete();
-				return result;
-			}
-
-			// Step 2: Resolve and deduplicate entities
-			var resolveStopwatch = Stopwatch.StartNew();
-			var resolvedEntities = _entityResolver.Resolve(allEntities);
-			result.Statistics.EntitiesAfterDeduplication = resolvedEntities.Count;
-			result.Statistics.EntitiesMerged = allEntities.Count - resolvedEntities.Count;
-			resolveStopwatch.Stop();
-			result.Statistics.GraphBuildingTime += resolveStopwatch.Elapsed;
-
-			// Add entities to graph
-			foreach (var entity in resolvedEntities)
-			{
-				graph.AddEntity(entity);
-			}
-
-			// Step 3: Extract relationships
-			var relationshipStopwatch = Stopwatch.StartNew();
-			var allRelationships = new List<Relationship>();
-
-			foreach (var extractor in _relationshipExtractors)
-			{
-				cancellationToken.ThrowIfCancellationRequested();
-
-				// Track extractor usage
-				if (!result.Statistics.ExtractorsUsed.Contains(extractor.Name))
-				{
-					result.Statistics.ExtractorsUsed.Add(extractor.Name);
-				}
-
-				var relationships = await extractor.ExtractRelationshipsAsync(
-					resolvedEntities,
-					chunkList,
-					cancellationToken);
-
-				allRelationships.AddRange(relationships);
-			}
-
-			result.Statistics.RelationshipsExtracted = allRelationships.Count;
-			relationshipStopwatch.Stop();
-			result.Statistics.RelationshipExtractionTime = relationshipStopwatch.Elapsed;
-
-			// Step 4: Consolidate relationships
-			var consolidateStopwatch = Stopwatch.StartNew();
-			var consolidatedRelationships = ConsolidateRelationships(allRelationships);
-			result.Statistics.RelationshipsAfterConsolidation = consolidatedRelationships.Count;
-			result.Statistics.RelationshipsMerged = allRelationships.Count - consolidatedRelationships.Count;
-			consolidateStopwatch.Stop();
-			result.Statistics.GraphBuildingTime += consolidateStopwatch.Elapsed;
-
-			// Add relationships to graph
-			foreach (var relationship in consolidatedRelationships)
-			{
-				graph.AddRelationship(relationship);
-			}
-
-			// Step 5: Build indexes and compute statistics
-			var indexStopwatch = Stopwatch.StartNew();
-			graph.BuildIndexes();
-			graph.ComputeStatistics();
-			indexStopwatch.Stop();
-			result.Statistics.GraphBuildingTime += indexStopwatch.Elapsed;
-
-			// Step 6: Validate graph
-			if (!graph.Validate(out var errors))
-			{
-				foreach (var error in errors)
-				{
-					result.AddError(error);
-				}
-			}
-
-			result.Graph = graph;
-			result.Success = true;
-			result.Complete();
+			await BuildCoreAsync(chunks, graphName, result, cancellationToken);
 		}
 		catch (OperationCanceledException)
 		{
-			result.AddError("Graph building was cancelled.");
-			result.Success = false;
-			result.Complete();
+			Fail(result, "Graph building was cancelled.");
 		}
 		catch (Exception ex)
 		{
-			result.AddError($"Error building graph: {ex.Message}");
-			result.Success = false;
-			result.Complete();
+			Fail(result, $"Error building graph: {ex.Message}");
 		}
 
 		return result;
+	}
+
+	private async Task BuildCoreAsync(
+		IEnumerable<ChunkerBase> chunks,
+		string graphName,
+		KnowledgeGraphResult result,
+		CancellationToken cancellationToken)
+	{
+		var chunkList = chunks.ToList();
+		result.Statistics.ChunksProcessed = chunkList.Count;
+
+		var graph = new Graph(graphName);
+
+		if (chunkList.Count == 0)
+		{
+			CompleteEarly(result, graph, "No chunks provided for graph extraction.");
+			return;
+		}
+
+		var allEntities = await ExtractEntitiesAsync(chunkList, result, cancellationToken);
+
+		if (allEntities.Count == 0)
+		{
+			CompleteEarly(result, graph, "No entities extracted from chunks.");
+			return;
+		}
+
+		var resolvedEntities = ResolveEntities(allEntities, graph, result);
+		var allRelationships = await ExtractRelationshipsAsync(resolvedEntities, chunkList, result, cancellationToken);
+
+		AddConsolidatedRelationships(allRelationships, graph, result);
+		BuildIndexes(graph, result);
+
+		if (!graph.Validate(out var errors))
+		{
+			foreach (var error in errors)
+			{
+				result.AddError(error);
+			}
+		}
+
+		result.Graph = graph;
+		result.Success = true;
+		result.Complete();
+	}
+
+	private static void CompleteEarly(KnowledgeGraphResult result, Graph graph, string warning)
+	{
+		result.AddWarning(warning);
+		result.Success = true;
+		result.Graph = graph;
+		result.Complete();
+	}
+
+	private static void Fail(KnowledgeGraphResult result, string error)
+	{
+		result.AddError(error);
+		result.Success = false;
+		result.Complete();
+	}
+
+	private async Task<List<Entity>> ExtractEntitiesAsync(
+		List<ChunkerBase> chunkList,
+		KnowledgeGraphResult result,
+		CancellationToken cancellationToken)
+	{
+		var stopwatch = Stopwatch.StartNew();
+		var allEntities = new List<Entity>();
+
+		foreach (var extractor in _entityExtractors)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+
+			allEntities.AddRange(await extractor.ExtractEntitiesAsync(chunkList, cancellationToken));
+			result.Statistics.ExtractorsUsed.Add(extractor.Name);
+		}
+
+		result.Statistics.EntitiesExtracted = allEntities.Count;
+		stopwatch.Stop();
+		result.Statistics.EntityExtractionTime = stopwatch.Elapsed;
+
+		return allEntities;
+	}
+
+	private List<Entity> ResolveEntities(List<Entity> allEntities, Graph graph, KnowledgeGraphResult result)
+	{
+		var stopwatch = Stopwatch.StartNew();
+		var resolvedEntities = _entityResolver.Resolve(allEntities);
+		result.Statistics.EntitiesAfterDeduplication = resolvedEntities.Count;
+		result.Statistics.EntitiesMerged = allEntities.Count - resolvedEntities.Count;
+		stopwatch.Stop();
+		result.Statistics.GraphBuildingTime += stopwatch.Elapsed;
+
+		foreach (var entity in resolvedEntities)
+		{
+			graph.AddEntity(entity);
+		}
+
+		return resolvedEntities;
+	}
+
+	private async Task<List<Relationship>> ExtractRelationshipsAsync(
+		List<Entity> resolvedEntities,
+		List<ChunkerBase> chunkList,
+		KnowledgeGraphResult result,
+		CancellationToken cancellationToken)
+	{
+		var stopwatch = Stopwatch.StartNew();
+		var allRelationships = new List<Relationship>();
+
+		foreach (var extractor in _relationshipExtractors)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+
+			if (!result.Statistics.ExtractorsUsed.Contains(extractor.Name))
+			{
+				result.Statistics.ExtractorsUsed.Add(extractor.Name);
+			}
+
+			allRelationships.AddRange(await extractor.ExtractRelationshipsAsync(resolvedEntities, chunkList, cancellationToken));
+		}
+
+		result.Statistics.RelationshipsExtracted = allRelationships.Count;
+		stopwatch.Stop();
+		result.Statistics.RelationshipExtractionTime = stopwatch.Elapsed;
+
+		return allRelationships;
+	}
+
+	private static void AddConsolidatedRelationships(List<Relationship> allRelationships, Graph graph, KnowledgeGraphResult result)
+	{
+		var stopwatch = Stopwatch.StartNew();
+		var consolidatedRelationships = ConsolidateRelationships(allRelationships);
+		result.Statistics.RelationshipsAfterConsolidation = consolidatedRelationships.Count;
+		result.Statistics.RelationshipsMerged = allRelationships.Count - consolidatedRelationships.Count;
+		stopwatch.Stop();
+		result.Statistics.GraphBuildingTime += stopwatch.Elapsed;
+
+		foreach (var relationship in consolidatedRelationships)
+		{
+			graph.AddRelationship(relationship);
+		}
+	}
+
+	private static void BuildIndexes(Graph graph, KnowledgeGraphResult result)
+	{
+		var stopwatch = Stopwatch.StartNew();
+		graph.BuildIndexes();
+		graph.ComputeStatistics();
+		stopwatch.Stop();
+		result.Statistics.GraphBuildingTime += stopwatch.Elapsed;
 	}
 
 	private static List<Relationship> ConsolidateRelationships(List<Relationship> relationships)

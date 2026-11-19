@@ -74,41 +74,50 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 
 		try
 		{
-			using var reader = new StreamReader(documentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-			var content = await reader.ReadToEndAsync(cancellationToken);
-
-			var lines = content.Split(["\r\n", "\r", "\n"], StringSplitOptions.None)
-				.Where(l => !string.IsNullOrWhiteSpace(l))
-				.ToList();
-
-			if (lines.Count == 0)
-			{
-				logger?.LogInformation("CSV document has no content");
-				return CreateEmptyResult(startTime);
-			}
-
-			var delimiter = DetectDelimiter(lines);
-			logger?.LogInformation("Detected CSV delimiter: '{Delimiter}'", delimiter);
-
-			var headers = ParseCsvLine(lines[0], delimiter);
-			var hasHeader = DetectHeaderRow(headers);
-			logger?.LogInformation("CSV has {ColumnCount} columns, header detected: {HasHeader}", headers.Count, hasHeader);
-
-			var documentChunk = CreateDocumentChunk(delimiter, lines.Count, headers, hasHeader, reader.CurrentEncoding.WebName, content.Length);
-			_chunks.Add(documentChunk);
-
-			var dataRows = AddRowChunks(hasHeader ? lines.Skip(1) : lines, headers, delimiter, documentChunk.Id, hasHeader);
-
-			HierarchyBuilder.BuildHierarchy(_chunks);
-			logger?.LogInformation("Extracted {ChunkCount} chunks from CSV ({DataRows} data rows)", _chunks.Count, dataRows);
-
-			return ChunkResultHelper.CreateSuccess(_chunks, startTime, options);
+			return await ChunkContentAsync(documentStream, options, startTime, cancellationToken);
 		}
 		catch (Exception ex)
 		{
 			logger?.LogError(ex, "Error chunking CSV document");
 			return ChunkResultHelper.CreateFailure("CSV", ex);
 		}
+	}
+
+	private async Task<ChunkingResult> ChunkContentAsync(
+		Stream documentStream,
+		ChunkingOptions options,
+		DateTime startTime,
+		CancellationToken cancellationToken)
+	{
+		using var reader = new StreamReader(documentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+		var content = await reader.ReadToEndAsync(cancellationToken);
+
+		var lines = content.Split(["\r\n", "\r", "\n"], StringSplitOptions.None)
+			.Where(l => !string.IsNullOrWhiteSpace(l))
+			.ToList();
+
+		if (lines.Count == 0)
+		{
+			logger?.LogInformation("CSV document has no content");
+			return CreateEmptyResult(startTime);
+		}
+
+		var delimiter = DetectDelimiter(lines);
+		logger?.LogInformation("Detected CSV delimiter: '{Delimiter}'", delimiter);
+
+		var headers = ParseCsvLine(lines[0], delimiter);
+		var hasHeader = DetectHeaderRow(headers);
+		logger?.LogInformation("CSV has {ColumnCount} columns, header detected: {HasHeader}", headers.Count, hasHeader);
+
+		var documentChunk = CreateDocumentChunk(delimiter, lines.Count, headers, hasHeader, reader.CurrentEncoding.WebName, content.Length);
+		_chunks.Add(documentChunk);
+
+		var dataRows = AddRowChunks(hasHeader ? lines.Skip(1) : lines, headers, delimiter, documentChunk.Id, hasHeader);
+
+		HierarchyBuilder.BuildHierarchy(_chunks);
+		logger?.LogInformation("Extracted {ChunkCount} chunks from CSV ({DataRows} data rows)", _chunks.Count, dataRows);
+
+		return ChunkResultHelper.CreateSuccess(_chunks, startTime, options);
 	}
 
 	private int AddRowChunks(IEnumerable<string> dataLines, List<string> headers, char delimiter, Guid documentId, bool hasHeader)
