@@ -348,7 +348,7 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	public async Task ChunkAsync_WithUnicodeBullets_ShouldDetectListItems()
 	{
 		// Arrange
-		var text = "• First\n• Second\n• Third";
+		var text = "\u2022 First\n\u2022 Second\n\u2022 Third";
 		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
 		var options = new ChunkingOptions();
 
@@ -358,7 +358,7 @@ public class PlainTextDocumentChunkerTests : BaseTest
 		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
 		_ = listItems.Should().HaveCount(3);
-		_ = listItems.Should().AllSatisfy(item => item.Marker.Should().Be("•"));
+		_ = listItems.Should().AllSatisfy(item => item.Marker.Should().Be("\u2022"));
 	}
 
 	[Fact]
