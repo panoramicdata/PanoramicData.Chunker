@@ -14,25 +14,8 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_SimpleDocument_ShouldExtractAllElements()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
+		var result = await ChunkDocxAsync("simple.docx", ChunkingPresets.ForRAG());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = ChunkingPresets.ForRAG();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 		_ = result.Statistics.Should().NotBeNull();
@@ -48,25 +31,8 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_ComplexDocument_ShouldHandleMixedContent()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "complex.docx");
+		var result = await ChunkDocxAsync("complex.docx", ChunkingPresets.ForRAG());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = ChunkingPresets.ForRAG();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 
@@ -88,25 +54,8 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithTables_ShouldExtractTableStructure()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "with-tables.docx");
+		var result = await ChunkDocxAsync("with-tables.docx", ChunkingPresets.ForRAG());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = ChunkingPresets.ForRAG();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<DocxTableChunk>().ToList();
@@ -114,7 +63,7 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 
 		foreach (var table in tables)
 		{
-			_output.WriteLine($"Table: {table.TableInfo?.RowCount} rows × {table.TableInfo?.ColumnCount} columns");
+			_output.WriteLine($"Table: {table.TableInfo?.RowCount} rows ï¿½ {table.TableInfo?.ColumnCount} columns");
 			_output.WriteLine($"  Has header: {table.TableInfo?.HasHeaderRow}");
 			_output.WriteLine($"  Serialization format: {table.SerializationFormat}");
 
@@ -128,25 +77,8 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithLists_ShouldPreserveListStructure()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "with-lists.docx");
+		var result = await ChunkDocxAsync("with-lists.docx", ChunkingPresets.ForRAG());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = ChunkingPresets.ForRAG();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var listItems = result.Chunks.OfType<DocxListItemChunk>().ToList();

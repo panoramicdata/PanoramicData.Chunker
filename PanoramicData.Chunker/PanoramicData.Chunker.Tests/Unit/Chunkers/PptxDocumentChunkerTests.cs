@@ -91,25 +91,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractSlides_FromSimplePptx()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("simple.pptx");
+		var result = await ChunkPptxAsync("simple.pptx", new ChunkingOptions { MaxTokens = 500 });
 
-		if (!TestFileExists("simple.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions { MaxTokens = 500 };
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 		_output.WriteLine($"Total chunks extracted: {result.Chunks.Count}");
@@ -131,25 +114,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractTitles_FromSimplePptx()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("simple.pptx");
+		var result = await ChunkPptxAsync("simple.pptx", new ChunkingOptions { MaxTokens = 500 });
 
-		if (!TestFileExists("simple.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions { MaxTokens = 500 };
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var titles = result.Chunks.OfType<PptxTitleChunk>().ToList();
@@ -170,25 +136,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractContent_FromSimplePptx()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("simple.pptx");
+		var result = await ChunkPptxAsync("simple.pptx", new ChunkingOptions { MaxTokens = 500 });
 
-		if (!TestFileExists("simple.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions { MaxTokens = 500 };
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var contents = result.Chunks.OfType<PptxContentChunk>().ToList();
@@ -211,25 +160,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldCalculateTokenCounts()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("simple.pptx");
+		var result = await ChunkPptxAsync("simple.pptx", new ChunkingOptions());
 
-		if (!TestFileExists("simple.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 
@@ -248,25 +180,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldBuildHierarchy()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("simple.pptx");
+		var result = await ChunkPptxAsync("simple.pptx", new ChunkingOptions());
 
-		if (!TestFileExists("simple.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Statistics.Should().NotBeNull();
 		_ = result.Statistics.MaxDepth.Should().BeGreaterThanOrEqualTo(0);
@@ -289,25 +204,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldGenerateStatistics()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("simple.pptx");
+		var result = await ChunkPptxAsync("simple.pptx", new ChunkingOptions());
 
-		if (!TestFileExists("simple.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Statistics.Should().NotBeNull();
 		_ = result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
 		_ = result.Statistics.StructuralChunks.Should().BeGreaterThanOrEqualTo(0);
@@ -328,26 +226,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractNotes_FromPptxWithNotes()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("with-notes.pptx");
+		var result = await ChunkPptxAsync("with-notes.pptx", new ChunkingOptions());
 
-		if (!TestFileExists("with-notes.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			_output.WriteLine("Create with-notes.pptx with speaker notes to test notes extraction.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var notes = result.Chunks.OfType<PptxNotesChunk>().ToList();
@@ -375,26 +255,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractTables_FromPptxWithTables()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("with-tables.pptx");
+		var result = await ChunkPptxAsync("with-tables.pptx", new ChunkingOptions());
 
-		if (!TestFileExists("with-tables.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			_output.WriteLine("Create with-tables.pptx with tables to test table extraction.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<PptxTableChunk>().ToList();
@@ -406,7 +268,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 
 			foreach (var table in tables)
 			{
-				_output.WriteLine($"  Slide {table.SlideNumber} Table: {table.TableInfo?.RowCount} rows × {table.TableInfo?.ColumnCount} columns");
+				_output.WriteLine($"  Slide {table.SlideNumber} Table: {table.TableInfo?.RowCount} rows ï¿½ {table.TableInfo?.ColumnCount} columns");
 				_ = table.SerializedTable.Should().NotBeNullOrWhiteSpace("table should be serialized");
 				_ = table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
 				_ = table.TableInfo.Should().NotBeNull();
@@ -428,26 +290,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldDetectImages_FromPptxWithImages()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("with-images.pptx");
+		var result = await ChunkPptxAsync("with-images.pptx", new ChunkingOptions());
 
-		if (!TestFileExists("with-images.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			_output.WriteLine("Create with-images.pptx with images to test image detection.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var images = result.Chunks.OfType<PptxImageChunk>().ToList();
@@ -479,25 +323,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_WithValidation_ShouldValidateChunks()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("simple.pptx");
+		var result = await ChunkPptxAsync("simple.pptx", new ChunkingOptions { ValidateChunks = true });
 
-		if (!TestFileExists("simple.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions { ValidateChunks = true };
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.ValidationResult.Should().NotBeNull();
 
@@ -519,26 +346,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldHandleEmptyPresentation()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("empty.pptx");
+		var result = await ChunkPptxAsync("empty.pptx", new ChunkingOptions());
 
-		if (!TestFileExists("empty.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			_output.WriteLine("Create empty.pptx with no content to test edge case handling.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue("empty presentation should not cause errors");
 		_output.WriteLine($"Chunks extracted from empty presentation: {result.Chunks.Count}");
 		_output.WriteLine($"Processing time: {result.Statistics.ProcessingTime.TotalMilliseconds}ms");
@@ -550,26 +359,8 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldProcessComplexPresentation()
 	{
-		// Arrange
-		var testFilePath = GetTestFilePath("complex.pptx");
+		var result = await ChunkPptxAsync("complex.pptx", new ChunkingOptions { ValidateChunks = true });
 
-		if (!TestFileExists("complex.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			_output.WriteLine("Create complex.pptx with mixed content to test comprehensive extraction.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new PptxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions { ValidateChunks = true };
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_output.WriteLine($"Complex presentation chunks: {result.Chunks.Count}");
 
