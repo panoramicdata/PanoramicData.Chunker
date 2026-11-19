@@ -113,36 +113,44 @@ public partial class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocu
 		Stack<(int Level, Guid Id)> headerStack,
 		ChunkingOptions options)
 	{
-		var parentId = headerStack.Count > 0 ? headerStack.Peek().Id : (Guid?)null;
-
-		switch (block)
+		if (block is HeadingBlock heading)
 		{
-			case HeadingBlock heading:
-				ProcessHeading(heading, chunks, headerStack);
-				break;
+			ProcessHeading(heading, chunks, headerStack);
+			return;
+		}
 
-			case ParagraphBlock paragraph:
-				ProcessParagraph(paragraph, markdownContent, chunks, parentId);
-				break;
+		ProcessContentBlock(block, markdownContent, chunks, CurrentParentId(headerStack), options);
+	}
 
-			case ListBlock list:
-				ProcessList(list, chunks, parentId);
-				break;
+	private static Guid? CurrentParentId(Stack<(int Level, Guid Id)> headerStack)
+		=> headerStack.Count > 0 ? headerStack.Peek().Id : null;
 
-			case CodeBlock codeBlock:
-				ProcessCodeBlock(codeBlock, chunks, parentId);
-				break;
-
-			case QuoteBlock quoteBlock:
-				ProcessQuoteBlock(quoteBlock, chunks, parentId);
-				break;
-
-			case Markdig.Extensions.Tables.Table table:
-				ProcessTable(table, chunks, parentId, options);
-				break;
-
-			default:
-				break;
+	private void ProcessContentBlock(
+		Block block,
+		string markdownContent,
+		List<ChunkerBase> chunks,
+		Guid? parentId,
+		ChunkingOptions options)
+	{
+		if (block is ParagraphBlock paragraph)
+		{
+			ProcessParagraph(paragraph, markdownContent, chunks, parentId);
+		}
+		else if (block is ListBlock list)
+		{
+			ProcessList(list, chunks, parentId);
+		}
+		else if (block is CodeBlock codeBlock)
+		{
+			ProcessCodeBlock(codeBlock, chunks, parentId);
+		}
+		else if (block is QuoteBlock quoteBlock)
+		{
+			ProcessQuoteBlock(quoteBlock, chunks, parentId);
+		}
+		else if (block is Markdig.Extensions.Tables.Table table)
+		{
+			ProcessTable(table, chunks, parentId, options);
 		}
 	}
 }
