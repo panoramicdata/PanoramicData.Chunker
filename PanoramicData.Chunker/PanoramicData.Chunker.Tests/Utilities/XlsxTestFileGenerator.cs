@@ -151,81 +151,16 @@ public static class XlsxTestFileGenerator
 		workbookPart.Workbook = new Workbook();
 		var sheets = workbookPart.Workbook.AppendChild(new Sheets());
 
-		// Sheet 1: Sales Data
-		var worksheetPart1 = workbookPart.AddNewPart<WorksheetPart>();
-		worksheetPart1.Worksheet = new Worksheet(new SheetData());
-		var sheetData1 = worksheetPart1.Worksheet.GetFirstChild<SheetData>()!;
+		AddWorksheet(workbookPart, sheets, 1, "Sales",
+			CreateRow(1, CreateCell("A1", "Product"), CreateCell("B1", "Quantity"), CreateCell("C1", "Price")),
+			CreateRow(2, CreateCell("A2", "Widget A"), CreateCell("B2", "100"), CreateCell("C2", "9.99")));
 
-		var header1 = new Row { RowIndex = 1 };
-		header1.Append(
-			CreateCell("A1", "Product"),
-			CreateCell("B1", "Quantity"),
-			CreateCell("C1", "Price")
-		);
-		sheetData1.Append(header1);
+		AddWorksheet(workbookPart, sheets, 2, "Expenses",
+			CreateRow(1, CreateCell("A1", "Category"), CreateCell("B1", "Amount")),
+			CreateRow(2, CreateCell("A2", "Office Supplies"), CreateCell("B2", "250.00")));
 
-		var data1 = new Row { RowIndex = 2 };
-		data1.Append(
-			CreateCell("A2", "Widget A"),
-			CreateCell("B2", "100"),
-			CreateCell("C2", "9.99")
-		);
-		sheetData1.Append(data1);
-
-		var sheet1 = new Sheet
-		{
-			Id = workbookPart.GetIdOfPart(worksheetPart1),
-			SheetId = 1,
-			Name = "Sales"
-		};
-		sheets.Append(sheet1);
-
-		// Sheet 2: Expenses
-		var worksheetPart2 = workbookPart.AddNewPart<WorksheetPart>();
-		worksheetPart2.Worksheet = new Worksheet(new SheetData());
-		var sheetData2 = worksheetPart2.Worksheet.GetFirstChild<SheetData>()!;
-
-		var header2 = new Row { RowIndex = 1 };
-		header2.Append(
-			CreateCell("A1", "Category"),
-			CreateCell("B1", "Amount")
-		);
-		sheetData2.Append(header2);
-
-		var data2 = new Row { RowIndex = 2 };
-		data2.Append(
-			CreateCell("A2", "Office Supplies"),
-			CreateCell("B2", "250.00")
-		);
-		sheetData2.Append(data2);
-
-		var sheet2 = new Sheet
-		{
-			Id = workbookPart.GetIdOfPart(worksheetPart2),
-			SheetId = 2,
-			Name = "Expenses"
-		};
-		sheets.Append(sheet2);
-
-		// Sheet 3: Summary
-		var worksheetPart3 = workbookPart.AddNewPart<WorksheetPart>();
-		worksheetPart3.Worksheet = new Worksheet(new SheetData());
-		var sheetData3 = worksheetPart3.Worksheet.GetFirstChild<SheetData>()!;
-
-		var summaryRow = new Row { RowIndex = 1 };
-		summaryRow.Append(
-			CreateCell("A1", "Total Revenue"),
-			CreateCell("B1", "999.00")
-		);
-		sheetData3.Append(summaryRow);
-
-		var sheet3 = new Sheet
-		{
-			Id = workbookPart.GetIdOfPart(worksheetPart3),
-			SheetId = 3,
-			Name = "Summary"
-		};
-		sheets.Append(sheet3);
+		AddWorksheet(workbookPart, sheets, 3, "Summary",
+			CreateRow(1, CreateCell("A1", "Total Revenue"), CreateCell("B1", "999.00")));
 
 		workbookPart.Workbook.Save();
 	}
@@ -241,61 +176,36 @@ public static class XlsxTestFileGenerator
 
 		var workbookPart = document.AddWorkbookPart();
 		workbookPart.Workbook = new Workbook();
-
-		var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
-		worksheetPart.Worksheet = new Worksheet(new SheetData());
-
 		var sheets = workbookPart.Workbook.AppendChild(new Sheets());
-		var sheet = new Sheet
-		{
-			Id = workbookPart.GetIdOfPart(worksheetPart),
-			SheetId = 1,
-			Name = "Calculations"
-		};
-		sheets.Append(sheet);
 
-		var sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>()!;
-
-		// Header
-		var header = new Row { RowIndex = 1 };
-		header.Append(
-			CreateCell("A1", "Item"),
-			CreateCell("B1", "Price"),
-			CreateCell("C1", "Quantity"),
-			CreateCell("D1", "Total")
-		);
-		sheetData.Append(header);
-
-		// Data rows with formula in column D
-		var row2 = new Row { RowIndex = 2 };
-		row2.Append(
-			CreateCell("A2", "Item 1"),
-			CreateCell("B2", "10.50"),
-			CreateCell("C2", "5"),
-			CreateFormulaCell("D2", "B2*C2")
-		);
-		sheetData.Append(row2);
-
-		var row3 = new Row { RowIndex = 3 };
-		row3.Append(
-			CreateCell("A3", "Item 2"),
-			CreateCell("B3", "20.00"),
-			CreateCell("C3", "3"),
-			CreateFormulaCell("D3", "B3*C3")
-		);
-		sheetData.Append(row3);
-
-		// Total row
-		var totalRow = new Row { RowIndex = 4 };
-		totalRow.Append(
-			CreateCell("A4", "Total"),
-			CreateCell("B4", ""),
-			CreateCell("C4", ""),
-			CreateFormulaCell("D4", "SUM(D2:D3)")
-		);
-		sheetData.Append(totalRow);
+		AddWorksheet(workbookPart, sheets, 1, "Calculations",
+			CreateRow(1, CreateCell("A1", "Item"), CreateCell("B1", "Price"), CreateCell("C1", "Quantity"), CreateCell("D1", "Total")),
+			CreateRow(2, CreateCell("A2", "Item 1"), CreateCell("B2", "10.50"), CreateCell("C2", "5"), CreateFormulaCell("D2", "B2*C2")),
+			CreateRow(3, CreateCell("A3", "Item 2"), CreateCell("B3", "20.00"), CreateCell("C3", "3"), CreateFormulaCell("D3", "B3*C3")),
+			CreateRow(4, CreateCell("A4", "Total"), CreateCell("B4", ""), CreateCell("C4", ""), CreateFormulaCell("D4", "SUM(D2:D3)")));
 
 		workbookPart.Workbook.Save();
+	}
+
+	private static void AddWorksheet(WorkbookPart workbookPart, Sheets sheets, uint sheetId, string name, params Row[] rows)
+	{
+		var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+		worksheetPart.Worksheet = new Worksheet(new SheetData());
+		worksheetPart.Worksheet.GetFirstChild<SheetData>()!.Append(rows);
+
+		sheets.Append(new Sheet
+		{
+			Id = workbookPart.GetIdOfPart(worksheetPart),
+			SheetId = sheetId,
+			Name = name
+		});
+	}
+
+	private static Row CreateRow(uint index, params Cell[] cells)
+	{
+		var row = new Row { RowIndex = index };
+		row.Append(cells);
+		return row;
 	}
 
 	/// <summary>

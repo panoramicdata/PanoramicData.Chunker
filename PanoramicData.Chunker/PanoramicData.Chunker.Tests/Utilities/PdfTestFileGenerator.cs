@@ -316,35 +316,18 @@ public static class PdfTestFileGenerator
 								columns.RelativeColumn();
 							});
 
-							// Header
 							table.Header(header =>
 							{
-								_ = header.Cell().Element(CellStyle).Text("Name").SemiBold();
-								_ = header.Cell().Element(CellStyle).Text("Department").SemiBold();
-								_ = header.Cell().Element(CellStyle).Text("Salary").SemiBold();
-
-								static IContainer CellStyle(IContainer container)
+								foreach (var title in new[] { "Name", "Department", "Salary" })
 								{
-									return container.BorderBottom(1).BorderColor(Colors.Black).PaddingVertical(5);
+									_ = header.Cell().Element(HeaderCellStyle).Text(title).SemiBold();
 								}
 							});
 
-							// Data rows
-							_ = table.Cell().Element(CellStyle).Text("Alice");
-							_ = table.Cell().Element(CellStyle).Text("Engineering");
-							_ = table.Cell().Element(CellStyle).Text("$75,000");
-
-							_ = table.Cell().Element(CellStyle).Text("Bob");
-							_ = table.Cell().Element(CellStyle).Text("Sales");
-							_ = table.Cell().Element(CellStyle).Text("$60,000");
-
-							_ = table.Cell().Element(CellStyle).Text("Charlie");
-							_ = table.Cell().Element(CellStyle).Text("Marketing");
-							_ = table.Cell().Element(CellStyle).Text("$65,000");
-
-							static IContainer CellStyle(IContainer container)
+							string[] values = ["Alice", "Engineering", "$75,000", "Bob", "Sales", "$60,000", "Charlie", "Marketing", "$65,000"];
+							foreach (var value in values)
 							{
-								return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(5);
+								_ = table.Cell().Element(DataCellStyle).Text(value);
 							}
 						});
 					});
@@ -411,4 +394,10 @@ public static class PdfTestFileGenerator
 		})
 		.GeneratePdf(filePath);
 	}
+
+	private static IContainer HeaderCellStyle(IContainer container)
+		=> container.BorderBottom(1).BorderColor(Colors.Black).PaddingVertical(5);
+
+	private static IContainer DataCellStyle(IContainer container)
+		=> container.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(5);
 }
