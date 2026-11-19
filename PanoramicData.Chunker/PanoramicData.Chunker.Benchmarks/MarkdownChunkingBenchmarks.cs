@@ -205,7 +205,6 @@ Thank you for reading.
 		_ = sb.AppendLine("## Table of Contents");
 		_ = sb.AppendLine();
 
-		// Generate 20 chapters
 		for (var chapter = 1; chapter <= 20; chapter++)
 		{
 			_ = sb.AppendLine($"## Chapter {chapter}: Topic {chapter}");
@@ -213,63 +212,90 @@ Thank you for reading.
 			_ = sb.AppendLine($"This is the introduction to chapter {chapter}. It contains important information about various aspects of the topic.");
 			_ = sb.AppendLine();
 
-			// 5 sections per chapter
 			for (var section = 1; section <= 5; section++)
 			{
-				_ = sb.AppendLine($"### Section {chapter}.{section}: Subtopic");
-				_ = sb.AppendLine();
-
-				// Multiple paragraphs
-				for (var para = 1; para <= 3; para++)
-				{
-					_ = sb.AppendLine($"This is paragraph {para} of section {chapter}.{section}. It contains detailed explanations and examples to help understand the concept better.");
-					_ = sb.AppendLine();
-				}
-
-				// Add code block
-				if (section % 2 == 0)
-				{
-					_ = sb.AppendLine("```csharp");
-					_ = sb.AppendLine($"// Example code for section {chapter}.{section}");
-					_ = sb.AppendLine("public class Example");
-					_ = sb.AppendLine("{");
-					_ = sb.AppendLine("    public int Id { get; set; }");
-					_ = sb.AppendLine($"    public string Name {{ get; set; }} = \"Section {chapter}.{section}\";");
-					_ = sb.AppendLine("    ");
-					_ = sb.AppendLine("    public void Process()");
-					_ = sb.AppendLine("    {");
-					_ = sb.AppendLine("        Console.WriteLine($\"Processing {Name}\");");
-					_ = sb.AppendLine("    }");
-					_ = sb.AppendLine("}");
-					_ = sb.AppendLine("```");
-					_ = sb.AppendLine();
-				}
-
-				// Add list
-				_ = sb.AppendLine("Key points:");
-				_ = sb.AppendLine();
-				for (var i = 1; i <= 5; i++)
-				{
-					_ = sb.AppendLine($"- Point {i}: Important detail about the topic");
-				}
-				_ = sb.AppendLine();
-
-				// Add table occasionally
-				if (section == 3)
-				{
-					_ = sb.AppendLine("| Feature | Description | Status |");
-					_ = sb.AppendLine("|---------|-------------|--------|");
-					_ = sb.AppendLine("| Feature A | Description of feature A | Complete |");
-					_ = sb.AppendLine("| Feature B | Description of feature B | In Progress |");
-					_ = sb.AppendLine("| Feature C | Description of feature C | Planned |");
-					_ = sb.AppendLine();
-				}
+				AppendSection(sb, chapter, section);
 			}
 		}
 
 		return sb.ToString();
 	}
 
+	private static void AppendSection(StringBuilder sb, int chapter, int section)
+	{
+		_ = sb.AppendLine($"### Section {chapter}.{section}: Subtopic");
+		_ = sb.AppendLine();
+
+		for (var para = 1; para <= 3; para++)
+		{
+			_ = sb.AppendLine($"This is paragraph {para} of section {chapter}.{section}. It contains detailed explanations and examples to help understand the concept better.");
+			_ = sb.AppendLine();
+		}
+
+		if (section % 2 == 0)
+		{
+			AppendCodeBlock(sb, chapter, section);
+		}
+
+		_ = sb.AppendLine("Key points:");
+		_ = sb.AppendLine();
+		for (var i = 1; i <= 5; i++)
+		{
+			_ = sb.AppendLine($"- Point {i}: Important detail about the topic");
+		}
+		_ = sb.AppendLine();
+
+		if (section == 3)
+		{
+			AppendTable(sb);
+		}
+	}
+
+	private static void AppendCodeBlock(StringBuilder sb, int chapter, int section)
+	{
+		string[] lines =
+		[
+			"```csharp",
+			$"// Example code for section {chapter}.{section}",
+			"public class Example",
+			"{",
+			"    public int Id { get; set; }",
+			$"    public string Name {{ get; set; }} = \"Section {chapter}.{section}\";",
+			"    ",
+			"    public void Process()",
+			"    {",
+			"        Console.WriteLine($\"Processing {Name}\");",
+			"    }",
+			"}",
+			"```"
+		];
+
+		foreach (var line in lines)
+		{
+			_ = sb.AppendLine(line);
+		}
+
+		_ = sb.AppendLine();
+	}
+
+	private static void AppendTable(StringBuilder sb)
+	{
+		string[] lines =
+		[
+			"| Feature | Description | Status |",
+			"|---------|-------------|--------|",
+			"| Feature A | Description of feature A | Complete |",
+			"| Feature B | Description of feature B | In Progress |",
+			"| Feature C | Description of feature C | Planned |"
+		];
+
+		foreach (var line in lines)
+		{
+			_ = sb.AppendLine(line);
+		}
+
+		_ = sb.AppendLine();
+	}
 	private static string GenerateVeryLargeMarkdown()
 	{
 		var sb = new StringBuilder();

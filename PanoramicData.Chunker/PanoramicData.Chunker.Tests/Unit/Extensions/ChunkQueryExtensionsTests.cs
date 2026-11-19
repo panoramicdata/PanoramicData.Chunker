@@ -599,61 +599,32 @@ public class ChunkQueryExtensionsTests
 			SequenceNumber = 0,
 			Depth = 0,
 			SpecificType = "Heading1",
-			QualityMetrics = new ChunkQualityMetrics
-			{
-				TokenCount = 2,
-				SemanticCompleteness = 1.0
-			}
+			AncestorIds = [],
+			QualityMetrics = CreateMetrics(2)
 		};
 
-		var para1 = new MarkdownParagraphChunk
-		{
-			Content = "First paragraph",
-			ParentId = section.Id,
-			SequenceNumber = 1,
-			Depth = 1,
-			SpecificType = "Paragraph",
-			QualityMetrics = new ChunkQualityMetrics
-			{
-				TokenCount = 15,
-				SemanticCompleteness = 1.0
-			}
-		};
-
-		var para2 = new MarkdownParagraphChunk
-		{
-			Content = "Second paragraph",
-			ParentId = section.Id,
-			SequenceNumber = 2,
-			Depth = 1,
-			SpecificType = "Paragraph",
-			QualityMetrics = new ChunkQualityMetrics
-			{
-				TokenCount = 16,
-				SemanticCompleteness = 1.0
-			}
-		};
-
-		var code = new MarkdownCodeBlockChunk
-		{
-			Content = "var x = 1;",
-			Language = "csharp",
-			ParentId = section.Id,
-			SequenceNumber = 3,
-			Depth = 1,
-			SpecificType = "CodeBlock",
-			QualityMetrics = new ChunkQualityMetrics
-			{
-				TokenCount = 10,
-				SemanticCompleteness = 1.0
-			}
-		};
-
-		section.AncestorIds = [];
-		para1.AncestorIds = [section.Id];
-		para2.AncestorIds = [section.Id];
-		code.AncestorIds = [section.Id];
-
-		return [section, para1, para2, code];
+		return
+		[
+			section,
+			ChildOf(section, new MarkdownParagraphChunk { Content = "First paragraph", SequenceNumber = 1, SpecificType = "Paragraph" }, 15),
+			ChildOf(section, new MarkdownParagraphChunk { Content = "Second paragraph", SequenceNumber = 2, SpecificType = "Paragraph" }, 16),
+			ChildOf(section, new MarkdownCodeBlockChunk { Content = "var x = 1;", Language = "csharp", SequenceNumber = 3, SpecificType = "CodeBlock" }, 10)
+		];
 	}
+
+	private static T ChildOf<T>(MarkdownSectionChunk section, T chunk, int tokenCount)
+		where T : ChunkerBase
+	{
+		chunk.ParentId = section.Id;
+		chunk.Depth = 1;
+		chunk.AncestorIds = [section.Id];
+		chunk.QualityMetrics = CreateMetrics(tokenCount);
+		return chunk;
+	}
+
+	private static ChunkQualityMetrics CreateMetrics(int tokenCount) => new()
+	{
+		TokenCount = tokenCount,
+		SemanticCompleteness = 1.0
+	};
 }

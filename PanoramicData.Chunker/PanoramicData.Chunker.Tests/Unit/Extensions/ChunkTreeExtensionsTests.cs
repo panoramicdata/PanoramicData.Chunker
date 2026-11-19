@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Extensions;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using Xunit;
 
 namespace PanoramicData.Chunker.Tests.Unit.Extensions;
@@ -20,137 +21,15 @@ public class ChunkTreeExtensionsTests
 
 	private static List<ChunkerBase> CreateTestHierarchy()
 	{
-		var chunks = new List<ChunkerBase>();
+		var section1 = MarkdownChunkBuilder.Section("Introduction", 1, 0);
+		var para1 = MarkdownChunkBuilder.Paragraph("First paragraph", 1, section1);
+		var para2 = MarkdownChunkBuilder.Paragraph("Second paragraph", 2, section1);
+		var section2 = MarkdownChunkBuilder.Section("Methods", 1, 3);
+		var subsection = MarkdownChunkBuilder.Section("API Methods", 2, 4, "Subsection", section2);
+		var code = MarkdownChunkBuilder.Code("public void Method() { }", "csharp", 5, subsection);
+		var para3 = MarkdownChunkBuilder.Paragraph("Description of method", 6, subsection);
 
-		// Root section (depth 0)
-		var section1 = new MarkdownSectionChunk
-		{
-			Id = Guid.NewGuid(),
-			SpecificType = "Section",
-			HeadingLevel = 1,
-			HeadingText = "Introduction",
-			Depth = 0,
-			SequenceNumber = 0,
-			AncestorIds = [],
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "Markdown",
-				Hierarchy = "Introduction"
-			}
-		};
-		chunks.Add(section1);
-
-		// Child paragraph (depth 1)
-		var para1 = new MarkdownParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			ParentId = section1.Id,
-			SpecificType = "Paragraph",
-			Content = "First paragraph",
-			Depth = 1,
-			SequenceNumber = 1,
-			AncestorIds = [section1.Id],
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "Markdown",
-				Hierarchy = "Introduction > Paragraph"
-			}
-		};
-		chunks.Add(para1);
-
-		// Another child paragraph (depth 1)
-		var para2 = new MarkdownParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			ParentId = section1.Id,
-			SpecificType = "Paragraph",
-			Content = "Second paragraph",
-			Depth = 1,
-			SequenceNumber = 2,
-			AncestorIds = [section1.Id],
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "Markdown",
-				Hierarchy = "Introduction > Paragraph"
-			}
-		};
-		chunks.Add(para2);
-
-		// Second root section (depth 0)
-		var section2 = new MarkdownSectionChunk
-		{
-			Id = Guid.NewGuid(),
-			SpecificType = "Section",
-			HeadingLevel = 1,
-			HeadingText = "Methods",
-			Depth = 0,
-			SequenceNumber = 3,
-			AncestorIds = [],
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "Markdown",
-				Hierarchy = "Methods"
-			}
-		};
-		chunks.Add(section2);
-
-		// Subsection (depth 1)
-		var subsection = new MarkdownSectionChunk
-		{
-			Id = Guid.NewGuid(),
-			ParentId = section2.Id,
-			SpecificType = "Subsection",
-			HeadingLevel = 2,
-			HeadingText = "API Methods",
-			Depth = 1,
-			SequenceNumber = 4,
-			AncestorIds = [section2.Id],
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "Markdown",
-				Hierarchy = "Methods > API Methods"
-			}
-		};
-		chunks.Add(subsection);
-
-		// Code block (depth 2)
-		var code = new MarkdownCodeBlockChunk
-		{
-			Id = Guid.NewGuid(),
-			ParentId = subsection.Id,
-			SpecificType = "Code",
-			Content = "public void Method() { }",
-			Language = "csharp",
-			Depth = 2,
-			SequenceNumber = 5,
-			AncestorIds = [section2.Id, subsection.Id],
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "Markdown",
-				Hierarchy = "Methods > API Methods > Code"
-			}
-		};
-		chunks.Add(code);
-
-		// Paragraph under subsection (depth 2)
-		var para3 = new MarkdownParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			ParentId = subsection.Id,
-			SpecificType = "Paragraph",
-			Content = "Description of method",
-			Depth = 2,
-			SequenceNumber = 6,
-			AncestorIds = [section2.Id, subsection.Id],
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "Markdown",
-				Hierarchy = "Methods > API Methods > Paragraph"
-			}
-		};
-		chunks.Add(para3);
-
-		return chunks;
+		return [section1, para1, para2, section2, subsection, code, para3];
 	}
 
 	#region BuildTree Tests
