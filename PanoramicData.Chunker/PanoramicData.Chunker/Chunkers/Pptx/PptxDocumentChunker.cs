@@ -168,17 +168,22 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 			ExtractShapeChunk(shape, slideNumber, slideChunk.Id);
 		}
 
-		foreach (var table in shapeTree?.Descendants<A.Table>() ?? [])
+		ExtractSlideAttachments(slidePart, slide, slideNumber, slideChunk.Id);
+	}
+
+	private void ExtractSlideAttachments(SlidePart slidePart, Slide slide, int slideNumber, Guid slideId)
+	{
+		foreach (var table in slide.CommonSlideData?.ShapeTree?.Descendants<A.Table>() ?? [])
 		{
-			AddChunk(CreateTableChunk(table, slideNumber, slideChunk.Id));
+			AddChunk(CreateTableChunk(table, slideNumber, slideId));
 		}
 
 		if (slidePart.NotesSlidePart != null)
 		{
-			AddChunk(ExtractNotesChunk(slidePart.NotesSlidePart, slideNumber, slideChunk.Id));
+			AddChunk(ExtractNotesChunk(slidePart.NotesSlidePart, slideNumber, slideId));
 		}
 
-		ExtractImagesFromSlide(slide, slideNumber, slideChunk.Id);
+		ExtractImagesFromSlide(slide, slideNumber, slideId);
 	}
 
 	private PptxSlideChunk CreateSlideChunk(SlidePart slidePart, Slide slide, int shapeCount, string? slideTitle, int slideNumber) => new()
