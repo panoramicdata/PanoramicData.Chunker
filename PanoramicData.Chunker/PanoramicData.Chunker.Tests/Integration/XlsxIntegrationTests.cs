@@ -15,15 +15,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_SimpleSpreadsheet_ShouldExtractTable()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("simple.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 
@@ -46,15 +39,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_EmptySpreadsheet_ShouldReturnEmptyChunks()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "empty.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("empty.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().BeEmpty();
 	}
@@ -62,15 +48,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_MultipleWorksheets_ShouldExtractAllSheets()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "multiple-sheets.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("multiple-sheets.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		// Should have 3 worksheet chunks
@@ -89,15 +68,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithFormulas_ShouldExtractFormulas()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "with-formulas.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("with-formulas.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		// Should have formula chunks
@@ -113,15 +85,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithTable_ShouldRecognizeTableStructure()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "with-table.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("with-table.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
@@ -167,15 +132,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithMergedCells_ShouldHandleCorrectly()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "with-merged-cells.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("with-merged-cells.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 
@@ -187,15 +145,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithDataTypes_ShouldPreserveValues()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "with-data-types.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("with-data-types.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
@@ -211,15 +162,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_ShouldCalculateTokenCounts()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("simple.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		// All chunks should have quality metrics
@@ -236,15 +180,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_ShouldBuildHierarchy()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("simple.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		// Tables should be children of worksheets
@@ -258,15 +195,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_ShouldGenerateStatistics()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("simple.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Statistics.Should().NotBeNull();
 		_ = result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
 		_ = result.Statistics.StructuralChunks.Should().BePositive();
@@ -293,15 +223,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_SerializedTable_ShouldBeMarkdownFormat()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("simple.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		var table = result.Chunks.OfType<XlsxTableChunk>().First();
 		_ = table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
 		_ = table.SerializedTable.Should().Contain("|");
@@ -311,15 +234,8 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_MetadataSheetName_ShouldBeSet()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkTestFileAsync("simple.xlsx");
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
 			_ = chunk.Metadata.Should().NotBeNull();
@@ -349,4 +265,7 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 		_ = result.ValidationResult.Should().NotBeNull();
 		_ = result.ValidationResult!.IsValid.Should().BeTrue();
 	}
+
+	private Task<ChunkingResult> ChunkTestFileAsync(string fileName)
+		=> ChunkFileAsync(Path.Combine(_testDataPath, fileName), DocumentType.Xlsx);
 }

@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.PlainText;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
+using PanoramicData.Chunker.Models;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -21,42 +22,24 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task CanHandleAsync_PlainText_ShouldReturnTrue()
 	{
-		// Arrange
-		var text = "This is plain text.\n\nWith multiple paragraphs.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
+		var result = await CanHandleTextAsync("This is plain text.\n\nWith multiple paragraphs.");
 
-		// Act
-		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
-
-		// Assert
 		_ = result.Should().BeTrue();
 	}
 
 	[Fact]
 	public async Task CanHandleAsync_HtmlContent_ShouldReturnFalse()
 	{
-		// Arrange
-		var html = "<html><body><p>HTML content</p></body></html>";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
+		var result = await CanHandleTextAsync("<html><body><p>HTML content</p></body></html>");
 
-		// Act
-		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
-
-		// Assert
 		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
 	public async Task CanHandleAsync_MarkdownContent_ShouldReturnFalse()
 	{
-		// Arrange
-		var markdown = "# Header\n\n**Bold** text with ![image](url)";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		var result = await CanHandleTextAsync("# Header\n\n**Bold** text with ![image](url)");
 
-		// Act
-		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
-
-		// Assert
 		_ = result.Should().BeFalse();
 	}
 
@@ -80,15 +63,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithUnderlinedHeading_ShouldDetectHeading()
 	{
-		// Arrange
-		var text = "Main Heading\n============\n\nContent here.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Main Heading\n============\n\nContent here.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
 		_ = sections.Should().ContainSingle();
@@ -101,15 +77,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithDashUnderlinedHeading_ShouldDetectLevel2()
 	{
-		// Arrange
-		var text = "Sub Heading\n-----------\n\nContent here.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Sub Heading\n-----------\n\nContent here.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
 		_ = sections.Should().ContainSingle();
 		_ = sections[0].HeadingLevel.Should().Be(2);
@@ -119,15 +88,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithNumberedSection_ShouldDetectHeading()
 	{
-		// Arrange
-		var text = "1. Introduction\n\nContent here.\n\n1.1 Background\n\nMore content.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("1. Introduction\n\nContent here.\n\n1.1 Background\n\nMore content.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
 		_ = sections.Should().HaveCount(2);
 		_ = sections[0].HeadingText.Should().Be("Introduction");
@@ -140,15 +102,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithDeepNumberedSection_ShouldDetectCorrectLevel()
 	{
-		// Arrange
-		var text = "1.1.1 Deep Section\n\nContent here.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("1.1.1 Deep Section\n\nContent here.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
 		_ = sections.Should().ContainSingle();
 		_ = sections[0].HeadingLevel.Should().Be(3); // 3 dots = level 3
@@ -157,15 +112,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithAllCapsHeading_ShouldDetectHeading()
 	{
-		// Arrange
-		var text = "INTRODUCTION\n\nThis is the introduction content.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("INTRODUCTION\n\nThis is the introduction content.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
 		_ = sections.Should().ContainSingle();
 		_ = sections[0].HeadingText.Should().Be("INTRODUCTION");
@@ -176,15 +124,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithPrefixedHeading_ShouldDetectHeading()
 	{
-		// Arrange
-		var text = "# Main Heading\n\nContent.\n\n## Sub Heading\n\nMore content.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("# Main Heading\n\nContent.\n\n## Sub Heading\n\nMore content.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
 		_ = sections.Should().HaveCount(2);
 		_ = sections[0].HeadingLevel.Should().Be(1);
@@ -231,15 +172,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithParagraphs_ShouldCreateParagraphChunks()
 	{
-		// Arrange
-		var text = "First paragraph.\n\nSecond paragraph.\n\nThird paragraph.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("First paragraph.\n\nSecond paragraph.\n\nThird paragraph.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraphs = result.Chunks.OfType<PlainTextParagraphChunk>().ToList();
 		_ = paragraphs.Should().HaveCount(3);
 		_ = paragraphs[0].Content.Should().Contain("First");
@@ -250,15 +184,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithMultiLineParagraph_ShouldCombineLines()
 	{
-		// Arrange
-		var text = "This is a paragraph\nthat spans multiple\nlines without blank lines.\n\nNext paragraph.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("This is a paragraph\nthat spans multiple\nlines without blank lines.\n\nNext paragraph.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraphs = result.Chunks.OfType<PlainTextParagraphChunk>().ToList();
 		_ = paragraphs.Should().HaveCount(2);
 		_ = paragraphs[0].Content.Should().Contain("multiple lines");
@@ -267,15 +194,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithSingleParagraph_ShouldCreateOneChunk()
 	{
-		// Arrange
-		var text = "This is a single paragraph with no line breaks or additional content.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("This is a single paragraph with no line breaks or additional content.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraphs = result.Chunks.OfType<PlainTextParagraphChunk>().ToList();
 		_ = paragraphs.Should().ContainSingle();
 	}
@@ -287,15 +207,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithBulletList_ShouldDetectListItems()
 	{
-		// Arrange
-		var text = "Items:\n- First item\n- Second item\n- Third item";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Items:\n- First item\n- Second item\n- Third item");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
 		_ = listItems.Should().HaveCount(3);
 		_ = listItems.Should().AllSatisfy(item =>
@@ -309,15 +222,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithNumberedList_ShouldDetectListItems()
 	{
-		// Arrange
-		var text = "Steps:\n1. First step\n2. Second step\n3. Third step";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Steps:\n1. First step\n2. Second step\n3. Third step");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
 		_ = listItems.Should().HaveCount(3);
 		_ = listItems.Should().AllSatisfy(item =>
@@ -330,15 +236,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithAsteriskBullets_ShouldDetectListItems()
 	{
-		// Arrange
-		var text = "* First\n* Second\n* Third";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("* First\n* Second\n* Third");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
 		_ = listItems.Should().HaveCount(3);
 		_ = listItems.Should().AllSatisfy(item => item.Marker.Should().Be("*"));
@@ -347,15 +246,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithUnicodeBullets_ShouldDetectListItems()
 	{
-		// Arrange
-		var text = "\u2022 First\n\u2022 Second\n\u2022 Third";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("\u2022 First\n\u2022 Second\n\u2022 Third");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
 		_ = listItems.Should().HaveCount(3);
 		_ = listItems.Should().AllSatisfy(item => item.Marker.Should().Be("\u2022"));
@@ -364,15 +256,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithNestedList_ShouldDetectNestingLevels()
 	{
-		// Arrange
-		var text = "- Level 0\n  - Level 1\n    - Level 2";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("- Level 0\n  - Level 1\n    - Level 2");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
 		_ = listItems.Should().HaveCount(3);
 		_ = listItems[0].NestingLevel.Should().Be(0);
@@ -387,15 +272,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithFencedCodeBlock_ShouldDetectCode()
 	{
-		// Arrange
-		var text = "Text before\n\n```csharp\npublic class Test {}\n```\n\nText after";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Text before\n\n```csharp\npublic class Test {}\n```\n\nText after");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
 		_ = codeBlocks.Should().ContainSingle();
 		_ = codeBlocks[0].IsFenced.Should().BeTrue();
@@ -406,15 +284,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithFencedCodeBlockNoLanguage_ShouldDetectCode()
 	{
-		// Arrange
-		var text = "```\nsome code\n```";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("```\nsome code\n```");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
 		_ = codeBlocks.Should().ContainSingle();
 		_ = codeBlocks[0].IsFenced.Should().BeTrue();
@@ -424,15 +295,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithIndentedCode_ShouldDetectCode()
 	{
-		// Arrange
-		var text = "Normal text\n\n    public class Test\n    {\n      // code\n    }\n\nBack to normal";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Normal text\n\n    public class Test\n    {\n      // code\n    }\n\nBack to normal");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
 		_ = codeBlocks.Should().ContainSingle();
 		_ = codeBlocks[0].IsFenced.Should().BeFalse();
@@ -442,15 +306,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithCodeIndicators_ShouldPopulateIndicators()
 	{
-		// Arrange
-		var text = "    public class Test\n    {\n        public void Method() { }\n    }";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("    public class Test\n    {\n        public void Method() { }\n    }");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
 		_ = codeBlocks.Should().ContainSingle();
 		_ = codeBlocks[0].CodeIndicators.Should().Contain("public");
@@ -464,15 +321,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithNestedHeadings_ShouldBuildHierarchy()
 	{
-		// Arrange
-		var text = "Main\n====\n\nContent 1\n\nSub\n---\n\nContent 2";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Main\n====\n\nContent 1\n\nSub\n---\n\nContent 2");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
 		_ = sections.Should().HaveCount(2);
 
@@ -486,15 +336,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithContentUnderHeading_ShouldAssignParent()
 	{
-		// Arrange
-		var text = "Heading\n=======\n\nParagraph content.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Heading\n=======\n\nParagraph content.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var section = result.Chunks.OfType<PlainTextSectionChunk>().First();
 		var paragraph = result.Chunks.OfType<PlainTextParagraphChunk>().First();
 
@@ -508,15 +351,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldPopulateQualityMetrics()
 	{
-		// Arrange
-		var text = "This is a paragraph with some content.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("This is a paragraph with some content.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var chunk = result.Chunks[0];
 		_ = chunk.QualityMetrics.Should().NotBeNull();
 		_ = chunk.QualityMetrics!.CharacterCount.Should().BePositive();
@@ -531,15 +367,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldPopulateMetadata()
 	{
-		// Arrange
-		var text = "Test content.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Test content.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
 			_ = chunk.Metadata.Should().NotBeNull();
@@ -555,15 +384,8 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldCalculateStatistics()
 	{
-		// Arrange
-		var text = "Heading\n=======\n\nParagraph 1.\n\nParagraph 2.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var options = new ChunkingOptions();
+		var result = await ChunkTextAsync("Heading\n=======\n\nParagraph 1.\n\nParagraph 2.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Statistics.Should().NotBeNull();
 		_ = result.Statistics.TotalChunks.Should().BePositive();
 		_ = result.Statistics.StructuralChunks.Should().BePositive();
@@ -606,4 +428,16 @@ public class PlainTextDocumentChunkerTests : BaseTest
 	}
 
 	#endregion
+
+	private async Task<ChunkingResult> ChunkTextAsync(string text)
+	{
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
+		return await _chunker.ChunkAsync(stream, new ChunkingOptions(), CancellationToken);
+	}
+
+	private async Task<bool> CanHandleTextAsync(string text)
+	{
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
+		return await _chunker.CanHandleAsync(stream, CancellationToken);
+	}
 }

@@ -79,28 +79,11 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractSections_FromDocxWithHeadings()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
-
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
+		var result = await ChunkDocxAsync("simple.docx", new ChunkingOptions
 		{
 			MaxTokens = 500
-		};
+		});
 
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 		_output.WriteLine($"Total chunks: {result.Chunks.Count}");
@@ -118,28 +101,11 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractParagraphs_FromDocx()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
-
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
+		var result = await ChunkDocxAsync("simple.docx", new ChunkingOptions
 		{
 			MaxTokens = 500
-		};
+		});
 
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var paragraphs = result.Chunks.OfType<DocxParagraphChunk>().ToList();
@@ -155,25 +121,8 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldCalculateTokenCounts()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
+		var result = await ChunkDocxAsync("simple.docx", new ChunkingOptions());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 
@@ -257,25 +206,8 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldBuildHierarchy()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
+		var result = await ChunkDocxAsync("simple.docx", new ChunkingOptions());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Statistics.Should().NotBeNull();
 		_ = result.Statistics.MaxDepth.Should().BeGreaterThanOrEqualTo(0);
@@ -285,25 +217,8 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldGenerateStatistics()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
+		var result = await ChunkDocxAsync("simple.docx", new ChunkingOptions());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Statistics.Should().NotBeNull();
 		_ = result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
 		_ = result.Statistics.StructuralChunks.Should().BeGreaterThanOrEqualTo(0);
@@ -320,25 +235,8 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldHandleEmptyDocument()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "empty.docx");
+		var result = await ChunkDocxAsync("empty.docx", new ChunkingOptions());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().BeEmpty();
 	}
@@ -346,25 +244,8 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractTables()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "with-tables.docx");
+		var result = await ChunkDocxAsync("with-tables.docx", new ChunkingOptions());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var tables = result.Chunks.OfType<DocxTableChunk>().ToList();
@@ -382,25 +263,8 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractListItems()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "with-lists.docx");
+		var result = await ChunkDocxAsync("with-lists.docx", new ChunkingOptions());
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions();
-
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 
 		var listItems = result.Chunks.OfType<DocxListItemChunk>().ToList();
@@ -416,28 +280,11 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 	[Fact]
 	public async Task ChunkAsync_WithValidation_ShouldValidateChunks()
 	{
-		// Arrange
-		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
-
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
-
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new DocxDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
+		var result = await ChunkDocxAsync("simple.docx", new ChunkingOptions
 		{
 			ValidateChunks = true
-		};
+		});
 
-		await using var stream = File.OpenRead(testFilePath);
-
-		// Act
-		var result = await chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.ValidationResult.Should().NotBeNull();
 		_output.WriteLine($"Validation result: {(result.ValidationResult!.IsValid ? "Valid" : "Invalid")}");
