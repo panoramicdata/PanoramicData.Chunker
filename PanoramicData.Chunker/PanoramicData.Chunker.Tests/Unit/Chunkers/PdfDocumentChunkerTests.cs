@@ -136,23 +136,21 @@ public class PdfDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.pdf")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-			var options = new ChunkingOptions();
+		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
+		var options = new ChunkingOptions();
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			_ = result.Should().NotBeNull();
-			_ = result.Success.Should().BeTrue();
-			_ = result.Chunks.Should().NotBeEmpty();
+		// Assert
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
-			// Should have document and page chunks
-			_ = result.Chunks.OfType<PdfDocumentChunk>().Should().ContainSingle();
-			_ = result.Chunks.OfType<PdfPageChunk>().Should().NotBeEmpty();
-		}
+		// Should have document and page chunks
+		_ = result.Chunks.OfType<PdfDocumentChunk>().Should().ContainSingle();
+		_ = result.Chunks.OfType<PdfPageChunk>().Should().NotBeEmpty();
 	}
 
 	[Fact]
@@ -177,20 +175,18 @@ public class PdfDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "empty.pdf")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "empty.pdf"));
-			var options = new ChunkingOptions();
+		_ = File.Exists(Path.Combine(testDataPath, "empty.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "empty.pdf"));
+		var options = new ChunkingOptions();
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			_ = result.Should().NotBeNull();
-			_ = result.Success.Should().BeTrue();
-			// Empty PDF should still have document and page chunks
-			_ = result.Chunks.Should().NotBeEmpty();
-		}
+		// Assert
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		// Empty PDF should still have document and page chunks
+		_ = result.Chunks.Should().NotBeEmpty();
 	}
 
 	[Fact]
@@ -198,19 +194,17 @@ public class PdfDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.pdf")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-			var options = new ChunkingOptions();
+		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
+		var options = new ChunkingOptions();
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			_ = result.Statistics.Should().NotBeNull();
-			_ = result.Statistics.TotalChunks.Should().BePositive();
-			_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
-		}
+		// Assert
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().BePositive();
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 	}
 
 	[Fact]
@@ -218,18 +212,16 @@ public class PdfDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.pdf")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-			var options = new ChunkingOptions { ValidateChunks = true };
+		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
+		var options = new ChunkingOptions { ValidateChunks = true };
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			_ = result.ValidationResult.Should().NotBeNull();
-			_ = result.ValidationResult!.IsValid.Should().BeTrue();
-		}
+		// Assert
+		_ = result.ValidationResult.Should().NotBeNull();
+		_ = result.ValidationResult!.IsValid.Should().BeTrue();
 	}
 
 	[Fact]
@@ -237,20 +229,18 @@ public class PdfDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.pdf")))
+		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
+		var options = new ChunkingOptions();
+
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+
+		// Assert
+		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-			var options = new ChunkingOptions();
-
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-			// Assert
-			_ = result.Chunks.Should().AllSatisfy(chunk =>
-			{
-				_ = chunk.QualityMetrics.Should().NotBeNull();
-			});
-		}
+			_ = chunk.QualityMetrics.Should().NotBeNull();
+		});
 	}
 
 	[Fact]
@@ -258,21 +248,19 @@ public class PdfDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.pdf")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-			var options = new ChunkingOptions();
+		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
+		var options = new ChunkingOptions();
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			var page = result.Chunks.OfType<PdfPageChunk>().FirstOrDefault();
-			_ = page.Should().NotBeNull();
-			_ = page!.PageNumber.Should().BePositive();
-			_ = page.Width.Should().BePositive();
-			_ = page.Height.Should().BePositive();
-		}
+		// Assert
+		var page = result.Chunks.OfType<PdfPageChunk>().FirstOrDefault();
+		_ = page.Should().NotBeNull();
+		_ = page!.PageNumber.Should().BePositive();
+		_ = page.Width.Should().BePositive();
+		_ = page.Height.Should().BePositive();
 	}
 
 	[Fact]
@@ -280,20 +268,18 @@ public class PdfDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.pdf")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-			var options = new ChunkingOptions();
+		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
+		var options = new ChunkingOptions();
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			var doc = result.Chunks.OfType<PdfDocumentChunk>().FirstOrDefault();
-			_ = doc.Should().NotBeNull();
-			_ = doc!.PdfVersion.Should().NotBeNullOrEmpty();
-			_ = doc.PageCount.Should().BePositive();
-		}
+		// Assert
+		var doc = result.Chunks.OfType<PdfDocumentChunk>().FirstOrDefault();
+		_ = doc.Should().NotBeNull();
+		_ = doc!.PdfVersion.Should().NotBeNullOrEmpty();
+		_ = doc.PageCount.Should().BePositive();
 	}
 
 	[Fact]
@@ -301,23 +287,21 @@ public class PdfDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.pdf")))
+		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
+		var options = new ChunkingOptions();
+
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+
+		// Assert
+		var doc = result.Chunks.OfType<PdfDocumentChunk>().First();
+		var pages = result.Chunks.OfType<PdfPageChunk>();
+
+		// All pages should be children of document
+		_ = pages.Should().AllSatisfy(page =>
 		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-			var options = new ChunkingOptions();
-
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-			// Assert
-			var doc = result.Chunks.OfType<PdfDocumentChunk>().First();
-			var pages = result.Chunks.OfType<PdfPageChunk>();
-
-			// All pages should be children of document
-			_ = pages.Should().AllSatisfy(page =>
-			{
-				_ = page.ParentId.Should().Be(doc.Id);
-			});
-		}
+			_ = page.ParentId.Should().Be(doc.Id);
+		});
 	}
 }

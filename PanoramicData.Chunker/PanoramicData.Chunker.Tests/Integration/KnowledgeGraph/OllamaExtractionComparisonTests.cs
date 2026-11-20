@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Configuration;
@@ -14,7 +14,7 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 
 /// <summary>
 /// Integration tests comparing Ollama LLM-based extraction vs Hybrid (baseline) extraction.
-/// NOTE: These tests require Ollama running locally - skip if not available.
+/// NOTE: These tests require Ollama running locally and fail if it is not available.
 /// PERFORMANCE: Tests are SLOW (~25s per chunk with llama2, 47s with llama3).
 ///    Full Darwin extraction takes 4-8 hours. Use for validation only.
 /// </summary>
@@ -40,12 +40,7 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 
 		// Check if Ollama is available
 		var ollamaAvailable = await IsOllamaAvailableAsync();
-		if (!ollamaAvailable)
-		{
-			_output.WriteLine("⚠ Ollama not available at http://localhost:11434");
-			_output.WriteLine("Skipping test - install Ollama and run 'ollama serve' to enable LLM extraction tests");
-			return;
-		}
+		_ = ollamaAvailable.Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
 
 		_output.WriteLine("✓ Ollama is available");
 		_output.WriteLine(string.Empty);
@@ -105,11 +100,7 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 
 		// Check Ollama
 		var ollamaAvailable = await IsOllamaAvailableAsync();
-		if (!ollamaAvailable)
-		{
-			_output.WriteLine("⚠ Ollama not available - skipping");
-			return;
-		}
+		_ = ollamaAvailable.Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
 
 		// Act
 		var graph = await ExtractDarwinGraphAsync(useOllama: true);
@@ -174,11 +165,7 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 
 		// Check Ollama
 		var ollamaAvailable = await IsOllamaAvailableAsync();
-		if (!ollamaAvailable)
-		{
-			_output.WriteLine("⚠ Ollama not available - skipping");
-			return;
-		}
+		_ = ollamaAvailable.Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
 
 		// Act
 		var extractor = new OllamaEntityExtractor();

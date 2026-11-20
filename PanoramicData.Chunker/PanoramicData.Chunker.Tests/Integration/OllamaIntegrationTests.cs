@@ -30,12 +30,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_GenerateAsync_ShouldProduceResponse()
 	{
-		// Skip if Ollama not available
-		if (!IsOllamaAvailable())
-		{
-			_output.WriteLine("Skipping test: Ollama not available");
-			return;
-		}
+		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
 
 		// Arrange
 		var options = new OllamaOptions
@@ -71,12 +66,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_EnrichChunk_ShouldGenerateSummary()
 	{
-		// Skip if Ollama not available
-		if (!IsOllamaAvailable())
-		{
-			_output.WriteLine("Skipping test: Ollama not available");
-			return;
-		}
+		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
 
 		// Arrange
 		var ollamaOptions = new OllamaOptions { DefaultModel = "llama3" };
@@ -123,12 +113,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_ExtractKeywords_ShouldReturnKeywords()
 	{
-		// Skip if Ollama not available
-		if (!IsOllamaAvailable())
-		{
-			_output.WriteLine("Skipping test: Ollama not available");
-			return;
-		}
+		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
 
 		// Arrange
 		var ollamaOptions = new OllamaOptions { DefaultModel = "llama3" };
@@ -171,12 +156,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_BatchEnrichment_ShouldProcessMultipleChunks()
 	{
-		// Skip if Ollama not available
-		if (!IsOllamaAvailable())
-		{
-			_output.WriteLine("Skipping test: Ollama not available");
-			return;
-		}
+		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
 
 		// Arrange
 		var ollamaOptions = new OllamaOptions { DefaultModel = "llama3" };
@@ -220,12 +200,7 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_CacheEfficiency_ShouldReuseResults()
 	{
-		// Skip if Ollama not available
-		if (!IsOllamaAvailable())
-		{
-			_output.WriteLine("Skipping test: Ollama not available");
-			return;
-		}
+		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
 
 		// Arrange
 		var cache = new InMemoryEnrichmentCache();

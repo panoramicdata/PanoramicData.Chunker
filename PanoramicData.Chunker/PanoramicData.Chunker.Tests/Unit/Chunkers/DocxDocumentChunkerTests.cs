@@ -46,11 +46,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 		var chunker = new DocxDocumentChunker(tokenCounter);
 		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}");
-			return; // Skip test if file doesn't exist yet
-		}
+		_ = File.Exists(testFilePath).Should().BeTrue($"test data file '{testFilePath}' must exist");
 
 		await using var stream = File.OpenRead(testFilePath);
 
@@ -141,11 +137,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 		// Arrange
 		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
+		_ = File.Exists(testFilePath).Should().BeTrue($"test data file '{testFilePath}' must exist");
 
 		// Use OpenAI token counter for accurate token counting (not the naive chars/4 approximation)
 		var tokenCounter = OpenAITokenCounter.ForGpt4();

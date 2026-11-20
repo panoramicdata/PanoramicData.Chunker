@@ -9,8 +9,7 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
 /// <summary>
 /// Unit tests for PptxDocumentChunker.
-/// Tests are designed to skip gracefully when test files are missing and provide
-/// detailed validation when files are present.
+/// Tests fail with a message naming the file when a test data file is missing.
 /// </summary>
 public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(output)
 {
@@ -57,12 +56,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 		var chunker = new PptxDocumentChunker(tokenCounter);
 		var testFilePath = GetTestFilePath("simple.pptx");
 
-		if (!TestFileExists("simple.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			_output.WriteLine("Run this test after creating PPTX test files. See PPTX_TEST_FILES.md");
-			return;
-		}
+		_ = TestFileExists("simple.pptx").Should().BeTrue($"test data file '{testFilePath}' must exist");
 
 		await using var stream = File.OpenRead(testFilePath);
 
@@ -388,12 +382,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output) : BaseTest(outpu
 		// Arrange
 		var testFilePath = GetTestFilePath("large.pptx");
 
-		if (!TestFileExists("large.pptx"))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			_output.WriteLine("Create large.pptx with 50-100 slides to test performance.");
-			return;
-		}
+		_ = TestFileExists("large.pptx").Should().BeTrue($"test data file '{testFilePath}' must exist");
 
 		var tokenCounter = new CharacterBasedTokenCounter();
 		var chunker = new PptxDocumentChunker(tokenCounter);
