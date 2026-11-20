@@ -103,11 +103,7 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 		// Arrange
 		var testFilePath = Path.Combine("TestData", "Docx", "simple.docx");
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
+		_ = File.Exists(testFilePath).Should().BeTrue($"test data file '{testFilePath}' must exist");
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 		var tokenCounter = TokenCounterFactory.GetOrCreate(options);
@@ -141,11 +137,7 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 		// Arrange
 		var testFilePath = Path.Combine("TestData", "Docx", "large.docx");
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
+		_ = File.Exists(testFilePath).Should().BeTrue($"test data file '{testFilePath}' must exist");
 
 		var tokenCounter = new CharacterBasedTokenCounter();
 		var chunker = new DocxDocumentChunker(tokenCounter);
@@ -177,11 +169,7 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 		// Arrange
 		var testFilePath = Path.Combine("TestData", "Docx", "formatted.docx");
 
-		if (!File.Exists(testFilePath))
-		{
-			_output.WriteLine($"Test file not found: {testFilePath}. Skipping test.");
-			return;
-		}
+		_ = File.Exists(testFilePath).Should().BeTrue($"test data file '{testFilePath}' must exist");
 
 		var tokenCounter = new CharacterBasedTokenCounter();
 		var chunker = new DocxDocumentChunker(tokenCounter);

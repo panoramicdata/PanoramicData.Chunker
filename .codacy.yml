@@ -1,0 +1,4 @@
+---
+exclude_paths:
+  # sql/** is PostgreSQL (Apache AGE) schema; TSQLLint reads it as T-SQL and raises false findings
+  - "PanoramicData.Chunker/sql/**"

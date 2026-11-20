@@ -54,17 +54,15 @@ public class XlsxDocumentChunkerTests : BaseTest
 	{
 		// Arrange - Create minimal XLSX (ZIP with proper structure)
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Xlsx");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.xlsx")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
+		_ = File.Exists(Path.Combine(testDataPath, "simple.xlsx")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
 
-			// Act
-			var result = await _chunker.CanHandleAsync(stream, CancellationToken);
+		// Act
+		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
 
-			// Assert
-			_ = result.Should().BeTrue();
-			// Note: OpenXML may consume the stream during detection, so we don't strictly check position restoration
-		}
+		// Assert
+		_ = result.Should().BeTrue();
+		// Note: OpenXML may consume the stream during detection, so we don't strictly check position restoration
 	}
 
 	[Fact]
@@ -125,22 +123,20 @@ public class XlsxDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Xlsx");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.xlsx")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
-			var options = new ChunkingOptions();
+		_ = File.Exists(Path.Combine(testDataPath, "simple.xlsx")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
+		var options = new ChunkingOptions();
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			_ = result.Should().NotBeNull();
-			_ = result.Success.Should().BeTrue();
-			_ = result.Chunks.Should().NotBeEmpty();
+		// Assert
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		_ = result.Chunks.Should().NotBeEmpty();
 
-			// Should have at least document chunk
-			_ = result.Chunks.OfType<XlsxWorksheetChunk>().Should().NotBeEmpty();
-		}
+		// Should have at least document chunk
+		_ = result.Chunks.OfType<XlsxWorksheetChunk>().Should().NotBeEmpty();
 	}
 
 	[Fact]
@@ -165,20 +161,18 @@ public class XlsxDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Xlsx");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "empty.xlsx")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "empty.xlsx"));
-			var options = new ChunkingOptions();
+		_ = File.Exists(Path.Combine(testDataPath, "empty.xlsx")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "empty.xlsx"));
+		var options = new ChunkingOptions();
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			_ = result.Should().NotBeNull();
-			_ = result.Success.Should().BeTrue();
-			// Empty XLSX may still have structural chunks (document, worksheet)
-			// so we don't require it to be empty
-		}
+		// Assert
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+		// Empty XLSX may still have structural chunks (document, worksheet)
+		// so we don't require it to be empty
 	}
 
 	[Fact]
@@ -186,19 +180,17 @@ public class XlsxDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Xlsx");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.xlsx")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
-			var options = new ChunkingOptions();
+		_ = File.Exists(Path.Combine(testDataPath, "simple.xlsx")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
+		var options = new ChunkingOptions();
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			_ = result.Statistics.Should().NotBeNull();
-			_ = result.Statistics.TotalChunks.Should().BePositive();
-			_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
-		}
+		// Assert
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().BePositive();
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
 	}
 
 	[Fact]
@@ -206,18 +198,16 @@ public class XlsxDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Xlsx");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.xlsx")))
-		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
-			var options = new ChunkingOptions { ValidateChunks = true };
+		_ = File.Exists(Path.Combine(testDataPath, "simple.xlsx")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
+		var options = new ChunkingOptions { ValidateChunks = true };
 
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
-			// Assert
-			_ = result.ValidationResult.Should().NotBeNull();
-			_ = result.ValidationResult!.IsValid.Should().BeTrue();
-		}
+		// Assert
+		_ = result.ValidationResult.Should().NotBeNull();
+		_ = result.ValidationResult!.IsValid.Should().BeTrue();
 	}
 
 	[Fact]
@@ -225,19 +215,17 @@ public class XlsxDocumentChunkerTests : BaseTest
 	{
 		// Arrange
 		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Xlsx");
-		if (Directory.Exists(testDataPath) && File.Exists(Path.Combine(testDataPath, "simple.xlsx")))
+		_ = File.Exists(Path.Combine(testDataPath, "simple.xlsx")).Should().BeTrue("test data file must exist in " + testDataPath);
+		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
+		var options = new ChunkingOptions();
+
+		// Act
+		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+
+		// Assert
+		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
-			await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.xlsx"));
-			var options = new ChunkingOptions();
-
-			// Act
-			var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-			// Assert
-			_ = result.Chunks.Should().AllSatisfy(chunk =>
-			{
-				_ = chunk.QualityMetrics.Should().NotBeNull();
-			});
-		}
+			_ = chunk.QualityMetrics.Should().NotBeNull();
+		});
 	}
 }

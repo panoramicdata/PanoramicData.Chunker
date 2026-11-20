@@ -20,6 +20,7 @@ public class BaseTest(ITestOutputHelper output)
 		CsvTestFileGenerator.GenerateAllTestFiles();
 		XlsxTestFileGenerator.GenerateAllTestFiles();
 		PdfTestFileGenerator.GenerateAllTestFiles();
+		OfficeTestFileGenerator.GenerateAllTestFiles();
 	}
 
 	protected static Task<ChunkingResult> ChunkFileAsync(string filePath, DocumentType documentType)

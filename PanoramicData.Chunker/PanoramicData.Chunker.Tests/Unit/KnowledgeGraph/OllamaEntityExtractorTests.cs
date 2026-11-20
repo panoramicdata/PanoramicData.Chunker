@@ -9,7 +9,7 @@ namespace PanoramicData.Chunker.Tests.Unit.KnowledgeGraph;
 /// <summary>
 /// Unit tests for OllamaEntityExtractor.
 /// NOTE: These tests require Ollama to be running locally with llama3.2 model available.
-/// Skip these tests if Ollama is not available in your environment.
+/// These tests need Ollama; they carry the Integration trait so CI excludes them.
 /// </summary>
 [Trait("Category", "Integration")]
 public class OllamaEntityExtractorTests(ITestOutputHelper output) : BaseTest(output)
