@@ -230,6 +230,29 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 		_output.WriteLine($"\n=== Ground Truth Entities Test ===");
 		_output.WriteLine($"Extracted {entities.Count} entities:");
 
+		WriteProperNouns(entities);
+
+		// Ground truth entities we expect to find
+		var groundTruthEntities = new[]
+		{
+			"Plinian Society", "Professor Jameson", "HMS Beagle", "Charles Darwin",
+			"Edinburgh University", "Robert Grant", "Captain FitzRoy", "Galapagos Islands"
+		};
+
+		WriteGroundTruthCoverage(entities, groundTruthEntities);
+
+		// At least 70% of ground truth entities should be found
+		var foundCount = CountFoundGroundTruth(entities, groundTruthEntities);
+
+		var coverage = (double)foundCount / groundTruthEntities.Length;
+		_output.WriteLine($"\nCoverage: {foundCount}/{groundTruthEntities.Length} ({coverage:P0})");
+
+		coverage.Should().BeGreaterThanOrEqualTo(0.5,
+			"Should extract at least 50% of ground truth entities");
+	}
+
+	private void WriteProperNouns(List<Entity> entities)
+	{
 		var properNouns = entities.Where(e => e.Type == EntityType.ProperNoun).ToList();
 		_output.WriteLine($"\nProper Nouns ({properNouns.Count}):");
 		foreach (var entity in properNouns)
@@ -240,14 +263,10 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 				_output.WriteLine($"  Aliases: {string.Join(", ", entity.Aliases)}");
 			}
 		}
+	}
 
-		// Ground truth entities we expect to find
-		var groundTruthEntities = new[]
-		{
-			"Plinian Society", "Professor Jameson", "HMS Beagle", "Charles Darwin",
-			"Edinburgh University", "Robert Grant", "Captain FitzRoy", "Galapagos Islands"
-		};
-
+	private void WriteGroundTruthCoverage(List<Entity> entities, string[] groundTruthEntities)
+	{
 		_output.WriteLine($"\n=== Ground Truth Entity Coverage ===");
 		foreach (var gt in groundTruthEntities)
 		{
@@ -261,18 +280,15 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 
 			_output.WriteLine($"  {(found ? "✓" : "✗")} {gt}");
 		}
+	}
 
-		// At least 70% of ground truth entities should be found
+	private static int CountFoundGroundTruth(List<Entity> entities, string[] groundTruthEntities)
+	{
 		var foundCount = groundTruthEntities.Count(gt =>
 			entities.Any(e =>
 				e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase) ||
 				gt.Contains(e.Name, StringComparison.OrdinalIgnoreCase) ||
 				e.Aliases.Any(a => gt.Contains(a, StringComparison.OrdinalIgnoreCase))));
-
-		var coverage = (double)foundCount / groundTruthEntities.Length;
-		_output.WriteLine($"\nCoverage: {foundCount}/{groundTruthEntities.Length} ({coverage:P0})");
-
-		coverage.Should().BeGreaterThanOrEqualTo(0.5,
-			"Should extract at least 50% of ground truth entities");
+		return foundCount;
 	}
 }

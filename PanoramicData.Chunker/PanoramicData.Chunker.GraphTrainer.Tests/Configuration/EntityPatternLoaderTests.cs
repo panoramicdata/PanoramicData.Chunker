@@ -55,21 +55,7 @@ public class EntityPatternLoaderTests
 			OrganizationalSuffixes = ["University", "Institute"],
 			AllowedConnectors = ["of", "the"],
 			SentenceStarters = ["The", "In"],
-			ExtractionRules = new ExtractionRules
-			{
-				MinWordLength = 2,
-				MinOccurrences = 1,
-				BaseConfidence = 0.7,
-				ConfidenceBoosts = new ConfidenceBoosts
-				{
-					InDictionary = 0.15,
-					HasTitle = 0.10,
-					MultiWord = 0.10,
-					OrganizationalSuffix = 0.10,
-					PerFrequency = 0.05,
-					MaxFrequencyBoost = 0.20
-				}
-			}
+			ExtractionRules = CreateExtractionRules()
 		};
 
 		var filePath = Path.Combine(_testDataDirectory, "test-entities.json");
@@ -91,6 +77,26 @@ public class EntityPatternLoaderTests
 	public async Task SavePatternsAsync_ShouldCreateValidJSON()
 	{
 		// Arrange
+		var config = CreateFullConfiguration();
+
+		var filePath = Path.Combine(_testDataDirectory, "full-entity-config.json");
+
+		// Act
+		await EntityPatternLoader.SavePatternsAsync(config, filePath);
+
+		// Assert
+		File.Exists(filePath).Should().BeTrue();
+
+		// Verify it can be loaded back
+		var loaded = await EntityPatternLoader.LoadPatternsAsync(filePath);
+		loaded.Should().NotBeNull();
+		loaded.ProperNounDictionary!.People.Should().Contain("Darwin");
+		loaded.TitlePrefixes!["academic"].Should().Contain("Professor");
+		loaded.ExtractionRules!.BaseConfidence.Should().Be(0.7);
+	}
+
+	private static EntityPatternsConfiguration CreateFullConfiguration()
+	{
 		var config = new EntityPatternsConfiguration
 		{
 			Version = "2.0",
@@ -119,21 +125,7 @@ public class EntityPatternLoaderTests
 				"The", "In", "On", "At", "For", "With",
 				"However", "Therefore", "Thus"
 			],
-			ExtractionRules = new ExtractionRules
-			{
-				MinWordLength = 2,
-				MinOccurrences = 1,
-				BaseConfidence = 0.7,
-				ConfidenceBoosts = new ConfidenceBoosts
-				{
-					InDictionary = 0.15,
-					HasTitle = 0.10,
-					MultiWord = 0.10,
-					OrganizationalSuffix = 0.10,
-					PerFrequency = 0.05,
-					MaxFrequencyBoost = 0.20
-				}
-			},
+			ExtractionRules = CreateExtractionRules(),
 			TrainingNotes = new EntityTrainingNotes
 			{
 				Instructions = "Add common proper nouns",
@@ -142,21 +134,26 @@ public class EntityPatternLoaderTests
 				PerformanceMonitoring = "Track metrics"
 			}
 		};
+		return config;
+	}
 
-		var filePath = Path.Combine(_testDataDirectory, "full-entity-config.json");
-
-		// Act
-		await EntityPatternLoader.SavePatternsAsync(config, filePath);
-
-		// Assert
-		File.Exists(filePath).Should().BeTrue();
-
-		// Verify it can be loaded back
-		var loaded = await EntityPatternLoader.LoadPatternsAsync(filePath);
-		loaded.Should().NotBeNull();
-		loaded.ProperNounDictionary!.People.Should().Contain("Darwin");
-		loaded.TitlePrefixes!["academic"].Should().Contain("Professor");
-		loaded.ExtractionRules!.BaseConfidence.Should().Be(0.7);
+	private static ExtractionRules CreateExtractionRules()
+	{
+		return new ExtractionRules
+		{
+			MinWordLength = 2,
+			MinOccurrences = 1,
+			BaseConfidence = 0.7,
+			ConfidenceBoosts = new ConfidenceBoosts
+			{
+				InDictionary = 0.15,
+				HasTitle = 0.10,
+				MultiWord = 0.10,
+				OrganizationalSuffix = 0.10,
+				PerFrequency = 0.05,
+				MaxFrequencyBoost = 0.20
+			}
+		};
 	}
 
 	[Fact]

@@ -24,37 +24,12 @@ public class ChunkContentSearchTests(ApacheAgeFixture fixture, ITestOutputHelper
 	public async Task SearchChunks_ForGroundTruthEntities()
 	{
 		// Arrange
-		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
-
-		string htmlContent;
-		using (var httpClient = new HttpClient())
-		{
-			httpClient.DefaultRequestHeaders.Add("User-Agent",
-				"PanoramicData.Chunker/1.0 (Educational Testing)");
-			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
-			response.EnsureSuccessStatusCode();
-			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
-		}
+		var htmlContent = await DownloadDarwinHtmlAsync();
 
 		_output.WriteLine($"Downloaded HTML document ({htmlContent.Length:N0} characters)");
 
 		// Chunk document
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new HtmlDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 512,
-			MaxCharactersPerChunk = 2000,
-			OverlapTokens = 100,
-			EnforceSentenceBoundaries = true,
-			ExternalHierarchy = "Project Gutenberg/Charles Darwin/Autobiography",
-			Tags = ["darwin", "autobiography", "chunk-search-test"]
-		};
-
-		await using var stream = new MemoryStream(
-			System.Text.Encoding.UTF8.GetBytes(htmlContent));
-		var chunkingResult = await chunker.ChunkAsync(
-			stream, options, _cancellationToken);
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent);
 
 		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
 		_output.WriteLine("");
@@ -72,43 +47,85 @@ public class ChunkContentSearchTests(ApacheAgeFixture fixture, ITestOutputHelper
 
 		foreach (var term in searchTerms)
 		{
-			var foundChunks = new List<ChunkerBase>();
-
-			foreach (var chunk in chunkingResult.Chunks)
-			{
-				var content = GetChunkContent(chunk);
-				if (content.Contains(term, StringComparison.OrdinalIgnoreCase))
-				{
-					foundChunks.Add(chunk);
-				}
-			}
-
-			_output.WriteLine($"{term}:");
-			if (foundChunks.Count != 0)
-			{
-				_output.WriteLine($"  ✓ Found in {foundChunks.Count} chunk(s)");
-
-				// Show first occurrence
-				var firstChunk = foundChunks.First();
-				var content = GetChunkContent(firstChunk);
-				var index = content.IndexOf(term, StringComparison.OrdinalIgnoreCase);
-				if (index >= 0)
-				{
-					var start = Math.Max(0, index - 50);
-					var length = Math.Min(term.Length + 100, content.Length - start);
-					var snippet = content.Substring(start, length);
-					_output.WriteLine($"  Context: ...{snippet}...");
-				}
-			}
-			else
-			{
-				_output.WriteLine($"  ✗ NOT FOUND in any chunk");
-			}
-			_output.WriteLine("");
+			WriteTermSearchResult(chunkingResult, term);
 		}
 
 		// This test always passes - it's diagnostic only
 		true.Should().BeTrue();
+	}
+
+	private static async Task<string> DownloadDarwinHtmlAsync()
+	{
+		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
+
+		string htmlContent;
+		using (var httpClient = new HttpClient())
+		{
+			httpClient.DefaultRequestHeaders.Add("User-Agent",
+				"PanoramicData.Chunker/1.0 (Educational Testing)");
+			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
+			response.EnsureSuccessStatusCode();
+			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
+		}
+		return htmlContent;
+	}
+
+	private static async Task<ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent)
+	{
+		var tokenCounter = new CharacterBasedTokenCounter();
+		var chunker = new HtmlDocumentChunker(tokenCounter);
+		var options = new ChunkingOptions
+		{
+			MaxTokens = 512,
+			MaxCharactersPerChunk = 2000,
+			OverlapTokens = 100,
+			EnforceSentenceBoundaries = true,
+			ExternalHierarchy = "Project Gutenberg/Charles Darwin/Autobiography",
+			Tags = ["darwin", "autobiography", "chunk-search-test"]
+		};
+
+		await using var stream = new MemoryStream(
+			System.Text.Encoding.UTF8.GetBytes(htmlContent));
+		var chunkingResult = await chunker.ChunkAsync(
+			stream, options, _cancellationToken);
+		return chunkingResult;
+	}
+
+	private void WriteTermSearchResult(ChunkingResult chunkingResult, string term)
+	{
+		var foundChunks = new List<ChunkerBase>();
+
+		foreach (var chunk in chunkingResult.Chunks)
+		{
+			var content = GetChunkContent(chunk);
+			if (content.Contains(term, StringComparison.OrdinalIgnoreCase))
+			{
+				foundChunks.Add(chunk);
+			}
+		}
+
+		_output.WriteLine($"{term}:");
+		if (foundChunks.Count != 0)
+		{
+			_output.WriteLine($"  ✓ Found in {foundChunks.Count} chunk(s)");
+
+			// Show first occurrence
+			var firstChunk = foundChunks.First();
+			var content = GetChunkContent(firstChunk);
+			var index = content.IndexOf(term, StringComparison.OrdinalIgnoreCase);
+			if (index >= 0)
+			{
+				var start = Math.Max(0, index - 50);
+				var length = Math.Min(term.Length + 100, content.Length - start);
+				var snippet = content.Substring(start, length);
+				_output.WriteLine($"  Context: ...{snippet}...");
+			}
+		}
+		else
+		{
+			_output.WriteLine($"  ✗ NOT FOUND in any chunk");
+		}
+		_output.WriteLine("");
 	}
 
 	private static string GetChunkContent(ChunkerBase chunk)
