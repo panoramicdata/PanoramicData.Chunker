@@ -30,59 +30,28 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 	public DocType SupportedType => DocType.Docx;
 
 	/// <inheritdoc/>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
-	{
-		try
-		{
-			var originalPosition = documentStream.Position;
-
-			// DOCX files are ZIP archives with a specific signature
-			var buffer = new byte[4];
-			var bytesRead = await documentStream.ReadAsync(buffer, cancellationToken);
-
-			documentStream.Position = originalPosition;
-
-			return bytesRead == 4 && HasZipSignature(buffer) && CanOpenDocument(documentStream);
-		}
-		catch
-		{
-			return false;
-		}
-	}
+	public Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
+		=> OpenXmlStreamSupport.IsZipThatOpensAsync(documentStream, CanOpenDocument, cancellationToken);
 
 	/// <inheritdoc/>
-	public async Task<ChunkingResult> ChunkAsync(
+	public Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
 		CancellationToken cancellationToken)
-	{
-		ArgumentNullException.ThrowIfNull(documentStream);
-		ArgumentNullException.ThrowIfNull(options);
+		=> ChunkRunner.RunAsync("DOCX", documentStream, options, _chunks, logger, () => ExtractAsync(documentStream, cancellationToken));
 
-		var startTime = DateTime.UtcNow;
+	private async Task ExtractAsync(Stream documentStream, CancellationToken cancellationToken)
+	{
 		_sequenceNumber = 0;
-		_chunks.Clear();
 
 		try
 		{
-			// OpenXML SDK needs a seekable stream
-			var memoryStream = new MemoryStream();
-			await documentStream.CopyToAsync(memoryStream, cancellationToken);
-			memoryStream.Position = 0;
+			var memoryStream = await OpenXmlStreamSupport.CopyToSeekableAsync(documentStream, cancellationToken);
 
 			var body = OpenBody(memoryStream);
 			logger?.LogInformation("Opened DOCX document with {ElementCount} body elements", body.ChildElements.Count);
 
 			ExtractChunks(body);
-			HierarchyBuilder.BuildHierarchy(_chunks);
-			logger?.LogInformation("Extracted {ChunkCount} chunks from DOCX document", _chunks.Count);
-
-			return ChunkResultHelper.CreateSuccess(_chunks, startTime, options);
-		}
-		catch (Exception ex)
-		{
-			logger?.LogError(ex, "Error chunking DOCX document");
-			return ChunkResultHelper.CreateFailure("DOCX", ex);
 		}
 		finally
 		{
@@ -90,21 +59,8 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 		}
 	}
 
-	private static bool HasZipSignature(byte[] buffer)
-		=> buffer[0] == 0x50 && buffer[1] == 0x4B && buffer[2] == 0x03 && buffer[3] == 0x04;
-
 	private static bool CanOpenDocument(Stream documentStream)
-	{
-		try
-		{
-			using var doc = WordprocessingDocument.Open(documentStream, false);
-			return doc.MainDocumentPart != null;
-		}
-		catch
-		{
-			return false;
-		}
-	}
+		=> OpenXmlStreamSupport.Opens(documentStream, stream => WordprocessingDocument.Open(stream, false), doc => doc.MainDocumentPart != null);
 
 	private Body OpenBody(MemoryStream memoryStream)
 	{
