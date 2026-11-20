@@ -20,8 +20,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_SimpleHtml_ShouldReturnChunks()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<head><title>Test</title></head>
@@ -29,15 +28,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 				<h1>Main Title</h1>
 				<p>This is a paragraph.</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Should().NotBeNull();
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
@@ -47,36 +39,23 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task CanHandleAsync_HtmlContent_ShouldReturnTrue()
 	{
-		// Arrange
-		var html = "<!DOCTYPE html><html><body><p>Test</p></body></html>";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
+		var result = await CanHandleTextAsync("<!DOCTYPE html><html><body><p>Test</p></body></html>");
 
-		// Act
-		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
-
-		// Assert
 		_ = result.Should().BeTrue();
 	}
 
 	[Fact]
 	public async Task CanHandleAsync_NonHtmlContent_ShouldReturnFalse()
 	{
-		// Arrange
-		var content = "This is plain text without HTML tags.";
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+		var result = await CanHandleTextAsync("This is plain text without HTML tags.");
 
-		// Act
-		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
-
-		// Assert
 		_ = result.Should().BeFalse();
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithHeaders_ShouldCreateStructuralChunks()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
@@ -87,15 +66,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 				<h3>Heading 3</h3>
 				<p>Paragraph 3</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var sections = result.Chunks.OfType<HtmlSectionChunk>().ToList();
 		_ = sections.Should().HaveCount(3);
 		_ = sections[0].HeadingLevel.Should().Be(1);
@@ -106,8 +78,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithParagraphs_ShouldCreateContentChunks()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
@@ -115,15 +86,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 				<p>Second paragraph</p>
 				<p>Third paragraph</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraphs = result.Chunks.OfType<HtmlParagraphChunk>().ToList();
 		_ = paragraphs.Should().HaveCount(3);
 		_ = paragraphs[0].Content.Should().Contain("First");
@@ -134,8 +98,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithLists_ShouldCreateListItemChunks()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
@@ -145,15 +108,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 					<li>Item 3</li>
 				</ul>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
 		_ = listItems.Should().HaveCount(3);
 		_ = listItems.Should().OnlyContain(li => li.ListType == "ul");
@@ -162,8 +118,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithNestedLists_ShouldDetectNestingLevel()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
@@ -177,15 +132,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 					<li>Item 2</li>
 				</ul>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
 		_ = listItems.Should().Contain(li => li.NestingLevel == 0);
 		_ = listItems.Should().Contain(li => li.NestingLevel == 1);
@@ -194,8 +142,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithOrderedList_ShouldDetectListType()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
@@ -204,15 +151,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 					<li>Second</li>
 				</ol>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var listItems = result.Chunks.OfType<HtmlListItemChunk>().ToList();
 		_ = listItems.Should().OnlyContain(li => li.ListType == "ol");
 	}
@@ -220,22 +160,14 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithCodeBlocks_ShouldCreateCodeChunks()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<pre><code class=""language-csharp"">public class Test { }</code></pre>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var codeBlocks = result.Chunks.OfType<HtmlCodeBlockChunk>().ToList();
 		_ = codeBlocks.Should().ContainSingle();
 		_ = codeBlocks[0].Language.Should().Be("csharp");
@@ -245,22 +177,14 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithBlockquote_ShouldCreateBlockquoteChunk()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<blockquote cite=""https://example.com"">This is a quote.</blockquote>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var blockquotes = result.Chunks.OfType<HtmlBlockquoteChunk>().ToList();
 		_ = blockquotes.Should().ContainSingle();
 		_ = blockquotes[0].Content.Should().Contain("quote");
@@ -270,8 +194,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithTable_ShouldCreateTableChunk()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
@@ -285,15 +208,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 					</tbody>
 				</table>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var tables = result.Chunks.OfType<HtmlTableChunk>().ToList();
 		_ = tables.Should().ContainSingle();
 		var table = tables[0];
@@ -306,22 +222,14 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithImage_ShouldCreateImageChunk()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<img src=""test.jpg"" alt=""Test image"" width=""100"" height=""50"">
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var images = result.Chunks.OfType<HtmlImageChunk>().ToList();
 		_ = images.Should().ContainSingle();
 		var image = images[0];
@@ -334,22 +242,14 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithLinks_ShouldExtractLinkAnnotations()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<p>Visit <a href=""https://example.com"">our website</a> for more.</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
 		_ = paragraph.Should().NotBeNull();
 		_ = paragraph!.Annotations.Should().NotBeNull();
@@ -362,22 +262,14 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithBoldText_ShouldExtractBoldAnnotations()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<p>This is <strong>bold</strong> text.</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
 		_ = paragraph.Should().NotBeNull();
 		_ = paragraph!.Annotations.Should().NotBeNull();
@@ -388,22 +280,14 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithItalicText_ShouldExtractItalicAnnotations()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<p>This is <em>italic</em> text.</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
 		_ = paragraph.Should().NotBeNull();
 		_ = paragraph!.Annotations.Should().NotBeNull();
@@ -414,22 +298,14 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithInlineCode_ShouldExtractCodeAnnotations()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<p>Use <code>Console.WriteLine</code> to print.</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().FirstOrDefault();
 		_ = paragraph.Should().NotBeNull();
 		_ = paragraph!.Annotations.Should().NotBeNull();
@@ -440,8 +316,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithSemanticElements_ShouldCreateStructuralChunks()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
@@ -452,15 +327,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 					<p>Section content</p>
 				</section>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var sections = result.Chunks.OfType<HtmlSectionChunk>().ToList();
 		_ = sections.Should().Contain(s => s.TagName == "article");
 		_ = sections.Should().Contain(s => s.TagName == "section");
@@ -469,8 +337,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldFilterScriptAndStyleTags()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<head>
@@ -480,15 +347,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 				<p>Visible content</p>
 				<script>console.log('hidden');</script>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Chunks.OfType<ContentChunk>().Should().NotContain(c => c.Content.Contains("console.log"));
 		_ = result.Chunks.OfType<ContentChunk>().Should().NotContain(c => c.Content.Contains("color: red"));
 	}
@@ -496,8 +356,7 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithHierarchy_ShouldBuildParentChildRelationships()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
@@ -506,15 +365,8 @@ public class HtmlDocumentChunkerTests : BaseTest
 				<h2>Sub Title</h2>
 				<p>Paragraph under sub</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var h1 = result.Chunks.OfType<HtmlSectionChunk>().First(s => s.HeadingLevel == 1);
 		var h2 = result.Chunks.OfType<HtmlSectionChunk>().First(s => s.HeadingLevel == 2);
 
@@ -525,22 +377,14 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldPopulateMetadata()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<p>Test paragraph</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
 			_ = chunk.Metadata.Should().NotBeNull();
@@ -552,25 +396,29 @@ public class HtmlDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldPopulateQualityMetrics()
 	{
-		// Arrange
-		var html = @"
+		var result = await ChunkTextAsync(@"
 			<!DOCTYPE html>
 			<html>
 			<body>
 				<p>Test paragraph with some content.</p>
 			</body>
-			</html>";
+			</html>");
 
-		var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-		var options = new ChunkingOptions();
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var paragraph = result.Chunks.OfType<HtmlParagraphChunk>().First();
 		_ = paragraph.QualityMetrics.Should().NotBeNull();
 		_ = paragraph.QualityMetrics!.CharacterCount.Should().BePositive();
 		_ = paragraph.QualityMetrics.WordCount.Should().BePositive();
+	}
+
+	private async Task<ChunkingResult> ChunkTextAsync(string html)
+	{
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
+		return await _chunker.ChunkAsync(stream, new ChunkingOptions(), CancellationToken);
+	}
+
+	private async Task<bool> CanHandleTextAsync(string content)
+	{
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+		return await _chunker.CanHandleAsync(stream, CancellationToken);
 	}
 }

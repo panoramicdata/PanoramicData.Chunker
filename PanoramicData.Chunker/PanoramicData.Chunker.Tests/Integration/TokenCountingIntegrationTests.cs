@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Infrastructure.TokenCounters;
+using PanoramicData.Chunker.Models;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Integration;
@@ -39,10 +40,7 @@ public class Test {
 			TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
 		};
 
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
+		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -87,20 +85,11 @@ public class Test {
 			TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
 		};
 
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
-
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Html, options, CancellationToken);
+		var result = await ChunkTextAsync(html, DocumentType.Html, options);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().AllSatisfy(chunk =>
-		{
-			if (chunk.QualityMetrics != null)
-			{
-				_ = chunk.QualityMetrics.TokenCount.Should().BePositive();
-			}
-		});
+		AssertChunkTokenCountsPositive(result);
 
 		_ = result.Statistics.TotalTokens.Should().BePositive();
 		_ = result.Statistics.AverageTokensPerChunk.Should().BePositive();
@@ -137,11 +126,8 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		};
 
 		// Act
-		using var stream1 = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-		var charResult = await DocumentChunker.ChunkAsync(stream1, DocumentType.Markdown, charOptions, CancellationToken);
-
-		using var stream2 = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-		var openAIResult = await DocumentChunker.ChunkAsync(stream2, DocumentType.Markdown, openAIOptions, CancellationToken);
+		var charResult = await ChunkTextAsync(markdown, DocumentType.Markdown, charOptions);
+		var openAIResult = await ChunkTextAsync(markdown, DocumentType.Markdown, openAIOptions);
 
 		// Assert
 		_ = charResult.Success.Should().BeTrue();
@@ -168,10 +154,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		var markdown = "# Test Document\n\nThis is test content for verifying preset configuration.";
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
+		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -179,13 +162,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		_ = options.TokenCounter.Should().BeOfType<OpenAITokenCounter>();
 
 		// Verify chunks have token counts
-		_ = result.Chunks.Should().AllSatisfy(chunk =>
-		{
-			if (chunk.QualityMetrics != null)
-			{
-				_ = chunk.QualityMetrics.TokenCount.Should().BePositive();
-			}
-		});
+		AssertChunkTokenCountsPositive(result);
 	}
 
 	[Fact]
@@ -195,10 +172,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 		var markdown = "# RAG Test\n\nContent for retrieval augmented generation testing.";
 		var options = ChunkingPresets.ForRAG();
 
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
+		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -222,10 +196,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 			TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
 		};
 
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
+		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -255,21 +226,12 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 			TokenCountingMethod = method
 		};
 
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
+		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Statistics.TotalTokens.Should().BePositive();
-		_ = result.Chunks.Should().AllSatisfy(chunk =>
-		{
-			if (chunk.QualityMetrics != null)
-			{
-				_ = chunk.QualityMetrics.TokenCount.Should().BePositive();
-			}
-		});
+		AssertChunkTokenCountsPositive(result);
 	}
 
 	[Fact]
@@ -287,10 +249,7 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 
 		options.TokenCounter = counter;
 
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
+		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
 
 		// Assert
 		_ = result.Success.Should().BeTrue();
@@ -313,10 +272,7 @@ Second paragraph.
 Third paragraph.";
 
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Markdown, options, CancellationToken);
+		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
 
 		// Assert
 		_ = result.Statistics.TotalTokens.Should().BePositive();
@@ -327,5 +283,22 @@ Third paragraph.";
 		// Max should be >= average >= min
 		_ = result.Statistics.MaxTokensInChunk.Should().BeGreaterThanOrEqualTo(result.Statistics.AverageTokensPerChunk);
 		_ = result.Statistics.AverageTokensPerChunk.Should().BeGreaterThanOrEqualTo(result.Statistics.MinTokensInChunk);
+	}
+
+	private static async Task<ChunkingResult> ChunkTextAsync(string content, DocumentType documentType, ChunkingOptions options)
+	{
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+		return await DocumentChunker.ChunkAsync(stream, documentType, options, CancellationToken);
+	}
+
+	private static void AssertChunkTokenCountsPositive(ChunkingResult result)
+	{
+		_ = result.Chunks.Should().AllSatisfy(chunk =>
+		{
+			if (chunk.QualityMetrics != null)
+			{
+				_ = chunk.QualityMetrics.TokenCount.Should().BePositive();
+			}
+		});
 	}
 }

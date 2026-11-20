@@ -15,42 +15,23 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public void ProviderName_ShouldReturnOllama()
 	{
-		// Arrange
-		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
-		var provider = new OllamaLlmProvider(options, logger);
+		var provider = new OllamaLlmProvider(new OllamaOptions(), CreateLogger());
 
-		// Act & Assert
 		_ = provider.ProviderName.Should().Be("Ollama");
 	}
 
 	[Fact]
 	public async Task GenerateAsync_WithSuccessfulResponse_ShouldReturnLLMResponse()
 	{
-		// Arrange
-		var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-		_ = mockHttpMessageHandler
-			.Protected()
-			.Setup<Task<HttpResponseMessage>>(
-				"SendAsync",
-				ItExpr.IsAny<HttpRequestMessage>(),
-				ItExpr.IsAny<CancellationToken>())
-			.ReturnsAsync(new HttpResponseMessage
+		var provider = CreateProvider(
+			new OllamaOptions { BaseUrl = "http://localhost:11434" },
+			() => Ok(JsonSerializer.Serialize(new
 			{
-				StatusCode = HttpStatusCode.OK,
-				Content = new StringContent(JsonSerializer.Serialize(new
-				{
-					response = "This is a test response.",
-					prompt_eval_count = 10,
-					eval_count = 20,
-					done = true
-				}))
-			});
-
-		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
-		var options = new OllamaOptions { BaseUrl = "http://localhost:11434" };
-		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
-		var provider = new OllamaLlmProvider(options, logger, httpClient);
+				response = "This is a test response.",
+				prompt_eval_count = 10,
+				eval_count = 20,
+				done = true
+			})));
 
 		var request = new LlmRequest
 		{
@@ -60,15 +41,13 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 			MaxTokens = 100
 		};
 
-		// Act
 		var result = await provider.GenerateAsync(request, CancellationToken);
 
-		// Assert
 		_ = result.Should().NotBeNull();
 		_ = result.Success.Should().BeTrue();
 		_ = result.Text.Should().Be("This is a test response.");
 		_ = result.Model.Should().Be("llama3");
-		_ = result.TokensUsed.Should().Be(30); // 10 + 20
+		_ = result.TokensUsed.Should().Be(30);
 		_ = result.Duration.Should().BeGreaterThan(TimeSpan.Zero);
 		_ = result.ErrorMessage.Should().BeNull();
 
@@ -79,24 +58,13 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task GenerateAsync_WithHttpError_ShouldReturnFailedResponse()
 	{
-		// Arrange
-		var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-		_ = mockHttpMessageHandler
-			.Protected()
-			.Setup<Task<HttpResponseMessage>>(
-				"SendAsync",
-				ItExpr.IsAny<HttpRequestMessage>(),
-				ItExpr.IsAny<CancellationToken>())
-			.ReturnsAsync(new HttpResponseMessage
+		var provider = CreateProvider(
+			new OllamaOptions(),
+			() => new HttpResponseMessage
 			{
 				StatusCode = HttpStatusCode.ServiceUnavailable,
 				Content = new StringContent("Service unavailable")
 			});
-
-		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
-		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
-		var provider = new OllamaLlmProvider(options, logger, httpClient);
 
 		var request = new LlmRequest
 		{
@@ -104,10 +72,8 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 			Model = "llama3"
 		};
 
-		// Act
 		var result = await provider.GenerateAsync(request, CancellationToken);
 
-		// Assert
 		_ = result.Should().NotBeNull();
 		_ = result.Success.Should().BeFalse();
 		_ = result.Text.Should().BeEmpty();
@@ -120,30 +86,15 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task GenerateBatchAsync_ShouldProcessAllRequests()
 	{
-		// Arrange
-		var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-		_ = mockHttpMessageHandler
-			.Protected()
-			.Setup<Task<HttpResponseMessage>>(
-				"SendAsync",
-				ItExpr.IsAny<HttpRequestMessage>(),
-				ItExpr.IsAny<CancellationToken>())
-			.ReturnsAsync(() => new HttpResponseMessage
+		var provider = CreateProvider(
+			new OllamaOptions(),
+			() => Ok(JsonSerializer.Serialize(new
 			{
-				StatusCode = HttpStatusCode.OK,
-				Content = new StringContent(JsonSerializer.Serialize(new
-				{
-					response = "Response",
-					prompt_eval_count = 5,
-					eval_count = 10,
-					done = true
-				}))
-			});
-
-		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
-		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
-		var provider = new OllamaLlmProvider(options, logger, httpClient);
+				response = "Response",
+				prompt_eval_count = 5,
+				eval_count = 10,
+				done = true
+			})));
 
 		var requests = new[]
 		{
@@ -152,10 +103,8 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 			new LlmRequest { Prompt = "Prompt 3", Model = "llama3" }
 		};
 
-		// Act
 		var results = await provider.GenerateBatchAsync(requests, CancellationToken);
 
-		// Assert
 		_ = results.Should().HaveCount(3);
 		_ = results.Should().OnlyContain(r => r.Success);
 
@@ -165,29 +114,10 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task IsAvailableAsync_WithSuccessfulConnection_ShouldReturnTrue()
 	{
-		// Arrange
-		var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-		_ = mockHttpMessageHandler
-			.Protected()
-			.Setup<Task<HttpResponseMessage>>(
-				"SendAsync",
-				ItExpr.IsAny<HttpRequestMessage>(),
-				ItExpr.IsAny<CancellationToken>())
-			.ReturnsAsync(new HttpResponseMessage
-			{
-				StatusCode = HttpStatusCode.OK,
-				Content = new StringContent("{\"models\":[]}")
-			});
+		var provider = CreateProvider(new OllamaOptions(), () => Ok("{\"models\":[]}"));
 
-		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
-		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
-		var provider = new OllamaLlmProvider(options, logger, httpClient);
-
-		// Act
 		var result = await provider.IsAvailableAsync(CancellationToken);
 
-		// Assert
 		_ = result.Should().BeTrue();
 
 		_output.WriteLine("Ollama is available");
@@ -196,25 +126,12 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task IsAvailableAsync_WithFailedConnection_ShouldReturnFalse()
 	{
-		// Arrange
-		var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-		_ = mockHttpMessageHandler
-			.Protected()
-			.Setup<Task<HttpResponseMessage>>(
-				"SendAsync",
-				ItExpr.IsAny<HttpRequestMessage>(),
-				ItExpr.IsAny<CancellationToken>())
-			.ThrowsAsync(new HttpRequestException("Connection refused"));
+		var provider = CreateProvider(
+			new OllamaOptions(),
+			() => throw new HttpRequestException("Connection refused"));
 
-		var httpClient = new HttpClient(mockHttpMessageHandler.Object);
-		var options = new OllamaOptions();
-		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
-		var provider = new OllamaLlmProvider(options, logger, httpClient);
-
-		// Act
 		var result = await provider.IsAvailableAsync(CancellationToken);
 
-		// Assert
 		_ = result.Should().BeFalse();
 
 		_output.WriteLine("Ollama is not available");
@@ -223,10 +140,8 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public void Constructor_WithNullOptions_ShouldThrow()
 	{
-		// Arrange
-		var logger = new Mock<ILogger<OllamaLlmProvider>>().Object;
+		var logger = CreateLogger();
 
-		// Act & Assert
 		var act = () => new OllamaLlmProvider(null!, logger);
 		_ = act.Should().Throw<ArgumentNullException>();
 	}
@@ -234,11 +149,31 @@ public class OllamaLLMProviderTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public void Constructor_WithNullLogger_ShouldThrow()
 	{
-		// Arrange
 		var options = new OllamaOptions();
 
-		// Act & Assert
 		var act = () => new OllamaLlmProvider(options, null!);
 		_ = act.Should().Throw<ArgumentNullException>();
+	}
+
+	private static ILogger<OllamaLlmProvider> CreateLogger() => new Mock<ILogger<OllamaLlmProvider>>().Object;
+
+	private static HttpResponseMessage Ok(string content) => new()
+	{
+		StatusCode = HttpStatusCode.OK,
+		Content = new StringContent(content)
+	};
+
+	private static OllamaLlmProvider CreateProvider(OllamaOptions options, Func<HttpResponseMessage> respond)
+	{
+		var handler = new Mock<HttpMessageHandler>();
+		_ = handler
+			.Protected()
+			.Setup<Task<HttpResponseMessage>>(
+				"SendAsync",
+				ItExpr.IsAny<HttpRequestMessage>(),
+				ItExpr.IsAny<CancellationToken>())
+			.ReturnsAsync(respond);
+
+		return new OllamaLlmProvider(options, CreateLogger(), new HttpClient(handler.Object));
 	}
 }

@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Pdf;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
+using PanoramicData.Chunker.Models;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -134,16 +135,8 @@ public class PdfDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithValidPdf_ShouldReturnChunks()
 	{
-		// Arrange
-		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
-		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-		var options = new ChunkingOptions();
+		var result = await ChunkTestFileAsync("simple.pdf");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Should().NotBeNull();
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
@@ -173,16 +166,8 @@ public class PdfDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithEmptyPdf_ShouldHandleGracefully()
 	{
-		// Arrange
-		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_ = File.Exists(Path.Combine(testDataPath, "empty.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
-		await using var stream = File.OpenRead(Path.Combine(testDataPath, "empty.pdf"));
-		var options = new ChunkingOptions();
+		var result = await ChunkTestFileAsync("empty.pdf");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Should().NotBeNull();
 		_ = result.Success.Should().BeTrue();
 		// Empty PDF should still have document and page chunks
@@ -192,16 +177,8 @@ public class PdfDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldGenerateStatistics()
 	{
-		// Arrange
-		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
-		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-		var options = new ChunkingOptions();
+		var result = await ChunkTestFileAsync("simple.pdf");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Statistics.Should().NotBeNull();
 		_ = result.Statistics.TotalChunks.Should().BePositive();
 		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
@@ -227,16 +204,8 @@ public class PdfDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldCalculateQualityMetrics()
 	{
-		// Arrange
-		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
-		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-		var options = new ChunkingOptions();
+		var result = await ChunkTestFileAsync("simple.pdf");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
 			_ = chunk.QualityMetrics.Should().NotBeNull();
@@ -246,16 +215,8 @@ public class PdfDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractPageMetadata()
 	{
-		// Arrange
-		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
-		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-		var options = new ChunkingOptions();
+		var result = await ChunkTestFileAsync("simple.pdf");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var page = result.Chunks.OfType<PdfPageChunk>().FirstOrDefault();
 		_ = page.Should().NotBeNull();
 		_ = page!.PageNumber.Should().BePositive();
@@ -266,16 +227,8 @@ public class PdfDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractDocumentMetadata()
 	{
-		// Arrange
-		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
-		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-		var options = new ChunkingOptions();
+		var result = await ChunkTestFileAsync("simple.pdf");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var doc = result.Chunks.OfType<PdfDocumentChunk>().FirstOrDefault();
 		_ = doc.Should().NotBeNull();
 		_ = doc!.PdfVersion.Should().NotBeNullOrEmpty();
@@ -285,16 +238,8 @@ public class PdfDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_ShouldBuildHierarchy()
 	{
-		// Arrange
-		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
-		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-		var options = new ChunkingOptions();
+		var result = await ChunkTestFileAsync("simple.pdf");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
 		var doc = result.Chunks.OfType<PdfDocumentChunk>().First();
 		var pages = result.Chunks.OfType<PdfPageChunk>();
 
@@ -303,5 +248,19 @@ public class PdfDocumentChunkerTests : BaseTest
 		{
 			_ = page.ParentId.Should().Be(doc.Id);
 		});
+	}
+
+	private async Task<ChunkingResult> ChunkTestFileAsync(string fileName)
+	{
+		var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf", fileName);
+		_ = File.Exists(path).Should().BeTrue("test data file must exist: " + path);
+		await using var stream = File.OpenRead(path);
+		return await _chunker.ChunkAsync(stream, new ChunkingOptions(), CancellationToken);
+	}
+
+	private async Task<ChunkingResult> ChunkTextAsync(string content)
+	{
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+		return await _chunker.ChunkAsync(stream, new ChunkingOptions(), CancellationToken);
 	}
 }

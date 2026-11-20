@@ -12,17 +12,10 @@ public class HierarchyBuilderTests
 	[Fact]
 	public void BuildHierarchy_ShouldSetCorrectDepth()
 	{
-		// Arrange
-		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
-		var child1 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
-		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = child1.Id };
+		var (root, child1, child2) = CreateChain();
 
-		var chunks = new List<ChunkerBase> { root, child1, child2 };
+		HierarchyBuilder.BuildHierarchy([root, child1, child2]);
 
-		// Act
-		HierarchyBuilder.BuildHierarchy(chunks);
-
-		// Assert
 		root.Depth.Should().Be(0);
 		child1.Depth.Should().Be(1);
 		child2.Depth.Should().Be(2);
@@ -31,17 +24,10 @@ public class HierarchyBuilderTests
 	[Fact]
 	public void BuildHierarchy_ShouldSetCorrectAncestorIds()
 	{
-		// Arrange
-		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
-		var child1 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
-		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = child1.Id };
+		var (root, child1, child2) = CreateChain();
 
-		var chunks = new List<ChunkerBase> { root, child1, child2 };
+		HierarchyBuilder.BuildHierarchy([root, child1, child2]);
 
-		// Act
-		HierarchyBuilder.BuildHierarchy(chunks);
-
-		// Assert
 		_ = root.AncestorIds.Should().BeEmpty();
 		child1.AncestorIds.Should().ContainSingle();
 		child1.AncestorIds[0].Should().Be(root.Id);
@@ -53,17 +39,10 @@ public class HierarchyBuilderTests
 	[Fact]
 	public void PopulateChildren_ShouldAddChildrenToParents()
 	{
-		// Arrange
-		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
-		var child1 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
-		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
+		var (root, child1, child2) = CreateSiblings();
 
-		var chunks = new List<ChunkerBase> { root, child1, child2 };
+		HierarchyBuilder.PopulateChildren([root, child1, child2]);
 
-		// Act
-		HierarchyBuilder.PopulateChildren(chunks);
-
-		// Assert
 		root.Children.Should().HaveCount(2);
 		_ = root.Children.Should().Contain(child1);
 		root.Children.Should().Contain(child2);
@@ -72,16 +51,10 @@ public class HierarchyBuilderTests
 	[Fact]
 	public void GetRootChunks_ShouldReturnOnlyRoots()
 	{
-		// Arrange
-		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
-		var child = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
+		var (root, child, _) = CreateSiblings();
 
-		var chunks = new List<ChunkerBase> { root, child };
+		var roots = HierarchyBuilder.GetRootChunks([root, child]).ToList();
 
-		// Act
-		var roots = HierarchyBuilder.GetRootChunks(chunks).ToList();
-
-		// Assert
 		roots.Should().ContainSingle();
 		roots.Should().Contain(root);
 	}
@@ -89,24 +62,33 @@ public class HierarchyBuilderTests
 	[Fact]
 	public void GetLeafChunks_ShouldReturnOnlyLeaves()
 	{
-		// Arrange
-		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
-		var child1 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
-		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
+		var (root, child1, child2) = CreateSiblings();
 
-		var chunks = new List<ChunkerBase> { root, child1, child2 };
+		var leaves = HierarchyBuilder.GetLeafChunks([root, child1, child2]).ToList();
 
-		// Act
-		var leaves = HierarchyBuilder.GetLeafChunks(chunks).ToList();
-
-		// Assert
 		leaves.Should().HaveCount(2);
 		leaves.Should().Contain(child1);
 		leaves.Should().Contain(child2);
 		leaves.Should().NotContain(root);
 	}
 
-	// Test helper classes
+	private static (TestStructuralChunk Root, TestContentChunk Child1, TestContentChunk Child2) CreateChain()
+	{
+		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
+		var child1 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
+		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = child1.Id };
+		return (root, child1, child2);
+	}
+
+	private static (TestStructuralChunk Root, TestContentChunk Child1, TestContentChunk Child2) CreateSiblings()
+	{
+		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
+		var child1 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
+		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
+		return (root, child1, child2);
+	}
+
 	private class TestContentChunk : ContentChunk { }
+
 	private class TestStructuralChunk : StructuralChunk { }
 }

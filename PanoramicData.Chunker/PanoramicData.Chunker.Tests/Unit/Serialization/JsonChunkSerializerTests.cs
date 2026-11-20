@@ -27,14 +27,7 @@ public class JsonChunkSerializerTests(ITestOutputHelper output) : BaseTest(outpu
 			}
 		};
 
-		using var stream = new MemoryStream();
-
-		// Act
-		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
-
-		// Assert
-		stream.Position = 0;
-		var json = await new StreamReader(stream).ReadToEndAsync(CancellationToken);
+		var json = await SerializeToJsonAsync(chunks);
 		_ = json.Should().NotBeNullOrEmpty();
 		_ = json.Should().Contain("$type");
 		_ = json.Should().Contain("MarkdownParagraph");
@@ -66,14 +59,7 @@ public class JsonChunkSerializerTests(ITestOutputHelper output) : BaseTest(outpu
 			}
 		};
 
-		using var stream = new MemoryStream();
-
-		// Act
-		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
-
-		// Assert
-		stream.Position = 0;
-		var json = await new StreamReader(stream).ReadToEndAsync(CancellationToken);
+		var json = await SerializeToJsonAsync(chunks);
 		_ = json.Should().Contain("MarkdownSection");
 		_ = json.Should().Contain("MarkdownParagraph");
 		_ = json.Should().Contain("MarkdownCodeBlock");
@@ -126,14 +112,8 @@ public class JsonChunkSerializerTests(ITestOutputHelper output) : BaseTest(outpu
 
 		var chunks = new List<ChunkerBase> { parent, child };
 
-		using var stream = new MemoryStream();
+		var deserialized = await RoundTripAsync(chunks);
 
-		// Act
-		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
-		stream.Position = 0;
-		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
-
-		// Assert
 		var deserializedList = deserialized.ToList();
 		_ = deserializedList.Should().HaveCount(2);
 		_ = deserializedList[0].Id.Should().Be(parent.Id);
@@ -286,14 +266,8 @@ public class JsonChunkSerializerTests(ITestOutputHelper output) : BaseTest(outpu
 			}
 		};
 
-		using var stream = new MemoryStream();
+		var deserialized = await RoundTripAsync(chunks);
 
-		// Act
-		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
-		stream.Position = 0;
-		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
-
-		// Assert
 		var chunk = deserialized.First();
 		_ = chunk.QualityMetrics.Should().NotBeNull();
 		_ = chunk.QualityMetrics!.TokenCount.Should().Be(10);
@@ -322,14 +296,8 @@ public class JsonChunkSerializerTests(ITestOutputHelper output) : BaseTest(outpu
 			}
 		};
 
-		using var stream = new MemoryStream();
+		var deserialized = await RoundTripAsync(chunks);
 
-		// Act
-		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
-		stream.Position = 0;
-		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
-
-		// Assert
 		var chunk = deserialized.First();
 		_ = chunk.Metadata.Should().NotBeNull();
 		_ = chunk.Metadata.DocumentType.Should().Be("Markdown");
@@ -357,14 +325,8 @@ public class JsonChunkSerializerTests(ITestOutputHelper output) : BaseTest(outpu
 			}
 		};
 
-		using var stream = new MemoryStream();
+		var deserialized = await RoundTripAsync(chunks);
 
-		// Act
-		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
-		stream.Position = 0;
-		var deserialized = await _serializer.DeserializeAsync(stream, CancellationToken);
-
-		// Assert
 		var chunk = deserialized.First() as MarkdownTableChunk;
 		_ = chunk.Should().NotBeNull();
 		_ = chunk!.TableInfo.ColumnCount.Should().Be(3);
@@ -385,14 +347,23 @@ public class JsonChunkSerializerTests(ITestOutputHelper output) : BaseTest(outpu
 			}
 		};
 
-		using var stream = new MemoryStream();
-
-		// Act
-		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
-
-		// Assert
-		stream.Position = 0;
-		var json = await new StreamReader(stream).ReadToEndAsync(CancellationToken);
+		var json = await SerializeToJsonAsync(chunks);
 		_ = json.Should().NotContain("markdownContent"); // Should be omitted
+	}
+
+	private async Task<string> SerializeToJsonAsync(List<ChunkerBase> chunks)
+	{
+		using var stream = new MemoryStream();
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
+		stream.Position = 0;
+		return await new StreamReader(stream).ReadToEndAsync(CancellationToken);
+	}
+
+	private async Task<IEnumerable<ChunkerBase>> RoundTripAsync(List<ChunkerBase> chunks)
+	{
+		using var stream = new MemoryStream();
+		await _serializer.SerializeAsync(chunks, stream, CancellationToken);
+		stream.Position = 0;
+		return await _serializer.DeserializeAsync(stream, CancellationToken);
 	}
 }
