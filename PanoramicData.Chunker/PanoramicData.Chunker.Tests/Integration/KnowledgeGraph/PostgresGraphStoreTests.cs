@@ -306,6 +306,32 @@ public class PostgresGraphStoreTests : IClassFixture<ApacheAgeFixture>
 		// Arrange
 		await _fixture.CleanDatabaseAsync();
 
+		var graph = BuildComplexGraph();
+
+		// Act
+		await _graphStore.SaveGraphAsync(graph, _cancellationToken);
+		var loaded = await _graphStore.LoadGraphAsync(graph.Id, _cancellationToken);
+
+		// Assert
+		loaded.Should().NotBeNull();
+		loaded!.Name.Should().Be("Complex Graph");
+		loaded.Metadata.Description.Should().Be("A complex test graph");
+		loaded.Metadata.Version.Should().Be("2.0");
+
+		var loadedEntity1 = loaded.GetEntitiesByName("Grace Hopper").Should().ContainSingle().Subject;
+		loadedEntity1.Aliases.Should().Contain("Amazing Grace");
+		loadedEntity1.Sources.Should().ContainSingle();
+		loadedEntity1.Properties.Should().ContainKey("birthYear");
+		loadedEntity1.Properties["field"].Should().Be("Computer Science");
+
+		var loadedRel1 = loaded.GetRelationshipsByType(RelationshipType.RelatedTo).Should().ContainSingle().Subject;
+		loadedRel1.Evidence.Should().ContainSingle();
+		loadedRel1.Properties.Should().ContainKey("relationship");
+		loadedRel1.Properties["relationship"].Should().Be("Creator");
+	}
+
+	private static Graph BuildComplexGraph()
+	{
 		var graph = new Graph("Complex Graph")
 		{
 			Metadata = new GraphMetadata
@@ -346,25 +372,6 @@ public class PostgresGraphStoreTests : IClassFixture<ApacheAgeFixture>
 		graph.AddRelationship(rel1);
 		graph.AddRelationship(rel2);
 
-		// Act
-		await _graphStore.SaveGraphAsync(graph, _cancellationToken);
-		var loaded = await _graphStore.LoadGraphAsync(graph.Id, _cancellationToken);
-
-		// Assert
-		loaded.Should().NotBeNull();
-		loaded!.Name.Should().Be("Complex Graph");
-		loaded.Metadata.Description.Should().Be("A complex test graph");
-		loaded.Metadata.Version.Should().Be("2.0");
-
-		var loadedEntity1 = loaded.GetEntitiesByName("Grace Hopper").Should().ContainSingle().Subject;
-		loadedEntity1.Aliases.Should().Contain("Amazing Grace");
-		loadedEntity1.Sources.Should().ContainSingle();
-		loadedEntity1.Properties.Should().ContainKey("birthYear");
-		loadedEntity1.Properties["field"].Should().Be("Computer Science");
-
-		var loadedRel1 = loaded.GetRelationshipsByType(RelationshipType.RelatedTo).Should().ContainSingle().Subject;
-		loadedRel1.Evidence.Should().ContainSingle();
-		loadedRel1.Properties.Should().ContainKey("relationship");
-		loadedRel1.Properties["relationship"].Should().Be("Creator");
+		return graph;
 	}
 }

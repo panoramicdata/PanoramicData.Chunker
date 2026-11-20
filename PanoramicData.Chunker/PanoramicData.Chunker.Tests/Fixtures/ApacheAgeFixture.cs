@@ -39,6 +39,26 @@ public class ApacheAgeFixture : IAsyncLifetime
 		Console.WriteLine("[ApacheAgeFixture] Starting initialization...");
 
 		// Build configuration
+		var configuration = BuildConfiguration();
+
+		await StartDatabaseAsync(configuration);
+
+		// Setup DI container
+		var services = BuildServices();
+
+		_serviceProvider = services.BuildServiceProvider();
+
+		// Initialize Apache AGE tables
+		Console.WriteLine("[ApacheAgeFixture] Initializing Apache AGE tables...");
+		await InitializeApacheAgeAsync();
+		Console.WriteLine("[ApacheAgeFixture] Initialization complete");
+	}
+
+	/// <summary>
+	/// Builds the test configuration.
+	/// </summary>
+	private static IConfigurationRoot BuildConfiguration()
+	{
 		var configuration = new ConfigurationBuilder()
 			.SetBasePath(Directory.GetCurrentDirectory())
 			.AddJsonFile("appsettings.Test.json", optional: true)
@@ -46,6 +66,14 @@ public class ApacheAgeFixture : IAsyncLifetime
 			.AddEnvironmentVariables()
 			.Build();
 
+		return configuration;
+	}
+
+	/// <summary>
+	/// Starts the Apache AGE container or uses an existing database.
+	/// </summary>
+	private async Task StartDatabaseAsync(IConfigurationRoot configuration)
+	{
 		// Check if using existing database
 		var useExistingDatabase = configuration.GetValue<bool>("UseExistingDatabase");
 		var existingConnectionString = configuration.GetConnectionString("KnowledgeGraph");
@@ -76,8 +104,13 @@ public class ApacheAgeFixture : IAsyncLifetime
 			ConnectionString = _postgresContainer.GetConnectionString();
 			Console.WriteLine($"[ApacheAgeFixture] Container started successfully");
 		}
+	}
 
-		// Setup DI container
+	/// <summary>
+	/// Builds the service collection for the fixture.
+	/// </summary>
+	private ServiceCollection BuildServices()
+	{
 		var services = new ServiceCollection();
 
 		// Add logging
@@ -102,12 +135,7 @@ public class ApacheAgeFixture : IAsyncLifetime
 			return new ApacheAgeCypherExecutor(ConnectionString, GraphName, logger);
 		});
 
-		_serviceProvider = services.BuildServiceProvider();
-
-		// Initialize Apache AGE tables
-		Console.WriteLine("[ApacheAgeFixture] Initializing Apache AGE tables...");
-		await InitializeApacheAgeAsync();
-		Console.WriteLine("[ApacheAgeFixture] Initialization complete");
+		return services;
 	}
 
 	/// <summary>
