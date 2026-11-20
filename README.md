@@ -11,3 +11,8 @@
 A chunker for common document formats.
 
 Supports .NET 11.0.
+
+## Breaking changes
+
+- `EntityPatternLoader.DefaultPatternsPath` and `RelationshipPatternLoader.DefaultPatternsPath` are now static read-only properties instead of constants. Code compiled against earlier versions must be recompiled.
+- The serialisation property order of `ChunkingStatistics` and `RelationshipMetadata` changed (the properties themselves did not).

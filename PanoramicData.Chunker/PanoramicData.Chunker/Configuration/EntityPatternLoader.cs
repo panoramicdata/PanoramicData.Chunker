@@ -23,7 +23,7 @@ public class EntityPatternLoader
 	/// <summary>
 	/// Default path to entity patterns file relative to application directory.
 	/// </summary>
-	public const string DefaultPatternsPath = "Configuration/EntityPatterns.json";
+	public static string DefaultPatternsPath { get; } = "Configuration/EntityPatterns.json";
 
 	/// <summary>
 	/// Loads entity patterns from a JSON file.
