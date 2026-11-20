@@ -29,43 +29,13 @@ public class PlinianSocietyDebugTests(ApacheAgeFixture fixture, ITestOutputHelpe
 	public async Task Debug_ExtractFromPlinianSocietyChunk()
 	{
 		// Arrange
-		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
-
-		string htmlContent;
-		using (var httpClient = new HttpClient())
-		{
-			httpClient.DefaultRequestHeaders.Add("User-Agent",
-				"PanoramicData.Chunker/1.0 (Educational Testing)");
-			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
-			response.EnsureSuccessStatusCode();
-			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
-		}
+		var htmlContent = await DownloadDarwinHtmlAsync();
 
 		// Chunk document
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new HtmlDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 512,
-			MaxCharactersPerChunk = 2000,
-			OverlapTokens = 100,
-			EnforceSentenceBoundaries = true
-		};
-
-		await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
-		var chunkingResult = await chunker.ChunkAsync(stream, options, _cancellationToken);
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent);
 
 		// Find the chunk containing "Plinian Society"
-		ChunkerBase? plinianChunk = null;
-		foreach (var chunk in chunkingResult.Chunks)
-		{
-			var content = GetChunkContent(chunk);
-			if (content.Contains("Plinian Society", StringComparison.OrdinalIgnoreCase))
-			{
-				plinianChunk = chunk;
-				break;
-			}
-		}
+		var plinianChunk = FindPlinianSocietyChunk(chunkingResult);
 
 		plinianChunk.Should().NotBeNull("Should find chunk containing 'Plinian Society'");
 
@@ -84,14 +54,75 @@ public class PlinianSocietyDebugTests(ApacheAgeFixture fixture, ITestOutputHelpe
 		var extractor = new CapitalizationEntityExtractor(minOccurrences: 1, minWordLength: 2);
 		var entities = await extractor.ExtractEntitiesAsync([plinianChunk], _cancellationToken);
 
+		WriteExtractedEntities(entities);
+
+		// Check if "Plinian Society" was extracted
+		WritePlinianExtractionOutcome(entities);
+
+		// This test always passes - it's diagnostic only
+		true.Should().BeTrue();
+	}
+
+	private static async Task<string> DownloadDarwinHtmlAsync()
+	{
+		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
+
+		string htmlContent;
+		using (var httpClient = new HttpClient())
+		{
+			httpClient.DefaultRequestHeaders.Add("User-Agent",
+				"PanoramicData.Chunker/1.0 (Educational Testing)");
+			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
+			response.EnsureSuccessStatusCode();
+			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
+		}
+		return htmlContent;
+	}
+
+	private static async Task<ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent)
+	{
+		var tokenCounter = new CharacterBasedTokenCounter();
+		var chunker = new HtmlDocumentChunker(tokenCounter);
+		var options = new ChunkingOptions
+		{
+			MaxTokens = 512,
+			MaxCharactersPerChunk = 2000,
+			OverlapTokens = 100,
+			EnforceSentenceBoundaries = true
+		};
+
+		await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
+		var chunkingResult = await chunker.ChunkAsync(stream, options, _cancellationToken);
+		return chunkingResult;
+	}
+
+	private static ChunkerBase? FindPlinianSocietyChunk(ChunkingResult chunkingResult)
+	{
+		ChunkerBase? plinianChunk = null;
+		foreach (var chunk in chunkingResult.Chunks)
+		{
+			var content = GetChunkContent(chunk);
+			if (content.Contains("Plinian Society", StringComparison.OrdinalIgnoreCase))
+			{
+				plinianChunk = chunk;
+				break;
+			}
+		}
+		return plinianChunk;
+	}
+
+	private void WriteExtractedEntities(List<Entity> entities)
+	{
 		_output.WriteLine($"=== EXTRACTED {entities.Count} ENTITIES FROM THIS CHUNK ===");
 		foreach (var entity in entities.OrderByDescending(e => e.Confidence))
 		{
 			_output.WriteLine($"  {entity.Name} (conf: {entity.Confidence:F2}, freq: {entity.Frequency})");
 		}
 		_output.WriteLine(string.Empty);
+	}
 
-		// Check if "Plinian Society" was extracted
+	private void WritePlinianExtractionOutcome(List<Entity> entities)
+	{
 		var hasPlinianSociety = entities.Any(e =>
 			e.Name.Contains("Plinian", StringComparison.OrdinalIgnoreCase) &&
 			e.Name.Contains("Society", StringComparison.OrdinalIgnoreCase));
@@ -116,9 +147,6 @@ public class PlinianSocietyDebugTests(ApacheAgeFixture fixture, ITestOutputHelpe
 				_output.WriteLine($"  - {entity.Name}");
 			}
 		}
-
-		// This test always passes - it's diagnostic only
-		true.Should().BeTrue();
 	}
 
 	private static string GetChunkContent(ChunkerBase chunk)

@@ -34,6 +34,32 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 		_output.WriteLine("");
 
 		// Download and chunk the document
+		var htmlContent = await DownloadDarwinHtmlAsync();
+
+		_output.WriteLine($"Downloaded HTML document ({htmlContent.Length:N0} characters)");
+
+		// Chunk document with FIXED settings to prevent oversized chunks
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent);
+
+		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
+		_output.WriteLine($"Average chunk size: {chunkingResult.Chunks.Average(c => GetChunkContent(c).Length):F0} characters");
+		_output.WriteLine("");
+
+		// For each ground truth relationship, find chunks containing the entities
+		_output.WriteLine("=== TEXT SAMPLES FROM DARWIN'S AUTOBIOGRAPHY ===");
+		_output.WriteLine("");
+
+		foreach (var gt in groundTruth.Take(15)) // First 15 relationships
+		{
+			WriteRelationshipSample(chunkingResult, gt);
+		}
+
+		// This test always passes - it's just for extracting samples
+		true.Should().BeTrue();
+	}
+
+	private static async Task<string> DownloadDarwinHtmlAsync()
+	{
 		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
 
 		string htmlContent;
@@ -45,10 +71,11 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 			response.EnsureSuccessStatusCode();
 			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
 		}
+		return htmlContent;
+	}
 
-		_output.WriteLine($"Downloaded HTML document ({htmlContent.Length:N0} characters)");
-
-		// Chunk document with FIXED settings to prevent oversized chunks
+	private static async Task<ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent)
+	{
 		var tokenCounter = new CharacterBasedTokenCounter();
 		var chunker = new HtmlDocumentChunker(tokenCounter);
 		var options = new ChunkingOptions
@@ -65,86 +92,86 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 			System.Text.Encoding.UTF8.GetBytes(htmlContent));
 		var chunkingResult = await chunker.ChunkAsync(
 			stream, options, _cancellationToken);
+		return chunkingResult;
+	}
 
-		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
-		_output.WriteLine($"Average chunk size: {chunkingResult.Chunks.Average(c => GetChunkContent(c).Length):F0} characters");
+	private void WriteRelationshipSample(ChunkingResult chunkingResult, GroundTruthRelationship gt)
+	{
+		_output.WriteLine($"Relationship: {gt.Entity1} -> {gt.RelationType} -> {gt.Entity2}");
+		_output.WriteLine($"Section: {gt.Section}");
 		_output.WriteLine("");
 
-		// For each ground truth relationship, find chunks containing the entities
-		_output.WriteLine("=== TEXT SAMPLES FROM DARWIN'S AUTOBIOGRAPHY ===");
-		_output.WriteLine("");
+		// Find chunks containing both entities
+		var relevantChunks = FindChunksContainingEntities(chunkingResult.Chunks, gt.Entity1, gt.Entity2);
 
-		foreach (var gt in groundTruth.Take(15)) // First 15 relationships
+		if (relevantChunks.Count != 0)
 		{
-			_output.WriteLine($"Relationship: {gt.Entity1} -> {gt.RelationType} -> {gt.Entity2}");
-			_output.WriteLine($"Section: {gt.Section}");
-			_output.WriteLine("");
-
-			// Find chunks containing both entities
-			var relevantChunks = FindChunksContainingEntities(chunkingResult.Chunks, gt.Entity1, gt.Entity2);
-
-			if (relevantChunks.Count != 0)
-			{
-				_output.WriteLine($"Found {relevantChunks.Count} chunk(s) containing both entities:");
-				_output.WriteLine("");
-
-				foreach (var chunk in relevantChunks.Take(2)) // Show first 2 matches
-				{
-					var content = GetChunkContent(chunk);
-					if (!string.IsNullOrWhiteSpace(content))
-					{
-						// Extract context window around entities
-						var contextWindow = ExtractContextWindow(content, gt.Entity1, gt.Entity2, 300);
-						_output.WriteLine($"  Chunk {chunk.SequenceNumber} ({content.Length} chars):");
-						_output.WriteLine($"Context: ...{contextWindow}...");
-						_output.WriteLine("");
-					}
-				}
-			}
-			else
-			{
-				// Try finding chunks with just one entity
-				var chunksWithEntity1 = FindChunksContainingText(chunkingResult.Chunks, gt.Entity1);
-				var chunksWithEntity2 = FindChunksContainingText(chunkingResult.Chunks, gt.Entity2);
-
-				if (chunksWithEntity1.Count != 0)
-				{
-					_output.WriteLine($"  Found '{gt.Entity1}' in {chunksWithEntity1.Count} chunk(s)");
-					var sample = GetChunkContent(chunksWithEntity1.First());
-					if (!string.IsNullOrWhiteSpace(sample))
-					{
-						_output.WriteLine($"  Sample: {TruncateText(sample, 200)}");
-					}
-				}
-				else
-				{
-					_output.WriteLine($"  ⚠️ '{gt.Entity1}' NOT FOUND in any chunk");
-				}
-
-				if (chunksWithEntity2.Count != 0)
-				{
-					_output.WriteLine($"  Found '{gt.Entity2}' in {chunksWithEntity2.Count} chunk(s)");
-					var sample = GetChunkContent(chunksWithEntity2.First());
-					if (!string.IsNullOrWhiteSpace(sample))
-					{
-						_output.WriteLine($"  Sample: {TruncateText(sample, 200)}");
-					}
-				}
-				else
-				{
-					_output.WriteLine($"  ⚠️ '{gt.Entity2}' NOT FOUND in any chunk");
-				}
-
-				_output.WriteLine($"  ⚠️ Entities are in SEPARATE chunks (chunking boundary issue)");
-			}
-
-			_output.WriteLine("");
-			_output.WriteLine("---");
-			_output.WriteLine("");
+			WriteRelevantChunks(relevantChunks, gt);
+		}
+		else
+		{
+			// Try finding chunks with just one entity
+			WriteSeparateEntityChunks(chunkingResult, gt);
 		}
 
-		// This test always passes - it's just for extracting samples
-		true.Should().BeTrue();
+		_output.WriteLine("");
+		_output.WriteLine("---");
+		_output.WriteLine("");
+	}
+
+	private void WriteRelevantChunks(List<ChunkerBase> relevantChunks, GroundTruthRelationship gt)
+	{
+		_output.WriteLine($"Found {relevantChunks.Count} chunk(s) containing both entities:");
+		_output.WriteLine("");
+
+		foreach (var chunk in relevantChunks.Take(2)) // Show first 2 matches
+		{
+			var content = GetChunkContent(chunk);
+			if (!string.IsNullOrWhiteSpace(content))
+			{
+				// Extract context window around entities
+				var contextWindow = ExtractContextWindow(content, gt.Entity1, gt.Entity2, 300);
+				_output.WriteLine($"  Chunk {chunk.SequenceNumber} ({content.Length} chars):");
+				_output.WriteLine($"Context: ...{contextWindow}...");
+				_output.WriteLine("");
+			}
+		}
+	}
+
+	private void WriteSeparateEntityChunks(ChunkingResult chunkingResult, GroundTruthRelationship gt)
+	{
+		var chunksWithEntity1 = FindChunksContainingText(chunkingResult.Chunks, gt.Entity1);
+		var chunksWithEntity2 = FindChunksContainingText(chunkingResult.Chunks, gt.Entity2);
+
+		if (chunksWithEntity1.Count != 0)
+		{
+			_output.WriteLine($"  Found '{gt.Entity1}' in {chunksWithEntity1.Count} chunk(s)");
+			var sample = GetChunkContent(chunksWithEntity1.First());
+			if (!string.IsNullOrWhiteSpace(sample))
+			{
+				_output.WriteLine($"  Sample: {TruncateText(sample, 200)}");
+			}
+		}
+		else
+		{
+			_output.WriteLine($"  ⚠️ '{gt.Entity1}' NOT FOUND in any chunk");
+		}
+
+		if (chunksWithEntity2.Count != 0)
+		{
+			_output.WriteLine($"  Found '{gt.Entity2}' in {chunksWithEntity2.Count} chunk(s)");
+			var sample = GetChunkContent(chunksWithEntity2.First());
+			if (!string.IsNullOrWhiteSpace(sample))
+			{
+				_output.WriteLine($"  Sample: {TruncateText(sample, 200)}");
+			}
+		}
+		else
+		{
+			_output.WriteLine($"  ⚠️ '{gt.Entity2}' NOT FOUND in any chunk");
+		}
+
+		_output.WriteLine($"  ⚠️ Entities are in SEPARATE chunks (chunking boundary issue)");
 	}
 
 	private static List<ChunkerBase> FindChunksContainingEntities(

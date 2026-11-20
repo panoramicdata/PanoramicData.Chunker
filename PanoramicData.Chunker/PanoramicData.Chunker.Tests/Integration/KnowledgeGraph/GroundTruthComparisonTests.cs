@@ -145,62 +145,9 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		_output.WriteLine($"=== EXTRACTED ENTITIES ({graph.Entities.Count}) ===");
 		_output.WriteLine(string.Empty);
 
-		var properNouns = graph.Entities
-			.Where(e => e.Type == EntityType.ProperNoun)
-			.OrderByDescending(e => e.Confidence)
-			.Take(50)
-			.ToList();
+		WriteProperNouns(graph);
 
-		_output.WriteLine($"Proper Nouns ({properNouns.Count}):");
-		foreach (var entity in properNouns)
-		{
-			_output.WriteLine($"  {entity.Name} (conf: {entity.Confidence:F2}, freq: {entity.Frequency})");
-			if (entity.Aliases.Count > 0)
-			{
-				_output.WriteLine($"    Aliases: {string.Join(", ", entity.Aliases)}");
-			}
-		}
-
-		_output.WriteLine(string.Empty);
-		_output.WriteLine("=== GROUND TRUTH ENTITY CHECK ===");
-
-		// Ground truth entities we expect to find
-		var groundTruthEntities = new[]
-		{
-			"Plinian Society", "Professor Jameson", "HMS Beagle", "Charles Darwin",
-			"Edinburgh University", "Robert Grant", "Captain FitzRoy", "Galapagos Islands",
-			"John Henslow", "Cambridge University", "Origin of Species"
-		};
-
-		foreach (var gt in groundTruthEntities)
-		{
-			var found = graph.Entities.Any(e =>
-				// Exact or partial match
-				e.Name.Equals(gt, StringComparison.OrdinalIgnoreCase) ||
-				e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase) ||
-				gt.Contains(e.Name, StringComparison.OrdinalIgnoreCase) ||
-				// Check aliases
-				e.Aliases.Any(a =>
-					a.Equals(gt, StringComparison.OrdinalIgnoreCase) ||
-					gt.Contains(a, StringComparison.OrdinalIgnoreCase)));
-
-			_output.WriteLine($"  {(found ? "✓" : "✗")} {gt}");
-
-			// If not found, try to help debug
-			if (!found)
-			{
-				var partialMatches = graph.Entities.Where(e =>
-				{
-					var words = gt.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-					return words.Any(w => e.Name.Contains(w, StringComparison.OrdinalIgnoreCase));
-				}).ToList();
-
-				if (partialMatches.Count != 0)
-				{
-					_output.WriteLine($"   Partial matches: {string.Join(", ", partialMatches.Take(3).Select(e => e.Name))}");
-				}
-			}
-		}
+		WriteGroundTruthEntityCheck(graph);
 
 		// This test always passes - it's diagnostic only
 		true.Should().BeTrue();
@@ -212,31 +159,10 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		// Arrange
 		await _fixture.CleanDatabaseAsync();
 
-		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
-
-		string htmlContent;
-		using (var httpClient = new HttpClient())
-		{
-			httpClient.DefaultRequestHeaders.Add("User-Agent",
-				"PanoramicData.Chunker/1.0 (Educational Testing)");
-			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
-			response.EnsureSuccessStatusCode();
-			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
-		}
+		var htmlContent = await DownloadDarwinHtmlAsync();
 
 		// Chunk document
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new HtmlDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 512,
-			MaxCharactersPerChunk = 2000,
-			OverlapTokens = 100,
-			EnforceSentenceBoundaries = true
-		};
-
-		await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
-		var chunkingResult = await chunker.ChunkAsync(stream, options, _cancellationToken);
+		var chunkingResult = await ChunkSeparateExtractorsDocumentAsync(htmlContent);
 
 		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
 		_output.WriteLine(string.Empty);
@@ -248,29 +174,7 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		var keywords = await keywordExtractor.ExtractEntitiesAsync(chunkingResult.Chunks, _cancellationToken);
 		var properNouns = await capitalizationExtractor.ExtractEntitiesAsync(chunkingResult.Chunks, _cancellationToken);
 
-		_output.WriteLine($"=== KEYWORD EXTRACTOR ({keywords.Count} entities) ===");
-		foreach (var entity in keywords.Take(20))
-		{
-			_output.WriteLine($"  {entity.Name} (conf: {entity.Confidence:F2}, freq: {entity.Frequency})");
-		}
-		_output.WriteLine(string.Empty);
-
-		_output.WriteLine($"=== CAPITALIZATION EXTRACTOR ({properNouns.Count} entities) ===");
-
-		// Check for ground truth entities
-		var groundTruth = new[] { "Plinian Society", "Professor Jameson", "Edinburgh University", "Origin" };
-		foreach (var gt in groundTruth)
-		{
-			var found = properNouns.Any(e => e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase));
-			_output.WriteLine($"  {(found ? "✓" : "✗")} {gt}");
-		}
-
-		_output.WriteLine(string.Empty);
-		_output.WriteLine("Sample proper nouns:");
-		foreach (var entity in properNouns.Take(20))
-		{
-			_output.WriteLine($"  {entity.Name} (conf: {entity.Confidence:F2}, freq: {entity.Frequency})");
-		}
+		WriteExtractorFindings(keywords, properNouns);
 
 		// This test always passes - it's diagnostic only
 		true.Should().BeTrue();
@@ -297,6 +201,192 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		var plinian = graph.Entities.FirstOrDefault(e =>
 			e.Name.Contains("Plinian", StringComparison.OrdinalIgnoreCase));
 
+		ReportJamesonEntity(graph, jameson);
+
+		ReportPlinianEntity(graph, plinian);
+
+		_output.WriteLine(string.Empty);
+
+		// Check if they're in the same chunk
+		if (jameson != null && plinian != null)
+		{
+			ReportJamesonPlinianRelationship(graph, jameson, plinian);
+		}
+
+		_output.WriteLine(string.Empty);
+		_output.WriteLine("=== OTHER GROUND TRUTH ENTITIES ===");
+
+		// Check a few more key entities
+		WriteOtherGroundTruthEntities(graph);
+
+		// This test always passes - it's diagnostic only
+		true.Should().BeTrue();
+	}
+
+	/// <summary>
+	/// Extracts Darwin's autobiography knowledge graph using current extraction pipeline.
+	/// </summary>
+	private async Task<Graph> ExtractDarwinKnowledgeGraphAsync()
+	{
+		// Download HTML from Project Gutenberg
+		var htmlContent = await DownloadDarwinHtmlAsync();
+
+		_output.WriteLine($"Downloaded HTML document ({htmlContent.Length:N0} characters)");
+
+		// Chunk document with FIXED settings
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent);
+
+		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
+
+		// Extract entities
+		var graph = await BuildDarwinGraphAsync(chunkingResult);
+
+		// Save to database
+		var graphStore = _fixture.Services.GetRequiredService<IGraphStore>();
+		await graphStore.SaveGraphAsync(graph, _cancellationToken);
+
+		_output.WriteLine("Saved graph to database");
+		_output.WriteLine(string.Empty);
+
+		return graph;
+	}
+
+	private void WriteProperNouns(Graph graph)
+	{
+		var properNouns = graph.Entities
+			.Where(e => e.Type == EntityType.ProperNoun)
+			.OrderByDescending(e => e.Confidence)
+			.Take(50)
+			.ToList();
+
+		_output.WriteLine($"Proper Nouns ({properNouns.Count}):");
+		foreach (var entity in properNouns)
+		{
+			_output.WriteLine($"  {entity.Name} (conf: {entity.Confidence:F2}, freq: {entity.Frequency})");
+			if (entity.Aliases.Count > 0)
+			{
+				_output.WriteLine($"    Aliases: {string.Join(", ", entity.Aliases)}");
+			}
+		}
+	}
+
+	private void WriteGroundTruthEntityCheck(Graph graph)
+	{
+		_output.WriteLine(string.Empty);
+		_output.WriteLine("=== GROUND TRUTH ENTITY CHECK ===");
+
+		// Ground truth entities we expect to find
+		var groundTruthEntities = new[]
+		{
+			"Plinian Society", "Professor Jameson", "HMS Beagle", "Charles Darwin",
+			"Edinburgh University", "Robert Grant", "Captain FitzRoy", "Galapagos Islands",
+			"John Henslow", "Cambridge University", "Origin of Species"
+		};
+
+		foreach (var gt in groundTruthEntities)
+		{
+			var found = GroundTruthEntityFound(graph, gt);
+
+			_output.WriteLine($"  {(found ? "✓" : "✗")} {gt}");
+
+			// If not found, try to help debug
+			if (!found)
+			{
+				WriteWordPartialMatches(graph, gt);
+			}
+		}
+	}
+
+	private static bool GroundTruthEntityFound(Graph graph, string gt)
+	{
+		var found = graph.Entities.Any(e =>
+			// Exact or partial match
+			e.Name.Equals(gt, StringComparison.OrdinalIgnoreCase) ||
+			e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase) ||
+			gt.Contains(e.Name, StringComparison.OrdinalIgnoreCase) ||
+			// Check aliases
+			e.Aliases.Any(a =>
+				a.Equals(gt, StringComparison.OrdinalIgnoreCase) ||
+				gt.Contains(a, StringComparison.OrdinalIgnoreCase)));
+		return found;
+	}
+
+	private void WriteWordPartialMatches(Graph graph, string gt)
+	{
+		var partialMatches = graph.Entities.Where(e =>
+		{
+			var words = gt.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			return words.Any(w => e.Name.Contains(w, StringComparison.OrdinalIgnoreCase));
+		}).ToList();
+
+		if (partialMatches.Count != 0)
+		{
+			_output.WriteLine($"   Partial matches: {string.Join(", ", partialMatches.Take(3).Select(e => e.Name))}");
+		}
+	}
+
+	private static async Task<string> DownloadDarwinHtmlAsync()
+	{
+		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
+
+		string htmlContent;
+		using (var httpClient = new HttpClient())
+		{
+			httpClient.DefaultRequestHeaders.Add("User-Agent",
+				"PanoramicData.Chunker/1.0 (Educational Testing)");
+			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
+			response.EnsureSuccessStatusCode();
+			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
+		}
+		return htmlContent;
+	}
+
+	private static async Task<PanoramicData.Chunker.Models.ChunkingResult> ChunkSeparateExtractorsDocumentAsync(string htmlContent)
+	{
+		var tokenCounter = new CharacterBasedTokenCounter();
+		var chunker = new HtmlDocumentChunker(tokenCounter);
+		var options = new ChunkingOptions
+		{
+			MaxTokens = 512,
+			MaxCharactersPerChunk = 2000,
+			OverlapTokens = 100,
+			EnforceSentenceBoundaries = true
+		};
+
+		await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
+		var chunkingResult = await chunker.ChunkAsync(stream, options, _cancellationToken);
+		return chunkingResult;
+	}
+
+	private void WriteExtractorFindings(List<Entity> keywords, List<Entity> properNouns)
+	{
+		_output.WriteLine($"=== KEYWORD EXTRACTOR ({keywords.Count} entities) ===");
+		foreach (var entity in keywords.Take(20))
+		{
+			_output.WriteLine($"  {entity.Name} (conf: {entity.Confidence:F2}, freq: {entity.Frequency})");
+		}
+		_output.WriteLine(string.Empty);
+
+		_output.WriteLine($"=== CAPITALIZATION EXTRACTOR ({properNouns.Count} entities) ===");
+
+		// Check for ground truth entities
+		var groundTruth = new[] { "Plinian Society", "Professor Jameson", "Edinburgh University", "Origin" };
+		foreach (var gt in groundTruth)
+		{
+			var found = properNouns.Any(e => e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase));
+			_output.WriteLine($"  {(found ? "✓" : "✗")} {gt}");
+		}
+
+		_output.WriteLine(string.Empty);
+		_output.WriteLine("Sample proper nouns:");
+		foreach (var entity in properNouns.Take(20))
+		{
+			_output.WriteLine($"  {entity.Name} (conf: {entity.Confidence:F2}, freq: {entity.Frequency})");
+		}
+	}
+
+	private void ReportJamesonEntity(Graph graph, Entity? jameson)
+	{
 		if (jameson == null)
 		{
 			_output.WriteLine("❌ PROBLEM: Jameson entity NOT FOUND");
@@ -304,14 +394,7 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 			var partialMatches = graph.Entities
 				.Where(e => e.Name.Contains("James", StringComparison.OrdinalIgnoreCase))
 				.ToList();
-			if (partialMatches.Count > 0)
-			{
-				_output.WriteLine($"   Found {partialMatches.Count} partial matches:");
-				foreach (var match in partialMatches.Take(5))
-				{
-					_output.WriteLine($"     - '{match.Name}' (type: {match.Type})");
-				}
-			}
+			WritePartialMatchCounts(partialMatches);
 		}
 		else
 		{
@@ -320,7 +403,22 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 			_output.WriteLine($"   Aliases: {(jameson.Aliases.Count > 0 ? string.Join(", ", jameson.Aliases) : "none")}");
 			_output.WriteLine($"   Sources: {jameson.Sources.Count} chunks");
 		}
+	}
 
+	private void WritePartialMatchCounts(List<Entity> partialMatches)
+	{
+	if (partialMatches.Count > 0)
+	{
+		_output.WriteLine($"   Found {partialMatches.Count} partial matches:");
+		foreach (var match in partialMatches.Take(5))
+		{
+			_output.WriteLine($"     - '{match.Name}' (type: {match.Type})");
+		}
+	}
+	}
+
+	private void ReportPlinianEntity(Graph graph, Entity? plinian)
+	{
 		if (plinian == null)
 		{
 			_output.WriteLine("❌ PROBLEM: Plinian entity NOT FOUND");
@@ -329,14 +427,7 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 				.Where(e => e.Name.Contains("Plin", StringComparison.OrdinalIgnoreCase) ||
 				    e.Name.Contains("Society", StringComparison.OrdinalIgnoreCase))
 				.ToList();
-			if (partialMatches.Count > 0)
-			{
-				_output.WriteLine($"   Found {partialMatches.Count} partial matches:");
-				foreach (var match in partialMatches.Take(5))
-				{
-					_output.WriteLine($"     - '{match.Name}' (type: {match.Type})");
-				}
-			}
+			WritePartialMatchCounts(partialMatches);
 		}
 		else
 		{
@@ -345,67 +436,68 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 			_output.WriteLine($"   Aliases: {(plinian.Aliases.Count > 0 ? string.Join(", ", plinian.Aliases) : "none")}");
 			_output.WriteLine($"   Sources: {plinian.Sources.Count} chunks");
 		}
+	}
 
-		_output.WriteLine(string.Empty);
+	private void ReportJamesonPlinianRelationship(Graph graph, Entity jameson, Entity plinian)
+	{
+		var jamesonChunks = jameson.Sources.Select(s => s.ChunkId).ToHashSet();
+		var plinianChunks = plinian.Sources.Select(s => s.ChunkId).ToHashSet();
+		var commonChunks = jamesonChunks.Intersect(plinianChunks).ToList();
 
-		// Check if they're in the same chunk
-		if (jameson != null && plinian != null)
+		_output.WriteLine($"Jameson appears in {jamesonChunks.Count} chunk(s)");
+		_output.WriteLine($"Plinian appears in {plinianChunks.Count} chunk(s)");
+		_output.WriteLine($"Common chunks: {commonChunks.Count}");
+
+		if (commonChunks.Count > 0)
 		{
-			var jamesonChunks = jameson.Sources.Select(s => s.ChunkId).ToHashSet();
-			var plinianChunks = plinian.Sources.Select(s => s.ChunkId).ToHashSet();
-			var commonChunks = jamesonChunks.Intersect(plinianChunks).ToList();
-
-			_output.WriteLine($"Jameson appears in {jamesonChunks.Count} chunk(s)");
-			_output.WriteLine($"Plinian appears in {plinianChunks.Count} chunk(s)");
-			_output.WriteLine($"Common chunks: {commonChunks.Count}");
-
-			if (commonChunks.Count > 0)
-			{
-				_output.WriteLine("✅ BOTH entities in same chunk! Checking distances...");
-				_output.WriteLine(string.Empty);
-
-				foreach (var chunkId in commonChunks)
-				{
-					var jamesonPos = jameson.Sources.First(s => s.ChunkId == chunkId).Position;
-					var plinianPos = plinian.Sources.First(s => s.ChunkId == chunkId).Position;
-					var distance = Math.Abs(jamesonPos - plinianPos);
-
-					_output.WriteLine($"  Chunk {chunkId}:");
-					_output.WriteLine($"    Jameson position: {jamesonPos}");
-					_output.WriteLine($"    Plinian position: {plinianPos}");
-					_output.WriteLine($"    Distance: {distance} characters");
-					_output.WriteLine($"    Within maxDistance (500)? {(distance <= 500 ? "YES ✅" : "NO ❌")}");
-				}
-			}
-			else
-			{
-				_output.WriteLine("❌ PROBLEM: Entities NOT in same chunk!");
-			}
-
+			_output.WriteLine("✅ BOTH entities in same chunk! Checking distances...");
 			_output.WriteLine(string.Empty);
 
-			// Check for relationships between them
-			var jamesonRelationships = graph.GetRelationships(jameson.Id);
-			var relationshipToPlinian = jamesonRelationships.FirstOrDefault(r =>
-				r.ToEntityId == plinian.Id || r.FromEntityId == plinian.Id);
-
-			_output.WriteLine($"Jameson has {jamesonRelationships.Count} total relationships");
-			if (relationshipToPlinian != null)
-			{
-				_output.WriteLine($"✅ Relationship FOUND: {relationshipToPlinian.Type}");
-				_output.WriteLine($"   Confidence: {relationshipToPlinian.Confidence:F2}");
-				_output.WriteLine($"   Evidence count: {relationshipToPlinian.Evidence.Count}");
-			}
-			else
-			{
-				_output.WriteLine("❌ NO relationship between Jameson and Plinian");
-			}
+			WriteChunkDistances(jameson, plinian, commonChunks);
+		}
+		else
+		{
+			_output.WriteLine("❌ PROBLEM: Entities NOT in same chunk!");
 		}
 
 		_output.WriteLine(string.Empty);
-		_output.WriteLine("=== OTHER GROUND TRUTH ENTITIES ===");
 
-		// Check a few more key entities
+		// Check for relationships between them
+		var jamesonRelationships = graph.GetRelationships(jameson.Id);
+		var relationshipToPlinian = jamesonRelationships.FirstOrDefault(r =>
+			r.ToEntityId == plinian.Id || r.FromEntityId == plinian.Id);
+
+		_output.WriteLine($"Jameson has {jamesonRelationships.Count} total relationships");
+		if (relationshipToPlinian != null)
+		{
+			_output.WriteLine($"✅ Relationship FOUND: {relationshipToPlinian.Type}");
+			_output.WriteLine($"   Confidence: {relationshipToPlinian.Confidence:F2}");
+			_output.WriteLine($"   Evidence count: {relationshipToPlinian.Evidence.Count}");
+		}
+		else
+		{
+			_output.WriteLine("❌ NO relationship between Jameson and Plinian");
+		}
+	}
+
+	private void WriteChunkDistances(Entity jameson, Entity plinian, List<Guid> commonChunks)
+	{
+		foreach (var chunkId in commonChunks)
+		{
+			var jamesonPos = jameson.Sources.First(s => s.ChunkId == chunkId).Position;
+			var plinianPos = plinian.Sources.First(s => s.ChunkId == chunkId).Position;
+			var distance = Math.Abs(jamesonPos - plinianPos);
+
+			_output.WriteLine($"  Chunk {chunkId}:");
+			_output.WriteLine($"    Jameson position: {jamesonPos}");
+			_output.WriteLine($"    Plinian position: {plinianPos}");
+			_output.WriteLine($"    Distance: {distance} characters");
+			_output.WriteLine($"    Within maxDistance (500)? {(distance <= 500 ? "YES ✅" : "NO ❌")}");
+		}
+	}
+
+	private void WriteOtherGroundTruthEntities(Graph graph)
+	{
 		var testEntities = new[]
 		{
 			("Darwin", "Charles Darwin"),
@@ -428,32 +520,10 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 				_output.WriteLine($"❌ {fullName}: NOT FOUND");
 			}
 		}
-
-		// This test always passes - it's diagnostic only
-		true.Should().BeTrue();
 	}
 
-	/// <summary>
-	/// Extracts Darwin's autobiography knowledge graph using current extraction pipeline.
-	/// </summary>
-	private async Task<Graph> ExtractDarwinKnowledgeGraphAsync()
+	private static async Task<PanoramicData.Chunker.Models.ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent)
 	{
-		// Download HTML from Project Gutenberg
-		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
-
-		string htmlContent;
-		using (var httpClient = new HttpClient())
-		{
-			httpClient.DefaultRequestHeaders.Add("User-Agent",
-				"PanoramicData.Chunker/1.0 (Educational Testing)");
-			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
-			response.EnsureSuccessStatusCode();
-			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
-		}
-
-		_output.WriteLine($"Downloaded HTML document ({htmlContent.Length:N0} characters)");
-
-		// Chunk document with FIXED settings
 		var tokenCounter = new CharacterBasedTokenCounter();
 		var chunker = new HtmlDocumentChunker(tokenCounter);
 		var options = new ChunkingOptions
@@ -470,10 +540,11 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 			System.Text.Encoding.UTF8.GetBytes(htmlContent));
 		var chunkingResult = await chunker.ChunkAsync(
 			stream, options, _cancellationToken);
+		return chunkingResult;
+	}
 
-		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
-
-		// Extract entities
+	private async Task<Graph> BuildDarwinGraphAsync(PanoramicData.Chunker.Models.ChunkingResult chunkingResult)
+	{
 		var entityExtractor = new HybridEntityExtractor();
 		var entities = await entityExtractor.ExtractEntitiesAsync(
 			chunkingResult.Chunks, _cancellationToken);
@@ -504,14 +575,6 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		}
 
 		graph.ComputeStatistics();
-
-		// Save to database
-		var graphStore = _fixture.Services.GetRequiredService<IGraphStore>();
-		await graphStore.SaveGraphAsync(graph, _cancellationToken);
-
-		_output.WriteLine("Saved graph to database");
-		_output.WriteLine(string.Empty);
-
 		return graph;
 	}
 }

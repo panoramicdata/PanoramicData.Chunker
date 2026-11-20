@@ -212,6 +212,30 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 	private async Task<Graph> ExtractDarwinGraphAsync(bool useOllama)
 	{
 		// Download HTML
+		var htmlContent = await DownloadDarwinHtmlAsync();
+
+		_output.WriteLine($"Downloaded HTML ({htmlContent.Length:N0} characters)");
+
+		// Chunk document
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent, useOllama);
+
+		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
+
+		// Extract entities with chosen extractor
+		var graph = await BuildDarwinGraphAsync(chunkingResult, useOllama);
+
+		// Save to database
+		var graphStore = _fixture.Services.GetRequiredService<IGraphStore>();
+		await graphStore.SaveGraphAsync(graph, _cancellationToken);
+
+		_output.WriteLine("Saved graph to database");
+		_output.WriteLine(string.Empty);
+
+		return graph;
+	}
+
+	private static async Task<string> DownloadDarwinHtmlAsync()
+	{
 		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
 
 		string htmlContent;
@@ -223,10 +247,11 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 			response.EnsureSuccessStatusCode();
 			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
 		}
+		return htmlContent;
+	}
 
-		_output.WriteLine($"Downloaded HTML ({htmlContent.Length:N0} characters)");
-
-		// Chunk document
+	private static async Task<ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent, bool useOllama)
+	{
 		var tokenCounter = new CharacterBasedTokenCounter();
 		var chunker = new HtmlDocumentChunker(tokenCounter);
 		var options = new ChunkingOptions
@@ -241,10 +266,11 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 
 		await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
 		var chunkingResult = await chunker.ChunkAsync(stream, options, _cancellationToken);
+		return chunkingResult;
+	}
 
-		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
-
-		// Extract entities with chosen extractor
+	private async Task<Graph> BuildDarwinGraphAsync(ChunkingResult chunkingResult, bool useOllama)
+	{
 		IEntityExtractor entityExtractor = useOllama
 			? new OllamaEntityExtractor()
 			: new HybridEntityExtractor();
@@ -278,14 +304,6 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 		}
 
 		graph.ComputeStatistics();
-
-		// Save to database
-		var graphStore = _fixture.Services.GetRequiredService<IGraphStore>();
-		await graphStore.SaveGraphAsync(graph, _cancellationToken);
-
-		_output.WriteLine("Saved graph to database");
-		_output.WriteLine(string.Empty);
-
 		return graph;
 	}
 
