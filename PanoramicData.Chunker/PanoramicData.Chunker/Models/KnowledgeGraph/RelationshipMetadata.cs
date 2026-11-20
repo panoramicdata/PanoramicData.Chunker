@@ -6,14 +6,9 @@ namespace PanoramicData.Chunker.Models.KnowledgeGraph;
 public class RelationshipMetadata
 {
 	/// <summary>
-	/// Gets or sets the timestamp when this relationship was first extracted.
+	/// Gets or sets tags associated with this relationship.
 	/// </summary>
-	public DateTimeOffset ExtractedAt { get; set; } = DateTimeOffset.UtcNow;
-
-	/// <summary>
-	/// Gets or sets the name of the extractor that identified this relationship.
-	/// </summary>
-	public string ExtractorName { get; set; } = string.Empty;
+	public List<string> Tags { get; set; } = [];
 
 	/// <summary>
 	/// Gets or sets the version of the extractor.
@@ -21,9 +16,9 @@ public class RelationshipMetadata
 	public string ExtractorVersion { get; set; } = string.Empty;
 
 	/// <summary>
-	/// Gets or sets the model name (if extracted using an LLM or ML model).
+	/// Gets or sets notes or comments about this relationship.
 	/// </summary>
-	public string? ModelName { get; set; }
+	public string? Notes { get; set; }
 
 	/// <summary>
 	/// Gets or sets additional extraction details or debugging information.
@@ -31,14 +26,9 @@ public class RelationshipMetadata
 	public Dictionary<string, object> ExtractionDetails { get; set; } = [];
 
 	/// <summary>
-	/// Gets or sets tags associated with this relationship.
+	/// Gets or sets the timestamp when this relationship was first extracted.
 	/// </summary>
-	public List<string> Tags { get; set; } = [];
-
-	/// <summary>
-	/// Gets or sets whether this relationship was manually verified or corrected.
-	/// </summary>
-	public bool ManuallyVerified { get; set; }
+	public DateTimeOffset ExtractedAt { get; set; } = DateTimeOffset.UtcNow;
 
 	/// <summary>
 	/// Gets or sets the timestamp of the last update to this relationship.
@@ -46,7 +36,17 @@ public class RelationshipMetadata
 	public DateTimeOffset? LastUpdatedAt { get; set; }
 
 	/// <summary>
-	/// Gets or sets notes or comments about this relationship.
+	/// Gets or sets the model name (if extracted using an LLM or ML model).
 	/// </summary>
-	public string? Notes { get; set; }
+	public string? ModelName { get; set; }
+
+	/// <summary>
+	/// Gets or sets the name of the extractor that identified this relationship.
+	/// </summary>
+	public string ExtractorName { get; set; } = string.Empty;
+
+	/// <summary>
+	/// Gets or sets whether this relationship was manually verified or corrected.
+	/// </summary>
+	public bool ManuallyVerified { get; set; }
 }

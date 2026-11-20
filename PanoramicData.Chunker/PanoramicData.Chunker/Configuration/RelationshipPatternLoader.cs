@@ -25,7 +25,7 @@ public class RelationshipPatternLoader
 	/// <summary>
 	/// Default path to relationship patterns file relative to application directory.
 	/// </summary>
-	public const string DefaultPatternsPath = "Configuration/RelationshipPatterns.json";
+	public static string DefaultPatternsPath { get; } = "Configuration/RelationshipPatterns.json";
 
 	/// <summary>
 	/// Loads relationship patterns from a JSON file.
