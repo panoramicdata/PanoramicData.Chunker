@@ -32,45 +32,23 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 	public DocType SupportedType => DocType.Pptx;
 
 	/// <inheritdoc/>
-	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
-	{
-		try
-		{
-			var originalPosition = documentStream.Position;
-
-			// PPTX files are ZIP archives with a specific signature
-			var buffer = new byte[4];
-			var bytesRead = await documentStream.ReadAsync(buffer, cancellationToken);
-
-			documentStream.Position = originalPosition;
-
-			return bytesRead == 4 && HasZipSignature(buffer) && CanOpenPresentation(documentStream);
-		}
-		catch
-		{
-			return false;
-		}
-	}
+	public Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
+		=> OpenXmlStreamSupport.IsZipThatOpensAsync(documentStream, CanOpenPresentation, cancellationToken);
 
 	/// <inheritdoc/>
-	public async Task<ChunkingResult> ChunkAsync(
+	public Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
 		CancellationToken cancellationToken)
-	{
-		ArgumentNullException.ThrowIfNull(documentStream);
-		ArgumentNullException.ThrowIfNull(options);
+		=> ChunkRunner.RunAsync("PPTX", documentStream, options, _chunks, logger, () => ExtractAsync(documentStream, cancellationToken));
 
-		var startTime = DateTime.UtcNow;
+	private async Task ExtractAsync(Stream documentStream, CancellationToken cancellationToken)
+	{
 		_sequenceNumber = 0;
-		_chunks.Clear();
 
 		try
 		{
-			// OpenXML SDK needs a seekable stream
-			var memoryStream = new MemoryStream();
-			await documentStream.CopyToAsync(memoryStream, cancellationToken);
-			memoryStream.Position = 0;
+			var memoryStream = await OpenXmlStreamSupport.CopyToSeekableAsync(documentStream, cancellationToken);
 
 			var slideIds = OpenSlideIds(memoryStream);
 			logger?.LogInformation("Opened PPTX document with {SlideCount} slides", slideIds.Count);
@@ -81,16 +59,6 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 				var slidePart = (SlidePart)_presentationPart!.GetPartById(slideId.RelationshipId!);
 				ExtractSlideChunks(slidePart, slideNumber++);
 			}
-
-			HierarchyBuilder.BuildHierarchy(_chunks);
-			logger?.LogInformation("Extracted {ChunkCount} chunks from PPTX document", _chunks.Count);
-
-			return ChunkResultHelper.CreateSuccess(_chunks, startTime, options);
-		}
-		catch (Exception ex)
-		{
-			logger?.LogError(ex, "Error chunking PPTX document");
-			return ChunkResultHelper.CreateFailure("PPTX", ex);
 		}
 		finally
 		{
@@ -98,21 +66,8 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 		}
 	}
 
-	private static bool HasZipSignature(byte[] buffer)
-		=> buffer[0] == 0x50 && buffer[1] == 0x4B && buffer[2] == 0x03 && buffer[3] == 0x04;
-
 	private static bool CanOpenPresentation(Stream documentStream)
-	{
-		try
-		{
-			using var doc = PresentationDocument.Open(documentStream, false);
-			return doc.PresentationPart != null;
-		}
-		catch
-		{
-			return false;
-		}
-	}
+		=> OpenXmlStreamSupport.Opens(documentStream, stream => PresentationDocument.Open(stream, false), doc => doc.PresentationPart != null);
 
 	private List<SlideId> OpenSlideIds(MemoryStream memoryStream)
 	{
