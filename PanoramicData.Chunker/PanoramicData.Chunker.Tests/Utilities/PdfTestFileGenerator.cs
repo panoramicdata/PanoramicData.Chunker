@@ -301,49 +301,54 @@ public static class PdfTestFileGenerator
 
 				page.Content()
 					.PaddingVertical(10)
-					.Column(x =>
-					{
-						x.Spacing(15);
-
-						_ = x.Item().Text("Employee Data Table:").SemiBold();
-
-						x.Item().Table(table =>
-						{
-							table.ColumnsDefinition(columns =>
-							{
-								columns.RelativeColumn();
-								columns.RelativeColumn();
-								columns.RelativeColumn();
-							});
-
-							table.Header(header =>
-							{
-								foreach (var title in new[] { "Name", "Department", "Salary" })
-								{
-									_ = header.Cell().Element(HeaderCellStyle).Text(title).SemiBold();
-								}
-							});
-
-							string[] values = ["Alice", "Engineering", "$75,000", "Bob", "Sales", "$60,000", "Charlie", "Marketing", "$65,000"];
-							foreach (var value in values)
-							{
-								_ = table.Cell().Element(DataCellStyle).Text(value);
-							}
-						});
-					});
+					.Column(ComposeEmployeeColumn);
 
 				page.Footer()
 					.AlignCenter()
-					.Text(x =>
-					{
-						_ = x.Span("Page ");
-						_ = x.CurrentPageNumber();
-					});
+					.Text(ComposePageNumber);
 			});
 		})
 		.GeneratePdf(filePath);
 	}
 
+	private static void ComposeEmployeeColumn(ColumnDescriptor x)
+	{
+		x.Spacing(15);
+
+		_ = x.Item().Text("Employee Data Table:").SemiBold();
+
+		x.Item().Table(ComposeEmployeeTable);
+	}
+
+	private static void ComposeEmployeeTable(TableDescriptor table)
+	{
+		table.ColumnsDefinition(columns =>
+		{
+			columns.RelativeColumn();
+			columns.RelativeColumn();
+			columns.RelativeColumn();
+		});
+
+		table.Header(header =>
+		{
+			foreach (var title in new[] { "Name", "Department", "Salary" })
+			{
+				_ = header.Cell().Element(HeaderCellStyle).Text(title).SemiBold();
+			}
+		});
+
+		string[] values = ["Alice", "Engineering", "$75,000", "Bob", "Sales", "$60,000", "Charlie", "Marketing", "$65,000"];
+		foreach (var value in values)
+		{
+			_ = table.Cell().Element(DataCellStyle).Text(value);
+		}
+	}
+
+	private static void ComposePageNumber(TextDescriptor x)
+	{
+		_ = x.Span("Page ");
+		_ = x.CurrentPageNumber();
+	}
 	/// <summary>
 	/// Create a large PDF for performance testing.
 	/// </summary>
