@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.Spreadsheet;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Utilities;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -210,13 +211,7 @@ public partial class XlsxDocumentChunker
 	private static List<string> ExtractReferencedCells(string formula)
 		=> [.. CellReferenceRegex().Matches(formula).Select(match => match.Value)];
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
-	{
-		TokenCount = _tokenCounter.CountTokens(text),
-		CharacterCount = text.Length,
-		WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-		SemanticCompleteness = 1.0
-	};
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => ChunkFactory.CreateQualityMetrics(_tokenCounter, text, ChunkFactory.CountSpaceSeparatedWords(text));
 
 	[GeneratedRegex(@"[A-Z]+", RegexOptions.None)]
 	private static partial Regex ColumnNameRegex();

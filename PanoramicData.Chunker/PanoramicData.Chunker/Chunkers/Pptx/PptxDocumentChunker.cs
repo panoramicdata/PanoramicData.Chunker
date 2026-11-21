@@ -40,9 +40,12 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 		Stream documentStream,
 		ChunkingOptions options,
 		CancellationToken cancellationToken)
-		=> ChunkRunner.RunAsync("PPTX", documentStream, options, _chunks, logger, () => ExtractAsync(documentStream, cancellationToken));
+		=> ChunkRunner.RunAsync("PPTX", documentStream, options, _chunks, logger, () => ExtractPptxAsync(documentStream, cancellationToken));
 
-	private async Task ExtractAsync(Stream documentStream, CancellationToken cancellationToken)
+	private static bool CanOpenPresentation(Stream documentStream)
+		=> OpenXmlStreamSupport.Opens(documentStream, stream => PresentationDocument.Open(stream, false), doc => doc.PresentationPart != null);
+
+	private async Task ExtractPptxAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		_sequenceNumber = 0;
 
@@ -65,9 +68,6 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 			_document?.Dispose();
 		}
 	}
-
-	private static bool CanOpenPresentation(Stream documentStream)
-		=> OpenXmlStreamSupport.Opens(documentStream, stream => PresentationDocument.Open(stream, false), doc => doc.PresentationPart != null);
 
 	private List<SlideId> OpenSlideIds(MemoryStream memoryStream)
 	{
@@ -181,11 +181,5 @@ public partial class PptxDocumentChunker(ITokenCounter tokenCounter, ILogger<Ppt
 
 	private static bool IsTitlePlaceholder(string? placeholderType) => placeholderType is "title" or "ctrTitle";
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
-	{
-		TokenCount = _tokenCounter.CountTokens(text),
-		CharacterCount = text.Length,
-		WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-		SemanticCompleteness = 1.0
-	};
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => ChunkFactory.CreateQualityMetrics(_tokenCounter, text, ChunkFactory.CountSpaceSeparatedWords(text));
 }

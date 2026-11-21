@@ -99,7 +99,7 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 		if (lines.Count == 0)
 		{
 			logger?.LogInformation("CSV document has no content");
-			return CreateEmptyResult(startTime);
+			return ChunkFactory.CreateEmptyResult(startTime);
 		}
 
 		var delimiter = DetectDelimiter(lines);
@@ -205,24 +205,5 @@ public partial class CsvDocumentChunker(ITokenCounter tokenCounter, ILogger<CsvD
 		};
 	}
 
-	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => new()
-	{
-		DocumentType = "CSV",
-		SourceId = string.Empty,
-		Hierarchy = hierarchy,
-		Tags = [.. tags],
-		CreatedAt = DateTimeOffset.UtcNow
-	};
-
-
-	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()
-	{
-		Chunks = [],
-		Statistics = new ChunkingStatistics
-		{
-			ProcessingTime = DateTime.UtcNow - startTime
-		},
-		Warnings = [],
-		Success = true
-	};
+	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => ChunkFactory.CreateMetadata("CSV", hierarchy, tags);
 }

@@ -30,7 +30,6 @@ public partial class PptxDocumentChunker
 	private PptxTableChunk BuildTableChunk(int slideNumber, Guid slideId, List<string> headers, List<List<string>> tableData)
 	{
 		var serializedTable = MarkdownTableSerializer.Serialize(headers, tableData);
-		var allText = string.Join(" ", headers) + " " + string.Join(" ", tableData.SelectMany(r => r));
 
 		return new PptxTableChunk
 		{
@@ -42,28 +41,10 @@ public partial class PptxDocumentChunker
 			SpecificType = "table",
 			SerializedTable = serializedTable,
 			SerializationFormat = TableSerializationFormat.Markdown,
-			TableInfo = new TableMetadata
-			{
-				RowCount = tableData.Count,
-				ColumnCount = GetColumnCount(headers, tableData),
-				Headers = [.. headers],
-				HasHeaderRow = true,
-				HasMergedCells = false,
-				PreferredFormat = TableSerializationFormat.Markdown
-			},
+			TableInfo = TableChunkSupport.CreateInfo(headers, tableData, TableChunkSupport.GetColumnCount(headers, tableData), true, false),
 			Metadata = CreateMetadata(slideNumber, $"slide{slideNumber}/table", "table", $"slide{slideNumber}"),
-			QualityMetrics = CalculateQualityMetrics(allText)
+			QualityMetrics = CalculateQualityMetrics(TableChunkSupport.GetAllText(headers, tableData))
 		};
-	}
-
-	private static int GetColumnCount(List<string> headers, List<List<string>> tableData)
-	{
-		if (headers.Count > 0)
-		{
-			return headers.Count;
-		}
-
-		return tableData.Count > 0 ? tableData[0].Count : 0;
 	}
 
 	private static List<string> ExtractTableRowCells(A.TableRow row)

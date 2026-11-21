@@ -36,7 +36,6 @@ public partial class DocxDocumentChunker
 	{
 		var properties = table.GetFirstChild<TableProperties>();
 		var serializedTable = MarkdownTableSerializer.Serialize(headers, tableData);
-		var allText = string.Join(" ", headers) + " " + string.Join(" ", tableData.SelectMany(r => r));
 
 		return new DocxTableChunk
 		{
@@ -52,9 +51,9 @@ public partial class DocxDocumentChunker
 			SpecificType = "table",
 			SerializedTable = serializedTable,
 			SerializationFormat = TableSerializationFormat.Markdown,
-			TableInfo = CreateTableInfo(table, hasHeaderRow, headers, tableData),
+			TableInfo = TableChunkSupport.CreateInfo(headers, tableData, TableChunkSupport.GetColumnCount(headers, tableData), hasHeaderRow, HasMergedCells(table)),
 			Metadata = CreateMetadata("table", "table"),
-			QualityMetrics = CalculateQualityMetrics(allText)
+			QualityMetrics = CalculateQualityMetrics(TableChunkSupport.GetAllText(headers, tableData))
 		};
 	}
 
@@ -63,26 +62,6 @@ public partial class DocxDocumentChunker
 	private static string? GetTableCaption(TableProperties? properties) => properties?.TableCaption?.Val?.Value;
 
 	private static string? GetTableDescription(TableProperties? properties) => properties?.TableDescription?.Val?.Value;
-
-	private static TableMetadata CreateTableInfo(Table table, bool hasHeaderRow, List<string> headers, List<List<string>> tableData) => new()
-	{
-		RowCount = tableData.Count,
-		ColumnCount = GetColumnCount(headers, tableData),
-		Headers = [.. headers],
-		HasHeaderRow = hasHeaderRow,
-		HasMergedCells = HasMergedCells(table),
-		PreferredFormat = TableSerializationFormat.Markdown
-	};
-
-	private static int GetColumnCount(List<string> headers, List<List<string>> tableData)
-	{
-		if (headers.Count > 0)
-		{
-			return headers.Count;
-		}
-
-		return tableData.Count > 0 ? tableData[0].Count : 0;
-	}
 
 	// Header rows typically have bold text
 	private static bool IsHeaderRow(TableRow row)

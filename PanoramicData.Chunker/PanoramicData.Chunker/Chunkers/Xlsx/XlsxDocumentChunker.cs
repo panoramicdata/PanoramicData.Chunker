@@ -39,9 +39,12 @@ public partial class XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<Xls
 		Stream documentStream,
 		ChunkingOptions options,
 		CancellationToken cancellationToken)
-		=> ChunkRunner.RunAsync("XLSX", documentStream, options, _chunks, logger, () => ExtractAsync(documentStream, cancellationToken));
+		=> ChunkRunner.RunAsync("XLSX", documentStream, options, _chunks, logger, () => ExtractXlsxAsync(documentStream, cancellationToken));
 
-	private async Task ExtractAsync(Stream documentStream, CancellationToken cancellationToken)
+	private static bool CanOpenWorkbook(Stream documentStream)
+		=> OpenXmlStreamSupport.Opens(documentStream, stream => SpreadsheetDocument.Open(stream, false), doc => doc.WorkbookPart != null);
+
+	private async Task ExtractXlsxAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		_sequenceNumber = 0;
 
@@ -59,9 +62,6 @@ public partial class XlsxDocumentChunker(ITokenCounter tokenCounter, ILogger<Xls
 			_document?.Dispose();
 		}
 	}
-
-	private static bool CanOpenWorkbook(Stream documentStream)
-		=> OpenXmlStreamSupport.Opens(documentStream, stream => SpreadsheetDocument.Open(stream, false), doc => doc.WorkbookPart != null);
 
 	private List<Sheet> OpenWorkbook(MemoryStream memoryStream)
 	{

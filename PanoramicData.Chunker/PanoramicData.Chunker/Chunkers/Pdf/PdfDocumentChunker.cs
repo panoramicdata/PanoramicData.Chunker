@@ -30,22 +30,10 @@ public partial class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfD
 	/// <inheritdoc/>
 	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
-		try
-		{
-			var originalPosition = documentStream.Position;
+		var header = await ChunkFactory.PeekAsync(documentStream, PdfSignature.Length, cancellationToken);
 
-			var buffer = new byte[PdfSignature.Length];
-			var bytesRead = await documentStream.ReadAsync(buffer, cancellationToken);
-
-			documentStream.Position = originalPosition;
-
-			// PDF files start with %PDF-
-			return bytesRead >= PdfSignature.Length && buffer.AsSpan().SequenceEqual(PdfSignature);
-		}
-		catch
-		{
-			return false;
-		}
+		// PDF files start with %PDF-
+		return header.AsSpan().SequenceEqual(PdfSignature);
 	}
 
 	/// <inheritdoc/>
@@ -58,8 +46,8 @@ public partial class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfD
 		ArgumentNullException.ThrowIfNull(options);
 
 		var startTime = DateTime.UtcNow;
-		_sequenceNumber = 0;
 		_chunks.Clear();
+		_sequenceNumber = 0;
 
 		try
 		{
@@ -69,7 +57,7 @@ public partial class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfD
 			if (pdf.NumberOfPages == 0)
 			{
 				logger?.LogInformation("Empty PDF document");
-				return CreateEmptyResult(startTime);
+				return ChunkFactory.CreateEmptyResult(startTime);
 			}
 
 			logger?.LogInformation("Processing PDF with {PageCount} pages", pdf.NumberOfPages);
@@ -115,15 +103,4 @@ public partial class PdfDocumentChunker(ITokenCounter tokenCounter, ILogger<PdfD
 			_chunks.AddRange(ExtractParagraphsFromPage(page, pageChunk.Id));
 		}
 	}
-
-	private static ChunkingResult CreateEmptyResult(DateTime startTime) => new()
-	{
-		Chunks = [],
-		Statistics = new ChunkingStatistics
-		{
-			ProcessingTime = DateTime.UtcNow - startTime
-		},
-		Warnings = [],
-		Success = true
-	};
 }
