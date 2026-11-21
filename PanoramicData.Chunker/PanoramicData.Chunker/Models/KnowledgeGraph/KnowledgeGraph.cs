@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 namespace PanoramicData.Chunker.Models.KnowledgeGraph;
 
 /// <summary>
@@ -106,69 +105,6 @@ public partial class Graph
 	}
 
 	/// <summary>
-	/// Gets an entity by its ID.
-	/// </summary>
-	/// <param name="id">The entity ID.</param>
-	/// <returns>The entity, or null if not found.</returns>
-	public Entity? GetEntity(Guid id)
-	{
-		EnsureIndexes();
-		return _entityIndex!.TryGetValue(id, out var entity) ? entity : null;
-	}
-
-	/// <summary>
-	/// Gets entities by name (case-insensitive).
-	/// </summary>
-	/// <param name="name">The entity name.</param>
-	/// <returns>List of matching entities.</returns>
-	public List<Entity> GetEntitiesByName(string name)
-	{
-		EnsureIndexes();
-		var normalizedName = name.ToLowerInvariant().Trim();
-		return _entityNameIndex!.TryGetValue(normalizedName, out var entities) ? entities : [];
-	}
-
-	/// <summary>
-	/// Gets entities by type.
-	/// </summary>
-	/// <param name="type">The entity type.</param>
-	/// <returns>List of matching entities.</returns>
-	public List<Entity> GetEntitiesByType(EntityType type) => [.. Entities.Where(e => e.Type == type)];
-
-	/// <summary>
-	/// Gets all relationships involving a specific entity.
-	/// </summary>
-	/// <param name="entityId">The entity ID.</param>
-	/// <param name="includeIncoming">If true, includes relationships where the entity is the target.</param>
-	/// <returns>List of relationships.</returns>
-	public List<Relationship> GetRelationships(Guid entityId, [Optional][DefaultParameterValue(true)] bool includeIncoming)
-	{
-		EnsureIndexes();
-		var relationships = new List<Relationship>();
-
-		// Outgoing relationships
-		if (_entityRelationshipIndex!.TryGetValue(entityId, out var outgoing))
-		{
-			relationships.AddRange(outgoing);
-		}
-
-		// Incoming relationships
-		if (includeIncoming)
-		{
-			relationships.AddRange(Relationships.Where(r => r.ToEntityId == entityId));
-		}
-
-		return relationships;
-	}
-
-	/// <summary>
-	/// Gets relationships of a specific type.
-	/// </summary>
-	/// <param name="type">The relationship type.</param>
-	/// <returns>List of matching relationships.</returns>
-	public List<Relationship> GetRelationshipsByType(RelationshipType type) => [.. Relationships.Where(r => r.Type == type)];
-
-	/// <summary>
 	/// Computes statistics for this knowledge graph.
 	/// </summary>
 	public void ComputeStatistics() => Statistics = new GraphStatistics
@@ -188,6 +124,50 @@ public partial class Graph
 		TotalRelationshipEvidence = Relationships.Sum(r => r.Evidence.Count),
 		ComputedAt = DateTimeOffset.UtcNow
 	};
+
+	/// <summary>
+	/// Validates the integrity of the knowledge graph.
+	/// </summary>
+	/// <returns>True if the graph is valid.</returns>
+	public bool Validate(out List<string> errors)
+	{
+		errors = [];
+
+		// Check for duplicate entity IDs
+		var entityIds = new HashSet<Guid>();
+		foreach (var entity in Entities)
+		{
+			if (!entityIds.Add(entity.Id))
+			{
+				errors.Add($"Duplicate entity ID: {entity.Id}");
+			}
+		}
+
+		// Check for duplicate relationship IDs
+		var relationshipIds = new HashSet<Guid>();
+		foreach (var relationship in Relationships)
+		{
+			if (!relationshipIds.Add(relationship.Id))
+			{
+				errors.Add($"Duplicate relationship ID: {relationship.Id}");
+			}
+		}
+
+		// Check for relationships with invalid entity references
+		foreach (var relationship in Relationships)
+		{
+			if (!entityIds.Contains(relationship.FromEntityId))
+			{
+				errors.Add($"Relationship {relationship.Id} references non-existent entity: {relationship.FromEntityId}");
+			}
+			if (!entityIds.Contains(relationship.ToEntityId))
+			{
+				errors.Add($"Relationship {relationship.Id} references non-existent entity: {relationship.ToEntityId}");
+			}
+		}
+
+		return errors.Count == 0;
+	}
 
 	/// <summary>
 	/// Clears all entities and relationships from the graph.
