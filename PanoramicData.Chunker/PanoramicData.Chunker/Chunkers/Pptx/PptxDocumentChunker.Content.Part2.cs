@@ -1,4 +1,3 @@
-using DocumentFormat.OpenXml.Presentation;
 using PanoramicData.Chunker.Models;
 using System.Text.RegularExpressions;
 using A = DocumentFormat.OpenXml.Drawing;
@@ -46,4 +45,16 @@ public partial class PptxDocumentChunker
 
 	[GeneratedRegex(@"\s+")]
 	private static partial Regex WhitespaceRegex();
+
+	private PptxNotesChunk CreateNotesChunk(string notesContent, int slideNumber, Guid slideId) => new()
+	{
+		Content = notesContent,
+		SlideNumber = slideNumber,
+		NotesLength = notesContent.Length,
+		ParentId = slideId,
+		SequenceNumber = _sequenceNumber++,
+		SpecificType = "notes",
+		Metadata = CreateMetadata(slideNumber, $"slide{slideNumber}/notes", "notes", "speakerNotes", $"slide{slideNumber}"),
+		QualityMetrics = CalculateQualityMetrics(notesContent)
+	};
 }

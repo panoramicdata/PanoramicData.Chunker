@@ -1,5 +1,4 @@
 using DocumentFormat.OpenXml.Spreadsheet;
-using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Utilities;
 using System.Text.RegularExpressions;
 
@@ -83,6 +82,4 @@ public partial class XlsxDocumentChunker
 
 	private static List<string> ExtractReferencedCells(string formula)
 		=> [.. CellReferenceRegex().Matches(formula).Select(match => match.Value)];
-
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => ChunkFactory.CreateQualityMetrics(_tokenCounter, text, ChunkFactory.CountSpaceSeparatedWords(text));
 }

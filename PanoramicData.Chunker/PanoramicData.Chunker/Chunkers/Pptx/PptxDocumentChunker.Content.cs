@@ -68,18 +68,6 @@ public partial class PptxDocumentChunker
 			.Where(shape => GetPlaceholderType(shape) != "sldImg")
 			.Select(GetShapeText)
 			.Where(text => !string.IsNullOrWhiteSpace(text));
-	private PptxNotesChunk CreateNotesChunk(string notesContent, int slideNumber, Guid slideId) => new()
-	{
-		Content = notesContent,
-		SlideNumber = slideNumber,
-		NotesLength = notesContent.Length,
-		ParentId = slideId,
-		SequenceNumber = _sequenceNumber++,
-		SpecificType = "notes",
-		Metadata = CreateMetadata(slideNumber, $"slide{slideNumber}/notes", "notes", "speakerNotes", $"slide{slideNumber}"),
-		QualityMetrics = CalculateQualityMetrics(notesContent)
-	};
-
 	private void ExtractImagesFromSlide(Slide slide, int slideNumber, Guid slideId)
 	{
 		var pictures = slide.Descendants<P.Picture>()
