@@ -47,12 +47,6 @@ public class HybridEntityExtractor(
 	}
 
 	/// <inheritdoc/>
-	public string Name => "HybridEntityExtractor";
-
-	/// <inheritdoc/>
-	public string Version => "1.0";
-
-	/// <inheritdoc/>
 	public IReadOnlyList<EntityType> SupportedEntityTypes { get; } =
 	[
 		EntityType.Keyword,
@@ -60,15 +54,21 @@ public class HybridEntityExtractor(
 	];
 
 	/// <inheritdoc/>
+	public string Name => "HybridEntityExtractor";
+
+	/// <inheritdoc/>
+	public string Version => "1.0";
+
+	/// <inheritdoc/>
 	public async Task<List<Entity>> ExtractEntitiesAsync(
 		IEnumerable<ChunkerBase> chunks,
 		CancellationToken cancellationToken)
 	{
-		var chunkList = chunks.ToList();
+		var chunkSnapshot = chunks.ToList();
 
 		// Extract using both methods in parallel for efficiency
-		var keywordsTask = _keywordExtractor.ExtractEntitiesAsync(chunkList, cancellationToken);
-		var properNounsTask = _capitalizationExtractor.ExtractEntitiesAsync(chunkList, cancellationToken);
+		var keywordsTask = _keywordExtractor.ExtractEntitiesAsync(chunkSnapshot, cancellationToken);
+		var properNounsTask = _capitalizationExtractor.ExtractEntitiesAsync(chunkSnapshot, cancellationToken);
 
 		await Task.WhenAll(keywordsTask, properNounsTask);
 

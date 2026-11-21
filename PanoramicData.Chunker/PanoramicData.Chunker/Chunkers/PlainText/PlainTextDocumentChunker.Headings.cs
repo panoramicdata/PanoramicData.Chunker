@@ -88,44 +88,6 @@ public partial class PlainTextDocumentChunker
 		return CreateSectionChunk(trimmed, 1, HeadingHeuristic.AllCaps, 0.70);
 	}
 
-	private PlainTextSectionChunk? DetectPrefixedHeading(string line)
-	{
-		var match = PrefixedHeadingRegex().Match(line.Trim());
-		if (!match.Success)
-		{
-			return null;
-		}
-
-		var text = match.Groups["text"].Value.Trim();
-		var level = Math.Min(match.Groups["prefix"].Value.Length, 6);
-
-		return CreateSectionChunk(text, level, HeadingHeuristic.Prefixed, 0.75);
-	}
-
-	private PlainTextSectionChunk CreateSectionChunk(string headingText, int level, HeadingHeuristic heuristic, double confidence)
-	{
-		var chunk = new PlainTextSectionChunk
-		{
-			Id = Guid.NewGuid(),
-			HeadingText = headingText,
-			HeadingLevel = level,
-			HeadingType = heuristic,
-			Confidence = confidence,
-			SpecificType = $"Heading{level}",
-			Metadata = new ChunkMetadata
-			{
-				DocumentType = "PlainText",
-				SourceId = string.Empty,
-				Hierarchy = headingText,
-				Tags = ["heading", $"level{level}", heuristic.ToString().ToLowerInvariant()],
-				CreatedAt = DateTimeOffset.UtcNow
-			}
-		};
-
-		PopulateQualityMetrics(chunk, headingText);
-		return chunk;
-	}
-
 	private static bool IsUnderline(string text, char marker)
 		=> text.Length >= 3 && text.All(c => c == marker);
 

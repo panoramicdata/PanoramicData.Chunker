@@ -151,4 +151,18 @@ public partial class PlainTextDocumentChunker
 
 		return codeLines;
 	}
+
+	private PlainTextSectionChunk? DetectPrefixedHeading(string line)
+	{
+		var match = PrefixedHeadingRegex().Match(line.Trim());
+		if (!match.Success)
+		{
+			return null;
+		}
+
+		var text = match.Groups["text"].Value.Trim();
+		var level = Math.Min(match.Groups["prefix"].Value.Length, 6);
+
+		return CreateSectionChunk(text, level, HeadingHeuristic.Prefixed, 0.75);
+	}
 }
