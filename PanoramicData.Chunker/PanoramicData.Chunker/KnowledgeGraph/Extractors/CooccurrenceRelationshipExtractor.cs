@@ -36,29 +36,7 @@ public class CooccurrenceRelationshipExtractor(int maxDistance = 500, double min
 		IEnumerable<ChunkerBase> chunks,
 		[Optional] CancellationToken cancellationToken)
 	{
-		var entityList = entities.ToList();
-		var chunkList = chunks.ToList();
-
-		if (entityList.Count < 2 || chunkList.Count == 0)
-		{
-			return [];
-		}
-
-		var relationships = new List<Relationship>();
-		var relationshipMap = new Dictionary<string, Relationship>();
-
-		foreach (var chunk in chunkList)
-		{
-			cancellationToken.ThrowIfCancellationRequested();
-
-			foreach (var pair in ExtractorHelpers.GetEntityPairs(entityList, chunk, maxDistance))
-			{
-				AddCooccurrence(pair, chunk.Id, relationships, relationshipMap);
-			}
-		}
-
-		ExtractorHelpers.NormalizeWeights(relationships);
-
+		var relationships = ExtractorHelpers.CollectRelationships(entities, chunks, maxDistance, AddCooccurrence, cancellationToken);
 		return await Task.FromResult(relationships);
 	}
 

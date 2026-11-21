@@ -26,7 +26,7 @@ namespace PanoramicData.Chunker.KnowledgeGraph.Extractors;
 /// PresentedTo, Visited, Discovered, Observed, Studied, Collected, Wrote, Developed,
 /// Proposed, InfluencedBy, LivedIn, Invited, and more.
 /// </remarks>
-public class PatternBasedRelationshipExtractor : IRelationshipExtractor
+public partial class PatternBasedRelationshipExtractor : IRelationshipExtractor
 {
 	private readonly int _maxDistance;
 	private readonly double _minConfidence;
@@ -140,33 +140,20 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 		IEnumerable<ChunkerBase> chunks,
 		[Optional] CancellationToken cancellationToken)
 	{
-		var entityList = entities.ToList();
-		var chunkList = chunks.ToList();
-
-		if (entityList.Count < 2 || chunkList.Count == 0)
-		{
-			return [];
-		}
-
-		var relationships = new List<Relationship>();
-		var relationshipMap = new Dictionary<string, Relationship>();
-
-		foreach (var chunk in chunkList)
-		{
-			cancellationToken.ThrowIfCancellationRequested();
-
-			foreach (var pair in ExtractorHelpers.GetEntityPairs(entityList, chunk, _maxDistance))
-			{
-				foreach (var detected in DetectRelationships(pair).Where(d => d.Confidence >= _minConfidence))
-				{
-					AddOrUpdateRelationship(relationshipMap, relationships, detected, chunk.Id);
-				}
-			}
-		}
-
-		ExtractorHelpers.NormalizeWeights(relationships);
-
+		var relationships = ExtractorHelpers.CollectRelationships(entities, chunks, _maxDistance, AddDetectedRelationships, cancellationToken);
 		return await Task.FromResult(relationships);
+	}
+
+	private void AddDetectedRelationships(
+		EntityPair pair,
+		Guid chunkId,
+		List<Relationship> relationships,
+		Dictionary<string, Relationship> relationshipMap)
+	{
+		foreach (var detected in DetectRelationships(pair).Where(d => d.Confidence >= _minConfidence))
+		{
+			AddOrUpdateRelationship(relationshipMap, relationships, detected, chunkId);
+		}
 	}
 
 	private List<DetectedRelationship> DetectRelationships(EntityPair pair)
@@ -245,84 +232,5 @@ public class PatternBasedRelationshipExtractor : IRelationshipExtractor
 		}
 
 		return detected;
-	}
-	private static (Entity First, Entity Second, int FirstPos, int SecondPos) OrderByPosition(Entity entity1, Entity entity2, int pos1, int pos2)
-		=> pos1 < pos2 ? (entity1, entity2, pos1, pos2) : (entity2, entity1, pos2, pos1);
-
-	private void AddOrUpdateRelationship(
-		Dictionary<string, Relationship> relationshipMap,
-		List<Relationship> relationships,
-		DetectedRelationship detected,
-		Guid chunkId)
-	{
-		var key = GetRelationshipKey(detected.FromEntityId, detected.ToEntityId, detected.Type);
-
-		if (!relationshipMap.TryGetValue(key, out var relationship))
-		{
-			relationship = new Relationship(
-				detected.FromEntityId,
-				detected.ToEntityId,
-				detected.Type,
-				weight: 1.0,
-				confidence: detected.Confidence)
-			{
-				Bidirectional = !detected.IsDirectional,
-				Metadata = new RelationshipMetadata
-				{
-					ExtractorName = Name,
-					ExtractorVersion = Version,
-					ExtractedAt = DateTimeOffset.UtcNow
-				}
-			};
-
-			relationship.Properties["DetectionMethod"] = "PatternMatching";
-			if (!string.IsNullOrWhiteSpace(detected.PatternName))
-			{
-				relationship.Properties["PatternName"] = detected.PatternName;
-			}
-
-			relationshipMap[key] = relationship;
-			relationships.Add(relationship);
-		}
-		else
-		{
-			// Update existing relationship
-			relationship.Weight += 1.0;
-			relationship.Confidence = Math.Max(relationship.Confidence, detected.Confidence);
-		}
-
-		// Add evidence
-		relationship.AddEvidence(chunkId, detected.Context, detected.Confidence);
-	}
-
-	private static string GetTextBetween(string content, int start, int end, int entityLength)
-	{
-		var extractStart = start + entityLength;
-		var extractEnd = end;
-
-		if (extractStart >= extractEnd || extractStart >= content.Length)
-		{
-			return string.Empty;
-		}
-
-		extractEnd = Math.Min(extractEnd, content.Length);
-		return content[extractStart..extractEnd].Trim();
-	}
-
-	private static string GetRelationshipKey(Guid entityId1, Guid entityId2, RelationshipType type) =>
-		// For directional relationships, order matters
-		$"{entityId1}_{entityId2}_{type}";
-
-	// Helper classes
-
-	private class DetectedRelationship
-	{
-		public required RelationshipType Type { get; init; }
-		public required Guid FromEntityId { get; init; }
-		public required Guid ToEntityId { get; init; }
-		public required double Confidence { get; init; }
-		public required bool IsDirectional { get; init; }
-		public required string Context { get; init; }
-		public string? PatternName { get; init; }
 	}
 }
