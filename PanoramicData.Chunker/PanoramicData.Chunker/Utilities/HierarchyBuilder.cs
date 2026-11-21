@@ -82,12 +82,11 @@ public static class HierarchyBuilder
 		// Populate children
 		foreach (var chunk in chunkList)
 		{
-			if (chunk.ParentId.HasValue && chunkDictionary.TryGetValue(chunk.ParentId.Value, out var parent))
+			if (chunk.ParentId.HasValue
+				&& chunkDictionary.TryGetValue(chunk.ParentId.Value, out var parent)
+				&& parent is StructuralChunk structuralParent)
 			{
-				if (parent is StructuralChunk structuralParent)
-				{
-					structuralParent.Children.Add(chunk);
-				}
+				structuralParent.Children.Add(chunk);
 			}
 		}
 	}
