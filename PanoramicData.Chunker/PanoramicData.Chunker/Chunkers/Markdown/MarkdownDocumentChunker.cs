@@ -37,19 +37,9 @@ public partial class MarkdownDocumentChunker(ITokenCounter tokenCounter) : IDocu
 			return false;
 		}
 
-		try
-		{
-			var buffer = new byte[1024];
-			var position = documentStream.Position;
-			var bytesRead = await documentStream.ReadAsync(buffer, cancellationToken);
-			documentStream.Position = position;
+		var header = await ChunkFactory.PeekAsync(documentStream, 1024, cancellationToken);
 
-			return bytesRead != 0 && HasMarkdownMarkers(System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead));
-		}
-		catch
-		{
-			return false;
-		}
+		return header.Length != 0 && HasMarkdownMarkers(System.Text.Encoding.UTF8.GetString(header));
 	}
 
 	/// <summary>

@@ -38,9 +38,12 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 		Stream documentStream,
 		ChunkingOptions options,
 		CancellationToken cancellationToken)
-		=> ChunkRunner.RunAsync("DOCX", documentStream, options, _chunks, logger, () => ExtractAsync(documentStream, cancellationToken));
+		=> ChunkRunner.RunAsync("DOCX", documentStream, options, _chunks, logger, () => ExtractDocxAsync(documentStream, cancellationToken));
 
-	private async Task ExtractAsync(Stream documentStream, CancellationToken cancellationToken)
+	private static bool CanOpenDocument(Stream documentStream)
+		=> OpenXmlStreamSupport.Opens(documentStream, stream => WordprocessingDocument.Open(stream, false), doc => doc.MainDocumentPart != null);
+
+	private async Task ExtractDocxAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
 		_sequenceNumber = 0;
 
@@ -59,9 +62,6 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 		}
 	}
 
-	private static bool CanOpenDocument(Stream documentStream)
-		=> OpenXmlStreamSupport.Opens(documentStream, stream => WordprocessingDocument.Open(stream, false), doc => doc.MainDocumentPart != null);
-
 	private Body OpenBody(MemoryStream memoryStream)
 	{
 		_document = WordprocessingDocument.Open(memoryStream, false);
@@ -71,14 +71,7 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 			?? throw new InvalidOperationException("Invalid DOCX document: missing body");
 	}
 
-	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => new()
-	{
-		DocumentType = "DOCX",
-		SourceId = string.Empty,
-		Hierarchy = hierarchy,
-		Tags = [.. tags],
-		CreatedAt = DateTimeOffset.UtcNow
-	};
+	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => ChunkFactory.CreateMetadata("DOCX", hierarchy, tags);
 
 	private void ExtractChunks(Body body)
 	{
@@ -224,11 +217,5 @@ public partial class DocxDocumentChunker(ITokenCounter tokenCounter, ILogger<Doc
 			: _chunks.OfType<DocxSectionChunk>().LastOrDefault(s => s.HeadingLevel < headingLevel)?.Id;
 	}
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
-	{
-		TokenCount = _tokenCounter.CountTokens(text),
-		CharacterCount = text.Length,
-		WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-		SemanticCompleteness = 1.0
-	};
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => ChunkFactory.CreateQualityMetrics(_tokenCounter, text, ChunkFactory.CountSpaceSeparatedWords(text));
 }

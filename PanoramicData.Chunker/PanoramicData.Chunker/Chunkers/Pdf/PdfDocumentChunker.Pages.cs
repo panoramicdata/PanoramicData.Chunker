@@ -1,4 +1,5 @@
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Utilities;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
@@ -8,14 +9,7 @@ public partial class PdfDocumentChunker
 {
 	private static readonly string[] HeadingPrefixes = ["Chapter ", "Section ", "Part "];
 
-	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => new()
-	{
-		DocumentType = "PDF",
-		SourceId = string.Empty,
-		Hierarchy = hierarchy,
-		Tags = [.. tags],
-		CreatedAt = DateTimeOffset.UtcNow
-	};
+	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => ChunkFactory.CreateMetadata("PDF", hierarchy, tags);
 
 	private PdfDocumentChunk CreateDocumentChunk(PdfDocument pdf)
 	{
@@ -115,13 +109,7 @@ public partial class PdfDocumentChunker
 	private static int CountWords(string text)
 		=> string.IsNullOrWhiteSpace(text) ? 0 : text.Split([' ', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries).Length;
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
-	{
-		TokenCount = _tokenCounter.CountTokens(text),
-		CharacterCount = text.Length,
-		WordCount = CountWords(text),
-		SemanticCompleteness = 1.0
-	};
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => ChunkFactory.CreateQualityMetrics(_tokenCounter, text, CountWords(text));
 
 	private static DateTime? TryParseDate(string? dateString)
 	{

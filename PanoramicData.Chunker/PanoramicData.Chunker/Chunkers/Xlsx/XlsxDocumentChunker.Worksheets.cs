@@ -116,20 +116,11 @@ public partial class XlsxDocumentChunker
 			SpecificType = "table",
 			SerializedTable = serializedTable,
 			SerializationFormat = TableSerializationFormat.Markdown,
-			TableInfo = new TableMetadata
-			{
-				RowCount = tableData.Count,
-				ColumnCount = headers.Count,
-				Headers = [.. headers],
-				HasHeaderRow = true,
-				HasMergedCells = false,
-				PreferredFormat = TableSerializationFormat.Markdown
-			},
+			TableInfo = TableChunkSupport.CreateInfo(headers, tableData, headers.Count, true, false),
 			Metadata = CreateMetadata(sheetName, $"{sheetName}/table", "table", sheetName)
 		};
 
-		var allText = string.Join(" ", headers) + " " + string.Join(" ", tableData.SelectMany(r => r));
-		tableChunk.QualityMetrics = CalculateQualityMetrics(allText);
+		tableChunk.QualityMetrics = CalculateQualityMetrics(TableChunkSupport.GetAllText(headers, tableData));
 
 		_chunks.Add(tableChunk);
 	}

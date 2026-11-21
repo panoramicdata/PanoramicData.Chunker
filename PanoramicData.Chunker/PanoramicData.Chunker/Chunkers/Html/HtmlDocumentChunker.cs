@@ -35,59 +35,32 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 	/// <inheritdoc/>
 	public async Task<bool> CanHandleAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
-		try
-		{
-			var originalPosition = documentStream.Position;
-
-			// Read first 512 bytes to detect HTML
-			var buffer = new byte[512];
-			var bytesRead = await documentStream.ReadAsync(buffer, cancellationToken);
-
-			documentStream.Position = originalPosition;
-
-			if (bytesRead == 0)
-			{
-				return false;
-			}
-
-			var content = Encoding.UTF8.GetString(buffer, 0, bytesRead).ToLowerInvariant();
-			return HtmlMarkers.Any(content.Contains);
-		}
-		catch
+		// Read first 512 bytes to detect HTML
+		var header = await ChunkFactory.PeekAsync(documentStream, 512, cancellationToken);
+		if (header.Length == 0)
 		{
 			return false;
 		}
+
+		var content = Encoding.UTF8.GetString(header).ToLowerInvariant();
+		return HtmlMarkers.Any(content.Contains);
 	}
 
 	/// <inheritdoc/>
-	public async Task<ChunkingResult> ChunkAsync(
+	public Task<ChunkingResult> ChunkAsync(
 		Stream documentStream,
 		ChunkingOptions options,
 		CancellationToken cancellationToken)
+		=> ChunkRunner.RunAsync("HTML", documentStream, options, _chunks, logger, () => ExtractHtmlAsync(documentStream, cancellationToken));
+
+	private async Task ExtractHtmlAsync(Stream documentStream, CancellationToken cancellationToken)
 	{
-		ArgumentNullException.ThrowIfNull(documentStream);
-		ArgumentNullException.ThrowIfNull(options);
-
-		var startTime = DateTime.UtcNow;
 		_sequenceNumber = 0;
-		_chunks.Clear();
 
-		try
-		{
-			var document = await _parser.ParseDocumentAsync(documentStream, cancellationToken);
-			logger?.LogInformation("Parsed HTML document with {ElementCount} elements", document.All.Length);
+		var document = await _parser.ParseDocumentAsync(documentStream, cancellationToken);
+		logger?.LogInformation("Parsed HTML document with {ElementCount} elements", document.All.Length);
 
-			ExtractChunks(document);
-			HierarchyBuilder.BuildHierarchy(_chunks);
-			logger?.LogInformation("Extracted {ChunkCount} chunks from HTML document", _chunks.Count);
-
-			return ChunkResultHelper.CreateSuccess(_chunks, startTime, options);
-		}
-		catch (Exception ex)
-		{
-			logger?.LogError(ex, "Error chunking HTML document");
-			return ChunkResultHelper.CreateFailure("HTML", ex);
-		}
+		ExtractChunks(document);
 	}
 
 	private void ExtractChunks(IHtmlDocument document)
@@ -222,20 +195,7 @@ public partial class HtmlDocumentChunker(ITokenCounter tokenCounter, ILogger<Htm
 			_ => null
 		};
 
-	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => new()
-	{
-		DocumentType = "HTML",
-		SourceId = string.Empty,
-		Hierarchy = hierarchy,
-		Tags = [.. tags],
-		CreatedAt = DateTimeOffset.UtcNow
-	};
+	private static ChunkMetadata CreateMetadata(string hierarchy, params string[] tags) => ChunkFactory.CreateMetadata("HTML", hierarchy, tags);
 
-	private ChunkQualityMetrics CalculateQualityMetrics(string text) => new()
-	{
-		TokenCount = _tokenCounter.CountTokens(text),
-		CharacterCount = text.Length,
-		WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-		SemanticCompleteness = 1.0
-	};
+	private ChunkQualityMetrics CalculateQualityMetrics(string text) => ChunkFactory.CreateQualityMetrics(_tokenCounter, text, ChunkFactory.CountSpaceSeparatedWords(text));
 }
