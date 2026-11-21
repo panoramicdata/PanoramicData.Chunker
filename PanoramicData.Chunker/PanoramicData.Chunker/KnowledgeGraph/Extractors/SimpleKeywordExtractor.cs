@@ -33,10 +33,10 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 	private static partial Regex WordRegex();
 
 	/// <inheritdoc/>
-	public string Name => "SimpleKeywordExtractor";
+	public string Version => "1.0";
 
 	/// <inheritdoc/>
-	public string Version => "1.0";
+	public string Name => "SimpleKeywordExtractor";
 
 	/// <inheritdoc/>
 	public IReadOnlyList<EntityType> SupportedEntityTypes { get; } = [EntityType.Keyword];
@@ -132,7 +132,10 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 	/// <inheritdoc/>
 	public async Task<List<Entity>> ExtractEntitiesAsync(
 		ChunkerBase chunk,
-		CancellationToken cancellationToken) => await ExtractEntitiesAsync([chunk], cancellationToken);
+		CancellationToken cancellationToken)
+	{
+		return await ExtractEntitiesAsync([chunk], cancellationToken);
+	}
 
 	private Dictionary<string, int> CalculateDocumentFrequencies(List<ChunkerBase> chunks)
 	{

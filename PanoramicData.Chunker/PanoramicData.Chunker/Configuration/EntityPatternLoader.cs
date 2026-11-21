@@ -34,7 +34,10 @@ public class EntityPatternLoader
 	/// <returns>Entity patterns configuration.</returns>
 	public static async Task<EntityPatternsConfiguration> LoadDefaultPatternsAsync(
 		[Optional] CancellationToken cancellationToken)
-		=> await LoadPatternsAsync(PatternLoaderSupport.FindDefaultPath(DefaultPatternsPath, "Entity"), cancellationToken);
+	{
+		var path = PatternLoaderSupport.FindDefaultPath(DefaultPatternsPath, "Entity");
+		return await LoadPatternsAsync(path, cancellationToken);
+	}
 
 	/// <summary>
 	/// Creates a template configuration file for users to customize.
@@ -100,5 +103,7 @@ public class EntityPatternLoader
 		EntityPatternsConfiguration config,
 		string filePath,
 		[Optional] CancellationToken cancellationToken)
-		=> await PatternLoaderSupport.SaveAsync(config, filePath, cancellationToken);
+	{
+		await PatternLoaderSupport.SaveAsync(config, filePath, cancellationToken);
+	}
 }

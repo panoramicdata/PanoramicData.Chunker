@@ -88,4 +88,28 @@ public partial class PlainTextDocumentChunker
 
 		return NumberedSectionRegex().IsMatch(trimmed) || PrefixedHeadingRegex().IsMatch(trimmed);
 	}
+
+	private PlainTextSectionChunk CreateSectionChunk(string headingText, int level, HeadingHeuristic heuristic, double confidence)
+	{
+		var chunk = new PlainTextSectionChunk
+		{
+			Id = Guid.NewGuid(),
+			HeadingText = headingText,
+			HeadingLevel = level,
+			HeadingType = heuristic,
+			Confidence = confidence,
+			SpecificType = $"Heading{level}",
+			Metadata = new ChunkMetadata
+			{
+				DocumentType = "PlainText",
+				SourceId = string.Empty,
+				Hierarchy = headingText,
+				Tags = ["heading", $"level{level}", heuristic.ToString().ToLowerInvariant()],
+				CreatedAt = DateTimeOffset.UtcNow
+			}
+		};
+
+		PopulateQualityMetrics(chunk, headingText);
+		return chunk;
+	}
 }
