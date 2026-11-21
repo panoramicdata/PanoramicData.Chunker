@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Utilities;
 
 namespace PanoramicData.Chunker.Extensions;
 
@@ -68,17 +69,13 @@ public static partial class ChunkQueryExtensions
 	/// Gets root chunks (chunks with no parent).
 	/// </summary>
 	public static IEnumerable<ChunkerBase> RootChunks(this IEnumerable<ChunkerBase> chunks)
-		=> chunks.Where(c => !c.ParentId.HasValue);
+		=> HierarchyBuilder.GetRootChunks(chunks);
 
 	/// <summary>
 	/// Gets leaf chunks (chunks with no children).
 	/// </summary>
 	public static IEnumerable<ChunkerBase> LeafChunks(this IEnumerable<ChunkerBase> chunks)
-	{
-		var chunkList = chunks.ToList();
-		var parentIds = new HashSet<Guid>(chunkList.Where(c => c.ParentId.HasValue).Select(c => c.ParentId!.Value));
-		return chunkList.Where(c => !parentIds.Contains(c.Id));
-	}
+		=> HierarchyBuilder.GetLeafChunks(chunks);
 
 	/// <summary>
 	/// Gets all direct children of a chunk.
