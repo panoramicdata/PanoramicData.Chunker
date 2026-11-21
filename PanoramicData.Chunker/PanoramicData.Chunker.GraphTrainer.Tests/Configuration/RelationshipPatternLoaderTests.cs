@@ -75,28 +75,8 @@ public class RelationshipPatternLoaderTests
 	[Fact]
 	public async Task ValidatePatternsAsync_WithValidFile_ShouldReturnValid()
 	{
-		// Arrange
-		var config = new RelationshipPatternsConfiguration
-		{
-			Version = "2.0",
-			Patterns =
-			[
-				new RelationshipPatternDefinition
-				{
-					Name = "ValidPattern",
-					Regex = @"\b(valid)\b",
-					RelationshipType = "Founded",
-					Confidence = 0.8,
-					IsDirectional = true
-				}
-			]
-		};
-
-		var filePath = Path.Combine(_testDataDirectory, "valid-patterns.json");
-		await RelationshipPatternLoader.SavePatternsAsync(config, filePath);
-
 		// Act
-		var result = await RelationshipPatternLoader.ValidatePatternsAsync(filePath);
+		var result = await ValidateSinglePatternAsync("valid-patterns.json", "ValidPattern", @"\b(valid)\b", "Founded", 0.8);
 
 		// Assert
 		result.IsValid.Should().BeTrue();
@@ -108,28 +88,8 @@ public class RelationshipPatternLoaderTests
 	[Fact]
 	public async Task ValidatePatternsAsync_WithInvalidRegex_ShouldReturnErrors()
 	{
-		// Arrange
-		var config = new RelationshipPatternsConfiguration
-		{
-			Version = "2.0",
-			Patterns =
-			[
-				new RelationshipPatternDefinition
-				{
-					Name = "InvalidPattern",
-					Regex = @"[invalid(regex", // Invalid regex
-					RelationshipType = "Founded",
-					Confidence = 0.8,
-					IsDirectional = true
-				}
-			]
-		};
-
-		var filePath = Path.Combine(_testDataDirectory, "invalid-patterns.json");
-		await RelationshipPatternLoader.SavePatternsAsync(config, filePath);
-
 		// Act
-		var result = await RelationshipPatternLoader.ValidatePatternsAsync(filePath);
+		var result = await ValidateSinglePatternAsync("invalid-patterns.json", "InvalidPattern", @"[invalid(regex", "Founded", 0.8);
 
 		// Assert
 		result.IsValid.Should().BeFalse();
@@ -140,38 +100,29 @@ public class RelationshipPatternLoaderTests
 	[Fact]
 	public async Task ValidatePatternsAsync_WithInvalidConfidence_ShouldReturnErrors()
 	{
-		// Arrange
-		var config = new RelationshipPatternsConfiguration
-		{
-			Version = "2.0",
-			Patterns =
-			[
-				new RelationshipPatternDefinition
-				{
-					Name = "BadConfidence",
-					Regex = @"\b(test)\b",
-					RelationshipType = "Founded",
-					Confidence = 1.5, // Invalid confidence
-					IsDirectional = true
-				}
-			]
-		};
-
-		var filePath = Path.Combine(_testDataDirectory, "bad-confidence.json");
-		await RelationshipPatternLoader.SavePatternsAsync(config, filePath);
-
 		// Act
-		var result = await RelationshipPatternLoader.ValidatePatternsAsync(filePath);
+		var result = await ValidateSinglePatternAsync("bad-confidence.json", "BadConfidence", @"\b(test)\b", "Founded", 1.5);
 
-		// Assert
-		result.IsValid.Should().BeFalse();
-		result.Errors.Should().ContainMatch("*Confidence must be between 0.0 and 1.0*");
+		AssertInvalidWithError(result, "*Confidence must be between 0.0 and 1.0*");
 	}
 
 	[Fact]
 	public async Task ValidatePatternsAsync_WithInvalidRelationshipType_ShouldReturnErrors()
 	{
-		// Arrange
+		// Act
+		var result = await ValidateSinglePatternAsync("bad-type.json", "BadType", @"\b(test)\b", "NonExistentType", 0.8);
+
+		AssertInvalidWithError(result, "*Invalid relationship type*");
+	}
+
+	private static void AssertInvalidWithError(PatternValidationResult result, string errorPattern)
+	{
+		result.IsValid.Should().BeFalse();
+		result.Errors.Should().ContainMatch(errorPattern);
+	}
+
+	private async Task<PatternValidationResult> ValidateSinglePatternAsync(string fileName, string name, string regex, string relationshipType, double confidence)
+	{
 		var config = new RelationshipPatternsConfiguration
 		{
 			Version = "2.0",
@@ -179,26 +130,20 @@ public class RelationshipPatternLoaderTests
 			[
 				new RelationshipPatternDefinition
 				{
-					Name = "BadType",
-					Regex = @"\b(test)\b",
-					RelationshipType = "NonExistentType",
-					Confidence = 0.8,
+					Name = name,
+					Regex = regex,
+					RelationshipType = relationshipType,
+					Confidence = confidence,
 					IsDirectional = true
 				}
 			]
 		};
 
-		var filePath = Path.Combine(_testDataDirectory, "bad-type.json");
+		var filePath = Path.Combine(_testDataDirectory, fileName);
 		await RelationshipPatternLoader.SavePatternsAsync(config, filePath);
 
-		// Act
-		var result = await RelationshipPatternLoader.ValidatePatternsAsync(filePath);
-
-		// Assert
-		result.IsValid.Should().BeFalse();
-		result.Errors.Should().ContainMatch("*Invalid relationship type*");
+		return await RelationshipPatternLoader.ValidatePatternsAsync(filePath);
 	}
-
 	[Fact]
 	public async Task CreateTemplateAsync_ShouldCreateValidTemplate()
 	{

@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using System.Text.Json;
 
 namespace PanoramicData.Chunker.Configuration;
 
@@ -11,14 +10,6 @@ public class EntityPatternLoader
 	protected EntityPatternLoader()
 	{
 	}
-
-	private static readonly JsonSerializerOptions _jsonOptions = new()
-	{
-		PropertyNameCaseInsensitive = true,
-		ReadCommentHandling = JsonCommentHandling.Skip,
-		AllowTrailingCommas = true,
-		WriteIndented = true
-	};
 
 	/// <summary>
 	/// Default path to entity patterns file relative to application directory.
@@ -34,18 +25,7 @@ public class EntityPatternLoader
 	public static async Task<EntityPatternsConfiguration> LoadPatternsAsync(
 		string filePath,
 		[Optional] CancellationToken cancellationToken)
-	{
-		if (!File.Exists(filePath))
-		{
-			throw new FileNotFoundException($"Entity patterns file not found: {filePath}", filePath);
-		}
-
-		var json = await File.ReadAllTextAsync(filePath, cancellationToken);
-		var config = JsonSerializer.Deserialize<EntityPatternsConfiguration>(json, _jsonOptions)
-			?? throw new InvalidOperationException("Failed to deserialize entity patterns configuration");
-
-		return config;
-	}
+		=> await PatternLoaderSupport.ReadAsync<EntityPatternsConfiguration>(filePath, "Entity", cancellationToken);
 
 	/// <summary>
 	/// Loads patterns from default location (Configuration/EntityPatterns.json in app directory).
@@ -54,52 +34,7 @@ public class EntityPatternLoader
 	/// <returns>Entity patterns configuration.</returns>
 	public static async Task<EntityPatternsConfiguration> LoadDefaultPatternsAsync(
 		[Optional] CancellationToken cancellationToken)
-	{
-		// Try multiple locations in order of preference
-		var searchPaths = new[]
-		{
-			// 1. Current directory
-			DefaultPatternsPath,
-			
-			// 2. Application base directory
-			Path.Combine(AppContext.BaseDirectory, DefaultPatternsPath),
-			
-			// 3. Entry assembly directory (for tests)
-			Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location ?? "") ?? "", DefaultPatternsPath),
-			
-			// 4. Executing assembly directory
-			Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "", DefaultPatternsPath)
-		};
-
-		foreach (var path in searchPaths)
-		{
-			if (File.Exists(path))
-			{
-				return await LoadPatternsAsync(path, cancellationToken);
-			}
-		}
-
-		// If not found anywhere, throw with helpful message
-		throw new FileNotFoundException(
-			$"Default entity patterns file not found. Searched locations:\n" +
-			$"{string.Join("\n", searchPaths.Select(p => $"  - {Path.GetFullPath(p)}"))}\n\n" +
-			$"Ensure EntityPatterns.json is copied to the output directory.");
-	}
-
-	/// <summary>
-	/// Saves patterns to a JSON file (for training tools).
-	/// </summary>
-	/// <param name="config">The configuration to save.</param>
-	/// <param name="filePath">Path to save the JSON file.</param>
-	/// <param name="cancellationToken">Cancellation token.</param>
-	public static async Task SavePatternsAsync(
-		EntityPatternsConfiguration config,
-		string filePath,
-		[Optional] CancellationToken cancellationToken)
-	{
-		var json = JsonSerializer.Serialize(config, _jsonOptions);
-		await File.WriteAllTextAsync(filePath, json, cancellationToken);
-	}
+		=> await LoadPatternsAsync(PatternLoaderSupport.FindDefaultPath(DefaultPatternsPath, "Entity"), cancellationToken);
 
 	/// <summary>
 	/// Creates a template configuration file for users to customize.
@@ -130,18 +65,18 @@ public class EntityPatternLoader
 			SentenceStarters = ["The", "In", "On"],
 			ExtractionRules = new ExtractionRules
 			{
-				MinWordLength = 2,
-				MinOccurrences = 1,
-				BaseConfidence = 0.7,
 				ConfidenceBoosts = new ConfidenceBoosts
 				{
-					InDictionary = 0.15,
-					HasTitle = 0.10,
-					MultiWord = 0.10,
-					OrganizationalSuffix = 0.10,
+					MaxFrequencyBoost = 0.20,
 					PerFrequency = 0.05,
-					MaxFrequencyBoost = 0.20
-				}
+					OrganizationalSuffix = 0.10,
+					MultiWord = 0.10,
+					HasTitle = 0.10,
+					InDictionary = 0.15
+				},
+				BaseConfidence = 0.7,
+				MinOccurrences = 1,
+				MinWordLength = 2
 			},
 			TrainingNotes = new EntityTrainingNotes
 			{
@@ -154,4 +89,16 @@ public class EntityPatternLoader
 
 		await SavePatternsAsync(template, filePath, cancellationToken);
 	}
+
+	/// <summary>
+	/// Saves patterns to a JSON file (for training tools).
+	/// </summary>
+	/// <param name="config">The configuration to save.</param>
+	/// <param name="filePath">Path to save the JSON file.</param>
+	/// <param name="cancellationToken">Cancellation token.</param>
+	public static async Task SavePatternsAsync(
+		EntityPatternsConfiguration config,
+		string filePath,
+		[Optional] CancellationToken cancellationToken)
+		=> await PatternLoaderSupport.SaveAsync(config, filePath, cancellationToken);
 }
