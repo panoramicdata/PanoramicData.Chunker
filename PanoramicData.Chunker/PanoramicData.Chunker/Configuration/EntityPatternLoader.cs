@@ -7,14 +7,14 @@ namespace PanoramicData.Chunker.Configuration;
 /// </summary>
 public class EntityPatternLoader
 {
-	protected EntityPatternLoader()
-	{
-	}
-
 	/// <summary>
 	/// Default path to entity patterns file relative to application directory.
 	/// </summary>
 	public static string DefaultPatternsPath { get; } = "Configuration/EntityPatterns.json";
+
+	protected EntityPatternLoader()
+	{
+	}
 
 	/// <summary>
 	/// Loads entity patterns from a JSON file.
@@ -47,51 +47,49 @@ public class EntityPatternLoader
 	public static async Task CreateTemplateAsync(
 		string filePath,
 		[Optional] CancellationToken cancellationToken)
-	{
-		var template = new EntityPatternsConfiguration
-		{
-			Version = "2.0",
-			Description = "Custom entity extraction patterns - Add domain-specific proper nouns here",
-			LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-			ProperNounDictionary = new ProperNounDictionary
-			{
-				People = ["CustomPerson"],
-				Places = ["CustomPlace"],
-				Organizations = ["CustomOrg"]
-			},
-			TitlePrefixes = new Dictionary<string, List<string>>
-			{
-				["custom"] = ["CustomTitle"]
-			},
-			OrganizationalSuffixes = ["CustomSuffix"],
-			AllowedConnectors = ["of", "the", "and"],
-			SentenceStarters = ["The", "In", "On"],
-			ExtractionRules = new ExtractionRules
-			{
-				ConfidenceBoosts = new ConfidenceBoosts
-				{
-					MaxFrequencyBoost = 0.20,
-					PerFrequency = 0.05,
-					OrganizationalSuffix = 0.10,
-					MultiWord = 0.10,
-					HasTitle = 0.10,
-					InDictionary = 0.15
-				},
-				BaseConfidence = 0.7,
-				MinOccurrences = 1,
-				MinWordLength = 2
-			},
-			TrainingNotes = new EntityTrainingNotes
-			{
-				Instructions = "Add commonly occurring proper nouns to the dictionaries",
-				DictionaryMaintenance = "Review extracted entities regularly and add high-frequency ones",
-				CategoryClassification = "Classify entities by type for better accuracy",
-				PerformanceMonitoring = "Track precision/recall and adjust thresholds"
-			}
-		};
+		=> await SavePatternsAsync(BuildTemplate(), filePath, cancellationToken);
 
-		await SavePatternsAsync(template, filePath, cancellationToken);
-	}
+	private static EntityPatternsConfiguration BuildTemplate() => new()
+	{
+		Description = "Custom entity extraction patterns - Add domain-specific proper nouns here",
+		Version = "2.0",
+		LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+		ProperNounDictionary = new ProperNounDictionary
+		{
+			People = ["CustomPerson"],
+			Places = ["CustomPlace"],
+			Organizations = ["CustomOrg"]
+		},
+		TitlePrefixes = new Dictionary<string, List<string>>
+		{
+			["custom"] = ["CustomTitle"]
+		},
+		OrganizationalSuffixes = ["CustomSuffix"],
+		AllowedConnectors = ["of", "the", "and"],
+		SentenceStarters = ["The", "In", "On"],
+		ExtractionRules = new ExtractionRules
+		{
+			ConfidenceBoosts = new ConfidenceBoosts
+			{
+				MaxFrequencyBoost = 0.20,
+				PerFrequency = 0.05,
+				OrganizationalSuffix = 0.10,
+				MultiWord = 0.10,
+				HasTitle = 0.10,
+				InDictionary = 0.15
+			},
+			BaseConfidence = 0.7,
+			MinOccurrences = 1,
+			MinWordLength = 2
+		},
+		TrainingNotes = new EntityTrainingNotes
+		{
+			Instructions = "Add commonly occurring proper nouns to the dictionaries",
+			DictionaryMaintenance = "Review extracted entities regularly and add high-frequency ones",
+			CategoryClassification = "Classify entities by type for better accuracy",
+			PerformanceMonitoring = "Track precision/recall and adjust thresholds"
+		}
+	};
 
 	/// <summary>
 	/// Saves patterns to a JSON file (for training tools).
