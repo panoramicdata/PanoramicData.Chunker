@@ -233,4 +233,17 @@ public partial class PatternBasedRelationshipExtractor : IRelationshipExtractor
 
 		return detected;
 	}
+
+	// Helper classes
+
+	private class DetectedRelationship
+	{
+		public required RelationshipType Type { get; init; }
+		public required Guid FromEntityId { get; init; }
+		public required Guid ToEntityId { get; init; }
+		public required double Confidence { get; init; }
+		public required bool IsDirectional { get; init; }
+		public required string Context { get; init; }
+		public string? PatternName { get; init; }
+	}
 }
