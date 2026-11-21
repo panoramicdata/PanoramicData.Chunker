@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace PanoramicData.Chunker.Configuration;
 
@@ -49,48 +50,43 @@ public class EntityPatternLoader
 		[Optional] CancellationToken cancellationToken)
 		=> await SavePatternsAsync(BuildTemplate(), filePath, cancellationToken);
 
-	private static EntityPatternsConfiguration BuildTemplate() => new()
-	{
-		Description = "Custom entity extraction patterns - Add domain-specific proper nouns here",
-		Version = "2.0",
-		LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-		ProperNounDictionary = new ProperNounDictionary
+	private const string TemplateJson = """
 		{
-			People = ["CustomPerson"],
-			Places = ["CustomPlace"],
-			Organizations = ["CustomOrg"]
-		},
-		TitlePrefixes = new Dictionary<string, List<string>>
-		{
-			["custom"] = ["CustomTitle"]
-		},
-		OrganizationalSuffixes = ["CustomSuffix"],
-		AllowedConnectors = ["of", "the", "and"],
-		SentenceStarters = ["The", "In", "On"],
-		ExtractionRules = new ExtractionRules
-		{
-			ConfidenceBoosts = new ConfidenceBoosts
-			{
-				MaxFrequencyBoost = 0.20,
-				PerFrequency = 0.05,
-				OrganizationalSuffix = 0.10,
-				MultiWord = 0.10,
-				HasTitle = 0.10,
-				InDictionary = 0.15
+			"Version": "2.0",
+			"Description": "Custom entity extraction patterns - Add domain-specific proper nouns here",
+			"ProperNounDictionary": { "People": ["CustomPerson"], "Places": ["CustomPlace"], "Organizations": ["CustomOrg"] },
+			"TitlePrefixes": { "custom": ["CustomTitle"] },
+			"OrganizationalSuffixes": ["CustomSuffix"],
+			"AllowedConnectors": ["of", "the", "and"],
+			"SentenceStarters": ["The", "In", "On"],
+			"ExtractionRules": {
+				"MinWordLength": 2,
+				"MinOccurrences": 1,
+				"BaseConfidence": 0.7,
+				"ConfidenceBoosts": {
+					"InDictionary": 0.15,
+					"HasTitle": 0.1,
+					"MultiWord": 0.1,
+					"OrganizationalSuffix": 0.1,
+					"PerFrequency": 0.05,
+					"MaxFrequencyBoost": 0.2
+				}
 			},
-			BaseConfidence = 0.7,
-			MinOccurrences = 1,
-			MinWordLength = 2
-		},
-		TrainingNotes = new EntityTrainingNotes
-		{
-			Instructions = "Add commonly occurring proper nouns to the dictionaries",
-			DictionaryMaintenance = "Review extracted entities regularly and add high-frequency ones",
-			CategoryClassification = "Classify entities by type for better accuracy",
-			PerformanceMonitoring = "Track precision/recall and adjust thresholds"
+			"TrainingNotes": {
+				"Instructions": "Add commonly occurring proper nouns to the dictionaries",
+				"DictionaryMaintenance": "Review extracted entities regularly and add high-frequency ones",
+				"CategoryClassification": "Classify entities by type for better accuracy",
+				"PerformanceMonitoring": "Track precision/recall and adjust thresholds"
+			}
 		}
-	};
+		""";
 
+	private static EntityPatternsConfiguration BuildTemplate()
+	{
+		var template = JsonSerializer.Deserialize<EntityPatternsConfiguration>(TemplateJson)!;
+		template.LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd");
+		return template;
+	}
 	/// <summary>
 	/// Saves patterns to a JSON file (for training tools).
 	/// </summary>
