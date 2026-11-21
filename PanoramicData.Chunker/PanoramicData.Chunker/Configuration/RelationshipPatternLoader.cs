@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace PanoramicData.Chunker.Configuration;
@@ -13,14 +12,6 @@ public class RelationshipPatternLoader
 	protected RelationshipPatternLoader()
 	{
 	}
-
-	private static readonly JsonSerializerOptions _jsonOptions = new()
-	{
-		PropertyNameCaseInsensitive = true,
-		ReadCommentHandling = JsonCommentHandling.Skip,
-		AllowTrailingCommas = true,
-		WriteIndented = true // For when users edit the files
-	};
 
 	/// <summary>
 	/// Default path to relationship patterns file relative to application directory.
@@ -37,14 +28,7 @@ public class RelationshipPatternLoader
 		string filePath,
 		[Optional] CancellationToken cancellationToken)
 	{
-		if (!File.Exists(filePath))
-		{
-			throw new FileNotFoundException($"Relationship patterns file not found: {filePath}", filePath);
-		}
-
-		var json = await File.ReadAllTextAsync(filePath, cancellationToken);
-		var config = JsonSerializer.Deserialize<RelationshipPatternsConfiguration>(json, _jsonOptions)
-			?? throw new InvalidOperationException("Failed to deserialize relationship patterns configuration");
+		var config = await PatternLoaderSupport.ReadAsync<RelationshipPatternsConfiguration>(filePath, "Relationship", cancellationToken);
 
 		// Validate version
 		if (string.IsNullOrWhiteSpace(config.Version))
@@ -100,37 +84,7 @@ public class RelationshipPatternLoader
 	/// <returns>Compiled relationship patterns.</returns>
 	public static async Task<List<CompiledRelationshipPattern>> LoadDefaultPatternsAsync(
 		[Optional] CancellationToken cancellationToken)
-	{
-		// Try multiple locations in order of preference
-		var searchPaths = new[]
-		{
-			// 1. Current directory
-			DefaultPatternsPath,
-			
-			// 2. Application base directory
-			Path.Combine(AppContext.BaseDirectory, DefaultPatternsPath),
-			
-			// 3. Entry assembly directory (for tests)
-			Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location ?? "") ?? "", DefaultPatternsPath),
-			
-			// 4. Executing assembly directory
-			Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "", DefaultPatternsPath)
-		};
-
-		foreach (var path in searchPaths)
-		{
-			if (File.Exists(path))
-			{
-				return await LoadPatternsAsync(path, cancellationToken);
-			}
-		}
-
-		// If not found anywhere, throw with helpful message
-		throw new FileNotFoundException(
-			$"Default relationship patterns file not found. Searched locations:\n" +
-			$"{string.Join("\n", searchPaths.Select(p => $"  - {Path.GetFullPath(p)}"))}\n\n" +
-			$"Ensure RelationshipPatterns.json is copied to the output directory.");
-	}
+		=> await LoadPatternsAsync(PatternLoaderSupport.FindDefaultPath(DefaultPatternsPath, "Relationship"), cancellationToken);
 
 	/// <summary>
 	/// Validates pattern configuration without loading.
@@ -153,8 +107,7 @@ public class RelationshipPatternLoader
 				return result;
 			}
 
-			var json = await File.ReadAllTextAsync(filePath, cancellationToken);
-			var config = JsonSerializer.Deserialize<RelationshipPatternsConfiguration>(json, _jsonOptions);
+			var config = await PatternLoaderSupport.TryReadAsync<RelationshipPatternsConfiguration>(filePath, cancellationToken);
 
 			if (config == null)
 			{
@@ -215,10 +168,7 @@ public class RelationshipPatternLoader
 		RelationshipPatternsConfiguration config,
 		string filePath,
 		[Optional] CancellationToken cancellationToken)
-	{
-		var json = JsonSerializer.Serialize(config, _jsonOptions);
-		await File.WriteAllTextAsync(filePath, json, cancellationToken);
-	}
+		=> await PatternLoaderSupport.SaveAsync(config, filePath, cancellationToken);
 
 	/// <summary>
 	/// Creates a template configuration file for users to customize.
@@ -238,27 +188,27 @@ public class RelationshipPatternLoader
 			[
 				new RelationshipPatternDefinition
 				{
-					Name = "CustomPattern",
-					Regex = @"\b(custom|example)\b",
-					RelationshipType = "RelatedTo",
-					Confidence = 0.8,
-					IsDirectional = false,
-					Description = "Example pattern - replace with your own",
-					Examples = ["Entity1 custom Entity2"],
+					Enabled = false,
 					Category = "Custom",
-					Enabled = false
+					Examples = ["Entity1 custom Entity2"],
+					Description = "Example pattern - replace with your own",
+					IsDirectional = false,
+					Confidence = 0.8,
+					RelationshipType = "RelatedTo",
+					Regex = @"\b(custom|example)\b",
+					Name = "CustomPattern"
 				}
 			],
+			TrainingNotes = new TrainingNotes
+			{
+				TestingStrategy = "Test against ground truth and adjust confidence based on metrics",
+				ConfidenceScoring = "Use 0.9-1.0 for very specific patterns, 0.5-0.7 for generic ones",
+				PatternDesign = "Make patterns specific enough to avoid false positives",
+				Instructions = "Add new patterns based on observed relationships in your documents"
+			},
 			Categories = new Dictionary<string, string>
 			{
 				["Custom"] = "Custom patterns for your domain"
-			},
-			TrainingNotes = new TrainingNotes
-			{
-				Instructions = "Add new patterns based on observed relationships in your documents",
-				PatternDesign = "Make patterns specific enough to avoid false positives",
-				ConfidenceScoring = "Use 0.9-1.0 for very specific patterns, 0.5-0.7 for generic ones",
-				TestingStrategy = "Test against ground truth and adjust confidence based on metrics"
 			}
 		};
 

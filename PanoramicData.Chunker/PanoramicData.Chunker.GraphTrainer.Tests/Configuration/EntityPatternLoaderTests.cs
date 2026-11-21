@@ -16,6 +16,13 @@ public class EntityPatternLoaderTests
 		Directory.CreateDirectory(_testDataDirectory);
 	}
 
+	private async Task<EntityPatternsConfiguration> SaveAndLoadAsync(EntityPatternsConfiguration config, string fileName)
+	{
+		var filePath = Path.Combine(_testDataDirectory, fileName);
+		await EntityPatternLoader.SavePatternsAsync(config, filePath);
+
+		return await EntityPatternLoader.LoadPatternsAsync(filePath);
+	}
 	[Fact]
 	public async Task LoadDefaultPatternsAsync_ShouldLoadConfiguration()
 	{
@@ -24,13 +31,13 @@ public class EntityPatternLoaderTests
 
 		// Assert
 		config.Should().NotBeNull();
-		config.Version.Should().NotBeNullOrEmpty();
-		config.ProperNounDictionary.Should().NotBeNull();
-		config.TitlePrefixes.Should().NotBeNull();
-		config.OrganizationalSuffixes.Should().NotBeNull();
-		config.AllowedConnectors.Should().NotBeNull();
-		config.SentenceStarters.Should().NotBeNull();
 		config.ExtractionRules.Should().NotBeNull();
+		config.SentenceStarters.Should().NotBeNull();
+		config.AllowedConnectors.Should().NotBeNull();
+		config.OrganizationalSuffixes.Should().NotBeNull();
+		config.TitlePrefixes.Should().NotBeNull();
+		config.ProperNounDictionary.Should().NotBeNull();
+		config.Version.Should().NotBeNullOrEmpty();
 	}
 
 	[Fact]
@@ -58,11 +65,8 @@ public class EntityPatternLoaderTests
 			ExtractionRules = CreateExtractionRules()
 		};
 
-		var filePath = Path.Combine(_testDataDirectory, "test-entities.json");
-		await EntityPatternLoader.SavePatternsAsync(config, filePath);
-
 		// Act
-		var loaded = await EntityPatternLoader.LoadPatternsAsync(filePath);
+		var loaded = await SaveAndLoadAsync(config, "test-entities.json");
 
 		// Assert
 		loaded.Should().NotBeNull();
@@ -235,11 +239,8 @@ public class EntityPatternLoaderTests
 			// All other fields are optional
 		};
 
-		var filePath = Path.Combine(_testDataDirectory, "minimal-config.json");
-		await EntityPatternLoader.SavePatternsAsync(config, filePath);
-
 		// Act
-		var loaded = await EntityPatternLoader.LoadPatternsAsync(filePath);
+		var loaded = await SaveAndLoadAsync(config, "minimal-config.json");
 
 		// Assert
 		loaded.Should().NotBeNull();
@@ -255,26 +256,23 @@ public class EntityPatternLoaderTests
 			Version = "2.0",
 			ExtractionRules = new ExtractionRules
 			{
-				MinWordLength = 3,
-				MinOccurrences = 2,
 				BaseConfidence = 0.8,
 				ConfidenceBoosts = new ConfidenceBoosts
 				{
-					InDictionary = 0.20,
-					HasTitle = 0.15,
-					MultiWord = 0.12,
-					OrganizationalSuffix = 0.11,
 					PerFrequency = 0.03,
-					MaxFrequencyBoost = 0.25
-				}
+					InDictionary = 0.20,
+					MaxFrequencyBoost = 0.25,
+					HasTitle = 0.15,
+					OrganizationalSuffix = 0.11,
+					MultiWord = 0.12
+				},
+				MinOccurrences = 2,
+				MinWordLength = 3
 			}
 		};
 
-		var filePath = Path.Combine(_testDataDirectory, "extraction-rules.json");
-		await EntityPatternLoader.SavePatternsAsync(config, filePath);
-
 		// Act
-		var loaded = await EntityPatternLoader.LoadPatternsAsync(filePath);
+		var loaded = await SaveAndLoadAsync(config, "extraction-rules.json");
 
 		// Assert
 		loaded.ExtractionRules.Should().NotBeNull();
@@ -299,11 +297,8 @@ public class EntityPatternLoaderTests
 			}
 		};
 
-		var filePath = Path.Combine(_testDataDirectory, "case-test.json");
-		await EntityPatternLoader.SavePatternsAsync(config, filePath);
-
 		// Act
-		var loaded = await EntityPatternLoader.LoadPatternsAsync(filePath);
+		var loaded = await SaveAndLoadAsync(config, "case-test.json");
 		var allNouns = loaded.GetAllProperNouns();
 
 		// Assert
