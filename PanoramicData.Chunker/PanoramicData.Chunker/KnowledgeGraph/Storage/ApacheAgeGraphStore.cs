@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using PanoramicData.Chunker.Interfaces.KnowledgeGraph;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
 using System.Text.Json;
@@ -89,7 +90,7 @@ public partial class ApacheAgeGraphStore(
 		return await WithConnectionAsync<Graph?>(
 			async connection =>
 			{
-				await using var cmd = CreateCommand(connection, "SELECT id FROM age_graph_metadata WHERE name = @name", ("name", name));
+				await using var cmd = Bind(new NpgsqlCommand("SELECT id FROM age_graph_metadata WHERE name = @name", connection), ("name", name));
 				await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 				if (await reader.ReadAsync(cancellationToken))
 				{
@@ -113,10 +114,10 @@ public partial class ApacheAgeGraphStore(
 			async connection =>
 			{
 				// Relationships first (FK constraints), then entities, then the graph itself
-				await ExecuteAsync(connection, "DELETE FROM age_relationships WHERE graph_id = @graphId", cancellationToken, ("graphId", graphId));
-				await ExecuteAsync(connection, "DELETE FROM age_entities WHERE graph_id = @graphId", cancellationToken, ("graphId", graphId));
+				await ExecuteAsync(Bind(new NpgsqlCommand("DELETE FROM age_relationships WHERE graph_id = @graphId", connection), ("graphId", graphId)), cancellationToken);
+				await ExecuteAsync(Bind(new NpgsqlCommand("DELETE FROM age_entities WHERE graph_id = @graphId", connection), ("graphId", graphId)), cancellationToken);
 
-				var rowsAffected = await ExecuteAsync(connection, "DELETE FROM age_graph_metadata WHERE id = @graphId", cancellationToken, ("graphId", graphId));
+				var rowsAffected = await ExecuteAsync(Bind(new NpgsqlCommand("DELETE FROM age_graph_metadata WHERE id = @graphId", connection), ("graphId", graphId)), cancellationToken);
 				if (rowsAffected == 0)
 				{
 					_logger.LogWarning("Graph {GraphId} not found for deletion", graphId);
@@ -132,7 +133,7 @@ public partial class ApacheAgeGraphStore(
 		=> await WithConnectionAsync(
 			async connection =>
 			{
-				await using var cmd = CreateCommand(connection, "SELECT EXISTS(SELECT 1 FROM age_graph_metadata WHERE id = @graphId)", ("graphId", graphId));
+				await using var cmd = Bind(new NpgsqlCommand("SELECT EXISTS(SELECT 1 FROM age_graph_metadata WHERE id = @graphId)", connection), ("graphId", graphId));
 				var result = await cmd.ExecuteScalarAsync(cancellationToken);
 				return result is bool exists && exists;
 			},
@@ -146,7 +147,7 @@ public partial class ApacheAgeGraphStore(
 		return await WithConnectionAsync(
 			async connection =>
 			{
-				await using var cmd = CreateCommand(connection, "SELECT metadata FROM age_graph_metadata");
+				await using var cmd = new NpgsqlCommand("SELECT metadata FROM age_graph_metadata", connection);
 				var all = await ReadAllAsync(cmd, reader => JsonSerializer.Deserialize<GraphMetadata>(reader.GetString(0)), cancellationToken);
 				var graphs = all.OfType<GraphMetadata>().ToList();
 
@@ -172,16 +173,16 @@ public partial class ApacheAgeGraphStore(
 				properties = EXCLUDED.properties";
 
 		await ExecuteAsync(
-			connection,
-			sql,
-			cancellationToken,
-			("id", entity.Id),
-			("graphId", graphId),
-			("name", entity.Name),
-			("type", entity.Type.ToString()),
-			("confidence", entity.Confidence),
-			("frequency", entity.Frequency),
-			("properties", JsonSerializer.Serialize(entity.Properties)));
+			Bind(
+				new NpgsqlCommand(sql, connection),
+				("id", entity.Id),
+				("graphId", graphId),
+				("name", entity.Name),
+				("type", entity.Type.ToString()),
+				("confidence", entity.Confidence),
+				("frequency", entity.Frequency),
+				("properties", JsonSerializer.Serialize(entity.Properties))),
+			cancellationToken);
 	}
 
 	public async Task SaveRelationshipAsync(Guid graphId, Relationship relationship, CancellationToken cancellationToken)
@@ -197,17 +198,17 @@ public partial class ApacheAgeGraphStore(
 				properties = EXCLUDED.properties";
 
 		await ExecuteAsync(
-			connection,
-			sql,
-			cancellationToken,
-			("id", relationship.Id),
-			("graphId", graphId),
-			("fromId", relationship.FromEntityId),
-			("toId", relationship.ToEntityId),
-			("type", relationship.Type.ToString()),
-			("weight", relationship.Weight),
-			("confidence", relationship.Confidence),
-			("properties", JsonSerializer.Serialize(relationship.Properties)));
+			Bind(
+				new NpgsqlCommand(sql, connection),
+				("id", relationship.Id),
+				("graphId", graphId),
+				("fromId", relationship.FromEntityId),
+				("toId", relationship.ToEntityId),
+				("type", relationship.Type.ToString()),
+				("weight", relationship.Weight),
+				("confidence", relationship.Confidence),
+				("properties", JsonSerializer.Serialize(relationship.Properties))),
+			cancellationToken);
 	}
 
 	public async Task<List<Entity>> QueryEntitiesByTypeAsync(Guid graphId, EntityType entityType, CancellationToken cancellationToken)
@@ -217,9 +218,8 @@ public partial class ApacheAgeGraphStore(
 		return await WithConnectionAsync(
 			async connection =>
 			{
-				await using var cmd = CreateCommand(
-					connection,
-					$"{SelectEntitiesSql} AND type = @type",
+				await using var cmd = Bind(
+					new NpgsqlCommand(SelectEntitiesByTypeSql, connection),
 					("graphId", graphId),
 					("type", entityType.ToString()));
 				var entities = await ReadAllAsync(cmd, ReadEntity, cancellationToken);
@@ -238,9 +238,8 @@ public partial class ApacheAgeGraphStore(
 		return await WithConnectionAsync(
 			async connection =>
 			{
-				await using var cmd = CreateCommand(
-					connection,
-					$"{SelectRelationshipsSql} AND type = @type",
+				await using var cmd = Bind(
+					new NpgsqlCommand(SelectRelationshipsByTypeSql, connection),
 					("graphId", graphId),
 					("type", relationshipType.ToString()));
 				var relationships = await ReadAllAsync(cmd, ReadRelationship, cancellationToken);

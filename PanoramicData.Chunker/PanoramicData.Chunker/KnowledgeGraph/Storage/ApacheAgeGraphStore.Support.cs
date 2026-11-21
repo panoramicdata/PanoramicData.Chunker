@@ -11,6 +11,10 @@ public partial class ApacheAgeGraphStore
 
 	private const string SelectRelationshipsSql = "SELECT id, from_entity_id, to_entity_id, type, weight, confidence, properties FROM age_relationships WHERE graph_id = @graphId";
 
+	private const string SelectEntitiesByTypeSql = SelectEntitiesSql + " AND type = @type";
+
+	private const string SelectRelationshipsByTypeSql = SelectRelationshipsSql + " AND type = @type";
+
 	private async Task<NpgsqlConnection> OpenInitializedAsync(CancellationToken cancellationToken)
 	{
 		var connection = new NpgsqlConnection(_connectionString);
@@ -76,9 +80,8 @@ public partial class ApacheAgeGraphStore
 		}
 	}
 
-	private static NpgsqlCommand CreateCommand(NpgsqlConnection connection, string sql, params (string Name, object Value)[] parameters)
+	private static NpgsqlCommand Bind(NpgsqlCommand cmd, params (string Name, object Value)[] parameters)
 	{
-		var cmd = new NpgsqlCommand(sql, connection);
 		foreach (var (name, value) in parameters)
 		{
 			cmd.Parameters.AddWithValue(name, value);
@@ -87,13 +90,9 @@ public partial class ApacheAgeGraphStore
 		return cmd;
 	}
 
-	private static async Task<int> ExecuteAsync(
-		NpgsqlConnection connection,
-		string sql,
-		CancellationToken cancellationToken,
-		params (string Name, object Value)[] parameters)
+	private static async Task<int> ExecuteAsync(NpgsqlCommand command, CancellationToken cancellationToken)
 	{
-		await using var cmd = CreateCommand(connection, sql, parameters);
+		await using var cmd = command;
 		return await cmd.ExecuteNonQueryAsync(cancellationToken);
 	}
 
@@ -198,7 +197,7 @@ public partial class ApacheAgeGraphStore
 		";
 
 	private static async Task CreateMetadataTableIfNotExistsAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
-		=> await ExecuteAsync(connection, CreateMetadataTablesSql, cancellationToken);
+		=> await ExecuteAsync(new NpgsqlCommand(CreateMetadataTablesSql, connection), cancellationToken);
 
 	private static async Task SaveGraphMetadataAsync(NpgsqlConnection connection, Graph graph, CancellationToken cancellationToken)
 	{
@@ -226,7 +225,7 @@ public partial class ApacheAgeGraphStore
 	{
 		var sql = "SELECT id, name, description, version, created_at, metadata FROM age_graph_metadata WHERE id = @id";
 
-		await using var cmd = CreateCommand(connection, sql, ("id", graphId));
+		await using var cmd = Bind(new NpgsqlCommand(sql, connection), ("id", graphId));
 		await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 		if (await reader.ReadAsync(cancellationToken))
 		{
@@ -246,13 +245,13 @@ public partial class ApacheAgeGraphStore
 
 	private static async Task<List<Entity>> LoadEntitiesAsync(NpgsqlConnection connection, Guid graphId, CancellationToken cancellationToken)
 	{
-		await using var cmd = CreateCommand(connection, SelectEntitiesSql, ("graphId", graphId));
+		await using var cmd = Bind(new NpgsqlCommand(SelectEntitiesSql, connection), ("graphId", graphId));
 		return await ReadAllAsync(cmd, ReadEntity, cancellationToken);
 	}
 
 	private static async Task<List<Relationship>> LoadRelationshipsAsync(NpgsqlConnection connection, Guid graphId, CancellationToken cancellationToken)
 	{
-		await using var cmd = CreateCommand(connection, SelectRelationshipsSql, ("graphId", graphId));
+		await using var cmd = Bind(new NpgsqlCommand(SelectRelationshipsSql, connection), ("graphId", graphId));
 		return await ReadAllAsync(cmd, ReadRelationship, cancellationToken);
 	}
 }
