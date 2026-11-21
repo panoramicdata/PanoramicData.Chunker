@@ -17,7 +17,7 @@ internal sealed record EntityPair(
 /// <summary>
 /// Shared logic for the relationship extractors.
 /// </summary>
-internal static class ExtractorHelpers
+internal static partial class ExtractorHelpers
 {
 	public static string GetChunkContent(ChunkerBase chunk)
 		=> chunk is ContentChunk contentChunk ? contentChunk.Content : string.Empty;

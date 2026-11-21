@@ -178,13 +178,7 @@ public class HybridEntityExtractor(
 	/// <returns>List of alias variations.</returns>
 	private static List<string> GenerateNameAliases(string name)
 	{
-		var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-		// Remove quotes if present (e.g., "'Beagle'" → "Beagle")
-		if (name.Contains('\'') || name.Contains('"'))
-		{
-			aliases.Add(name.Replace("'", "").Replace("\"", ""));
-		}
+		var aliases = ExtractorHelpers.CreateAliasSet(name);
 
 		// HMS prefix variations (e.g., "HMS Beagle" → "Beagle")
 		if (name.StartsWith("HMS ", StringComparison.OrdinalIgnoreCase))
@@ -194,15 +188,8 @@ public class HybridEntityExtractor(
 
 		aliases.UnionWith(GetEdgeWordAliases(name));
 
-		// Title prefixes: "Professor Jameson" → "Jameson"
-		foreach (var prefix in TitlePrefixes.Where(prefix => name.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase)))
-		{
-			aliases.Add(name[(prefix.Length + 1)..]);
-		}
+		ExtractorHelpers.AddTitleAliases(aliases, name, TitlePrefixes);
 
-		// Remove the original name from aliases (we don't need it as an alias of itself)
-		aliases.Remove(name);
-
-		return [.. aliases.Where(a => !string.IsNullOrWhiteSpace(a))];
+		return ExtractorHelpers.FinishAliases(aliases, name);
 	}
 }

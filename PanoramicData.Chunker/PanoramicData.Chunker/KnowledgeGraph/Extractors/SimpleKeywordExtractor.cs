@@ -61,7 +61,7 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			var content = GetChunkContent(chunk);
+			var content = ExtractorHelpers.GetChunkContent(chunk);
 			if (!string.IsNullOrWhiteSpace(content))
 			{
 				AddChunkKeywords(chunk, content, documentFrequencies, chunkList.Count, entityMap, entities);
@@ -99,7 +99,7 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 			var position = content.IndexOf(term, StringComparison.OrdinalIgnoreCase);
 			if (position >= 0)
 			{
-				entityMap[term.ToLowerInvariant()].AddSource(chunk.Id, position, GetContext(content, position, term.Length));
+				entityMap[term.ToLowerInvariant()].AddSource(chunk.Id, position, ExtractorHelpers.GetSnippet(content, position, term.Length, 50));
 			}
 		}
 	}
@@ -127,17 +127,7 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 		entityMap[normalizedTerm] = entity;
 		entities.Add(entity);
 	}
-	private static string GetChunkContent(ChunkerBase chunk)
-	{
-		// Try to get content from different chunk types
-		if (chunk is ContentChunk contentChunk)
-		{
-			return contentChunk.Content;
-		}
 
-		// For other chunk types, return empty string
-		return string.Empty;
-	}
 
 	/// <inheritdoc/>
 	public async Task<List<Entity>> ExtractEntitiesAsync(
@@ -150,7 +140,7 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 
 		foreach (var chunk in chunks)
 		{
-			var content = GetChunkContent(chunk);
+			var content = ExtractorHelpers.GetChunkContent(chunk);
 			var uniqueTerms = ExtractTerms(content).Distinct(StringComparer.OrdinalIgnoreCase);
 			foreach (var term in uniqueTerms)
 			{
@@ -214,23 +204,5 @@ public partial class SimpleKeywordExtractor(int maxKeywords = 10, int minWordLen
 			.ToList();
 
 		return words;
-	}
-
-	private static string GetContext(string text, int position, int length, int contextSize = 50)
-	{
-		var start = Math.Max(0, position - contextSize);
-		var end = Math.Min(text.Length, position + length + contextSize);
-		var context = text[start..end];
-
-		if (start > 0)
-		{
-			context = "..." + context;
-		}
-		if (end < text.Length)
-		{
-			context += "...";
-		}
-
-		return context;
 	}
 }
