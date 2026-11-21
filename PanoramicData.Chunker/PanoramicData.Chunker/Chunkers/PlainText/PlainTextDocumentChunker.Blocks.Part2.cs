@@ -1,40 +1,47 @@
+using PanoramicData.Chunker.Models;
+using System.Text.RegularExpressions;
 
 namespace PanoramicData.Chunker.Chunkers.PlainText;
 
 public partial class PlainTextDocumentChunker
 {
-	private static PlainTextCodeBlockChunk? DetectIndentedCodeBlock(string[] lines, ref int index)
+	private static int GetIndentation(string line)
 	{
-		var indent = GetIndentation(lines[index]);
-
-		if (indent < 4)
+		var count = 0;
+		foreach (var c in line)
 		{
-			return null;
+			if (c is not (' ' or '\t'))
+			{
+				break;
+			}
+
+			count += c == '\t' ? 4 : 1;
 		}
 
-		var startIndex = index;
-		var codeLines = CollectIndentedLines(lines, ref index, indent);
-
-		if (codeLines.Count < 2)
-		{
-			index = startIndex;
-			return null;
-		}
-
-		var code = string.Join("\n", codeLines);
-
-		return new PlainTextCodeBlockChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = code,
-			Language = null,
-			IsFenced = false,
-			IndentationLevel = indent,
-			CodeIndicators = DetectCodeIndicators(code),
-			SpecificType = "CodeBlock",
-			Metadata = CreateMetadata("code", "indented")
-		};
+		return count;
 	}
+
+	private static List<string> DetectCodeIndicators(string code)
+		=> [.. CodeKeywords.Where(keyword => code.Contains(keyword, StringComparison.OrdinalIgnoreCase))];
+
+	[GeneratedRegex(@"^(?<marker>[-*•])\s+(?<text>.+)$")]
+	private static partial Regex BulletListRegex();
+
+	[GeneratedRegex(@"^(?<marker>\d+[.)])\s+(?<text>.+)$")]
+	private static partial Regex NumberedListRegex();
+
+	private void PopulateQualityMetrics(ChunkerBase chunk, string text) => chunk.QualityMetrics = new ChunkQualityMetrics
+	{
+		TokenCount = _tokenCounter.CountTokens(text),
+		CharacterCount = text.Length,
+		WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
+		SemanticCompleteness = 1.0
+	};
+	private static bool StartsNewBlock(string line)
+		=> LooksLikeHeading(line)
+			|| BulletListRegex().IsMatch(line.TrimStart())
+			|| NumberedListRegex().IsMatch(line.TrimStart())
+			|| GetIndentation(line) >= 4;
 
 	private static PlainTextParagraphChunk? DetectParagraph(string[] lines, ref int index)
 	{
@@ -67,33 +74,6 @@ public partial class PlainTextDocumentChunker
 			SpecificType = "Paragraph",
 			Metadata = CreateMetadata("paragraph")
 		};
-	}
-
-	private static List<string> CollectIndentedLines(string[] lines, ref int index, int indent)
-	{
-		var codeLines = new List<string>();
-
-		while (index < lines.Length)
-		{
-			var currentLine = lines[index];
-
-			if (string.IsNullOrWhiteSpace(currentLine))
-			{
-				codeLines.Add(string.Empty);
-			}
-			else if (GetIndentation(currentLine) < indent)
-			{
-				break;
-			}
-			else
-			{
-				codeLines.Add(currentLine[indent..]);
-			}
-
-			index++;
-		}
-
-		return codeLines;
 	}
 
 	private static bool LooksLikeHeading(string line)

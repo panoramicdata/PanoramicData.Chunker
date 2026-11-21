@@ -91,4 +91,64 @@ public partial class PlainTextDocumentChunker
 			Metadata = CreateMetadata("code", language ?? "unknown")
 		};
 	}
+
+	private static PlainTextCodeBlockChunk? DetectIndentedCodeBlock(string[] lines, ref int index)
+	{
+		var indent = GetIndentation(lines[index]);
+
+		if (indent < 4)
+		{
+			return null;
+		}
+
+		var startIndex = index;
+		var codeLines = CollectIndentedLines(lines, ref index, indent);
+
+		if (codeLines.Count < 2)
+		{
+			index = startIndex;
+			return null;
+		}
+
+		var code = string.Join("\n", codeLines);
+
+		return new PlainTextCodeBlockChunk
+		{
+			Id = Guid.NewGuid(),
+			Content = code,
+			Language = null,
+			IsFenced = false,
+			IndentationLevel = indent,
+			CodeIndicators = DetectCodeIndicators(code),
+			SpecificType = "CodeBlock",
+			Metadata = CreateMetadata("code", "indented")
+		};
+	}
+
+	private static List<string> CollectIndentedLines(string[] lines, ref int index, int indent)
+	{
+		var codeLines = new List<string>();
+
+		while (index < lines.Length)
+		{
+			var currentLine = lines[index];
+
+			if (string.IsNullOrWhiteSpace(currentLine))
+			{
+				codeLines.Add(string.Empty);
+			}
+			else if (GetIndentation(currentLine) < indent)
+			{
+				break;
+			}
+			else
+			{
+				codeLines.Add(currentLine[indent..]);
+			}
+
+			index++;
+		}
+
+		return codeLines;
+	}
 }
