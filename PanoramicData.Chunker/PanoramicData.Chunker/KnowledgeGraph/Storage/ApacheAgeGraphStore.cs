@@ -218,8 +218,9 @@ public partial class ApacheAgeGraphStore(
 		return await WithConnectionAsync(
 			async connection =>
 			{
+				var sql = "SELECT id, name, type, confidence, frequency, properties FROM age_entities WHERE graph_id = @graphId AND type = @type";
 				await using var cmd = Bind(
-					new NpgsqlCommand(SelectEntitiesByTypeSql, connection),
+					new NpgsqlCommand(sql, connection),
 					("graphId", graphId),
 					("type", entityType.ToString()));
 				var entities = await ReadAllAsync(cmd, ReadEntity, cancellationToken);
@@ -238,8 +239,9 @@ public partial class ApacheAgeGraphStore(
 		return await WithConnectionAsync(
 			async connection =>
 			{
+				var sql = "SELECT id, from_entity_id, to_entity_id, type, weight, confidence, properties FROM age_relationships WHERE graph_id = @graphId AND type = @type";
 				await using var cmd = Bind(
-					new NpgsqlCommand(SelectRelationshipsByTypeSql, connection),
+					new NpgsqlCommand(sql, connection),
 					("graphId", graphId),
 					("type", relationshipType.ToString()));
 				var relationships = await ReadAllAsync(cmd, ReadRelationship, cancellationToken);

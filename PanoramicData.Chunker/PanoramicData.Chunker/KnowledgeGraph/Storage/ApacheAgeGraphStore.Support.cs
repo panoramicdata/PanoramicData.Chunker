@@ -11,9 +11,6 @@ public partial class ApacheAgeGraphStore
 
 	private const string SelectRelationshipsSql = "SELECT id, from_entity_id, to_entity_id, type, weight, confidence, properties FROM age_relationships WHERE graph_id = @graphId";
 
-	private const string SelectEntitiesByTypeSql = "SELECT id, name, type, confidence, frequency, properties FROM age_entities WHERE graph_id = @graphId AND type = @type";
-
-	private const string SelectRelationshipsByTypeSql = "SELECT id, from_entity_id, to_entity_id, type, weight, confidence, properties FROM age_relationships WHERE graph_id = @graphId AND type = @type";
 
 	private async Task<NpgsqlConnection> OpenInitializedAsync(CancellationToken cancellationToken)
 	{
