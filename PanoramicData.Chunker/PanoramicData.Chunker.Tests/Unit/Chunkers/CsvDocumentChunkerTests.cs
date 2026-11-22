@@ -3,6 +3,7 @@ using PanoramicData.Chunker.Chunkers.Csv;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -45,8 +46,7 @@ public class CsvDocumentChunkerTests : DocumentChunkerContractTests
 	{
 		var result = await ChunkAsync("Name,Age,City\nAlice,30,New York\nBob,25,London");
 
-		_ = result.Should().NotBeNull();
-		_ = result.Success.Should().BeTrue();
+		ChunkAssert.Succeeded(result);
 		_ = result.Chunks.Should().NotBeEmpty();
 		_ = result.Chunks.OfType<CsvDocumentChunk>().Should().ContainSingle();
 		_ = result.Chunks.OfType<CsvRowChunk>().Should().HaveCount(2);
@@ -57,8 +57,7 @@ public class CsvDocumentChunkerTests : DocumentChunkerContractTests
 	{
 		var result = await ChunkAsync(string.Empty);
 
-		_ = result.Should().NotBeNull();
-		_ = result.Success.Should().BeTrue();
+		ChunkAssert.Succeeded(result);
 		_ = result.Chunks.Should().BeEmpty();
 	}
 
@@ -102,9 +101,7 @@ public class CsvDocumentChunkerTests : DocumentChunkerContractTests
 	{
 		var result = await ChunkAsync("A,B\n1,2\n3,4");
 
-		_ = result.Statistics.Should().NotBeNull();
-		_ = result.Statistics.TotalChunks.Should().BePositive();
-		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		ChunkAssert.HasStatistics(result);
 	}
 
 	[Fact]
@@ -112,8 +109,7 @@ public class CsvDocumentChunkerTests : DocumentChunkerContractTests
 	{
 		var result = await ChunkAsync("Name,Age\nAlice,30", new ChunkingOptions { ValidateChunks = true });
 
-		_ = result.ValidationResult.Should().NotBeNull();
-		_ = result.ValidationResult!.IsValid.Should().BeTrue();
+		ChunkAssert.IsValidated(result);
 	}
 
 	[Fact]
@@ -122,11 +118,7 @@ public class CsvDocumentChunkerTests : DocumentChunkerContractTests
 		var result = await ChunkAsync("Name,Age\nAlice,30");
 
 		var rows = result.Chunks.OfType<CsvRowChunk>();
-		_ = rows.Should().AllSatisfy(chunk =>
-		{
-			_ = chunk.QualityMetrics.Should().NotBeNull();
-			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
-		});
+		_ = rows.Select(chunk => chunk.QualityMetrics).Should().OnlyContain(metrics => metrics != null && metrics.TokenCount > 0);
 	}
 
 	[Fact]

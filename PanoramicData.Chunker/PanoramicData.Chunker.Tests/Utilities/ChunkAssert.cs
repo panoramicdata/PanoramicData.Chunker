@@ -14,4 +14,30 @@ internal static class ChunkAssert
 			_ = chunk.QualityMetrics.CharacterCount.Should().BePositive();
 		});
 	}
+
+	public static void Succeeded(ChunkingResult result)
+	{
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeTrue();
+	}
+
+	public static void FailedWithWarnings(ChunkingResult result)
+	{
+		_ = result.Should().NotBeNull();
+		_ = result.Success.Should().BeFalse();
+		_ = result.Warnings.Should().NotBeEmpty();
+	}
+
+	public static void HasStatistics(ChunkingResult result)
+	{
+		_ = result.Statistics.Should().NotBeNull();
+		_ = result.Statistics.TotalChunks.Should().BePositive();
+		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+	}
+
+	public static void IsValidated(ChunkingResult result)
+	{
+		_ = result.ValidationResult.Should().NotBeNull();
+		_ = result.ValidationResult!.IsValid.Should().BeTrue();
+	}
 }
