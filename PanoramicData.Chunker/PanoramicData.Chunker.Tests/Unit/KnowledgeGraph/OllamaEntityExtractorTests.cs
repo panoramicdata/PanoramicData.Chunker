@@ -17,138 +17,49 @@ public class OllamaEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldExtractPeople()
 	{
-		// Arrange
-		var extractor = new OllamaEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "Charles Darwin and Professor Jameson were both members of the Plinian Society in Edinburgh."
-			}
-		};
-
-		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
-
-		// Assert
-		_output.WriteLine($"Extracted {entities.Count} entities:");
-		foreach (var entity in entities)
-		{
-			_output.WriteLine($"  - {entity.Name} ({entity.Type})");
-		}
+		var entities = await ExtractAsync("Charles Darwin and Professor Jameson were both members of the Plinian Society in Edinburgh.");
 
 		entities.Should().NotBeEmpty();
-
-		// Should extract people
-		var people = entities.Where(e => e.Type == EntityType.Person).ToList();
-		people.Should().NotBeEmpty();
-
-		// Should have Darwin
+		WithType(entities, EntityType.Person).Should().NotBeEmpty();
 		_ = entities.Should().Contain(e => e.Name.Contains("Darwin", StringComparison.OrdinalIgnoreCase), "Should extract Darwin");
 	}
 
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldExtractOrganizations()
 	{
-		// Arrange
-		var extractor = new OllamaEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "The Plinian Society was founded by Professor Jameson at Edinburgh University in 1823."
-			}
-		};
-
-		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
-
-		// Assert
-		_output.WriteLine($"Extracted {entities.Count} entities:");
-		foreach (var entity in entities)
-		{
-			_output.WriteLine($"  - {entity.Name} ({entity.Type}, confidence: {entity.Confidence:F2})");
-		}
+		var entities = await ExtractAsync("The Plinian Society was founded by Professor Jameson at Edinburgh University in 1823.");
 
 		entities.Should().NotBeEmpty();
-
-		// Should extract organizations
-		var orgs = entities.Where(e => e.Type == EntityType.Organization).ToList();
-		orgs.Should().NotBeEmpty("Should extract at least one organization");
-
-		// Should extract Plinian Society
+		WithType(entities, EntityType.Organization).Should().NotBeEmpty("Should extract at least one organization");
 		_ = entities.Should().Contain(e => e.Name.Contains("Plinian", StringComparison.OrdinalIgnoreCase), "Should extract Plinian Society");
 	}
 
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldGenerateAliases()
 	{
-		// Arrange
-		var extractor = new OllamaEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "Professor Jameson founded the society. HMS Beagle sailed in 1831."
-			}
-		};
+		var entities = await ExtractAsync("Professor Jameson founded the society. HMS Beagle sailed in 1831.");
 
-		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
-
-		// Assert
-		_output.WriteLine($"Extracted {entities.Count} entities with aliases:");
-		foreach (var entity in entities)
-		{
-			_output.WriteLine($"  - {entity.Name} ({entity.Type})");
-			if (entity.Aliases.Count > 0)
-			{
-				_output.WriteLine($"    Aliases: {string.Join(", ", entity.Aliases)}");
-			}
-		}
-
-		// Should have generated aliases
 		var entitiesWithAliases = entities.Where(e => e.Aliases.Count > 0).ToList();
 		entitiesWithAliases.Should().NotBeEmpty("Should generate aliases for some entities");
 
-		// Professor Jameson should have alias "Jameson"
-		var jameson = entities.FirstOrDefault(e => e.Name.Contains("Jameson", StringComparison.OrdinalIgnoreCase));
-		if (jameson != null)
+		foreach (var fragment in new[] { "Jameson", "Beagle" })
 		{
-			_output.WriteLine($"Jameson entity: {jameson.Name}, Aliases: {string.Join(", ", jameson.Aliases)}");
-		}
-
-		// HMS Beagle should have alias "Beagle"
-		var beagle = entities.FirstOrDefault(e => e.Name.Contains("Beagle", StringComparison.OrdinalIgnoreCase));
-		if (beagle != null)
-		{
-			_output.WriteLine($"Beagle entity: {beagle.Name}, Aliases: {string.Join(", ", beagle.Aliases)}");
+			var entity = entities.FirstOrDefault(e => e.Name.Contains(fragment, StringComparison.OrdinalIgnoreCase));
+			if (entity != null)
+			{
+				_output.WriteLine($"{fragment} entity: {entity.Name}, Aliases: {string.Join(", ", entity.Aliases)}");
+			}
 		}
 	}
 
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldAggregateAcrossChunks()
 	{
-		// Arrange
-		var extractor = new OllamaEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk { Content = "Charles Darwin studied at Edinburgh University." },
-			new HtmlParagraphChunk { Content = "Darwin later moved to Cambridge." },
-			new HtmlParagraphChunk { Content = "Charles Darwin published Origin of Species in 1859." }
-		};
+		var entities = await ExtractAsync(
+			"Charles Darwin studied at Edinburgh University.",
+			"Darwin later moved to Cambridge.",
+			"Charles Darwin published Origin of Species in 1859.");
 
-		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
-
-		// Assert
-		_output.WriteLine($"Extracted {entities.Count} entities:");
-		foreach (var entity in entities.OrderByDescending(e => e.Frequency))
-		{
-			_output.WriteLine($"  - {entity.Name} ({entity.Type}, freq: {entity.Frequency}, sources: {entity.Sources.Count})");
-		}
-
-		// Darwin should appear multiple times
 		var darwin = entities.FirstOrDefault(e => e.Name.Contains("Darwin", StringComparison.OrdinalIgnoreCase));
 		darwin.Should().NotBeNull("Should extract Darwin");
 		darwin!.Frequency.Should().BeGreaterThan(1, "Darwin should be aggregated across chunks");
@@ -158,44 +69,21 @@ public class OllamaEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldHandleWorks()
 	{
-		// Arrange
-		var extractor = new OllamaEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "Darwin published 'Origin of Species' in 1859. The book revolutionized biology."
-			}
-		};
+		var entities = await ExtractAsync("Darwin published 'Origin of Species' in 1859. The book revolutionized biology.");
 
-		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
-
-		// Assert
-		_output.WriteLine($"Extracted {entities.Count} entities:");
-		foreach (var entity in entities)
-		{
-			_output.WriteLine($"  - {entity.Name} ({entity.Type})");
-		}
-
-		// Should extract the work
-		var works = entities.Where(e => e.Type == EntityType.Work ||
-				 e.Name.Contains("Origin", StringComparison.OrdinalIgnoreCase))
-					 .ToList();
+		var works = entities.Where(e => e.Type == EntityType.Work || e.Name.Contains("Origin", StringComparison.OrdinalIgnoreCase)).ToList();
 		works.Should().NotBeEmpty("Should extract 'Origin of Species' as a work");
 	}
 
 	[Fact]
 	public void Constructor_ShouldAcceptCustomParameters()
 	{
-		// Arrange & Act
 		var extractor = new OllamaEntityExtractor(
 			ollamaEndpoint: "http://custom:11434",
 			modelName: "mistral",
 			temperature: 0.5,
 			maxTokensPerChunk: 1000);
 
-		// Assert
 		extractor.Name.Should().Be("OllamaEntityExtractor");
 		extractor.Version.Should().Be("1.0");
 		extractor.SupportedEntityTypes.Should().Contain(EntityType.Person);
@@ -206,20 +94,36 @@ public class OllamaEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public void SupportedEntityTypes_ShouldIncludeKeyTypes()
 	{
-		// Arrange
-		var extractor = new OllamaEntityExtractor();
+		var types = new OllamaEntityExtractor().SupportedEntityTypes;
 
-		// Act
-		var types = extractor.SupportedEntityTypes;
-
-		// Assert
-		types.Should().Contain(EntityType.Person);
-		types.Should().Contain(EntityType.Organization);
-		types.Should().Contain(EntityType.Location);
-		types.Should().Contain(EntityType.Date);
-		types.Should().Contain(EntityType.Event);
-		types.Should().Contain(EntityType.Work);
-		types.Should().Contain(EntityType.Product);
-		types.Should().Contain(EntityType.ProperNoun);
+		types.Should().Contain(
+		[
+			EntityType.Person,
+			EntityType.Organization,
+			EntityType.Location,
+			EntityType.Date,
+			EntityType.Event,
+			EntityType.Work,
+			EntityType.Product,
+			EntityType.ProperNoun
+		]);
 	}
+
+	private async Task<List<Entity>> ExtractAsync(params string[] paragraphs)
+	{
+		var chunks = paragraphs.Select(content => (ChunkerBase)new HtmlParagraphChunk { Content = content }).ToList();
+
+		var entities = await new OllamaEntityExtractor().ExtractEntitiesAsync(chunks, CancellationToken);
+
+		_output.WriteLine($"Extracted {entities.Count} entities:");
+		foreach (var entity in entities)
+		{
+			_output.WriteLine($"  - {entity.Name} ({entity.Type}, freq: {entity.Frequency}, aliases: {string.Join(", ", entity.Aliases)})");
+		}
+
+		return entities;
+	}
+
+	private static List<Entity> WithType(List<Entity> entities, EntityType type)
+		=> [.. entities.Where(e => e.Type == type)];
 }
