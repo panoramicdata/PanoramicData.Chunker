@@ -46,13 +46,10 @@ public static class CsvTestFileGenerator
 	/// </summary>
 	private static void CreateSimpleCsv()
 	{
-		var filePath = Path.Combine(_testDataPath, "simple.csv");
-		var content = @"Name,Age,City
+		WriteTestFile("simple.csv", @"Name,Age,City
 Alice,30,New York
 Bob,25,London
-Charlie,35,Tokyo";
-
-		File.WriteAllText(filePath, content, Encoding.UTF8);
+Charlie,35,Tokyo");
 	}
 
 	/// <summary>
@@ -60,8 +57,7 @@ Charlie,35,Tokyo";
 	/// </summary>
 	private static void CreateEmptyCsv()
 	{
-		var filePath = Path.Combine(_testDataPath, "empty.csv");
-		File.WriteAllText(filePath, string.Empty, Encoding.UTF8);
+		WriteTestFile("empty.csv", string.Empty);
 	}
 
 	/// <summary>
@@ -69,13 +65,10 @@ Charlie,35,Tokyo";
 	/// </summary>
 	private static void CreateWithQuotes()
 	{
-		var filePath = Path.Combine(_testDataPath, "with-quotes.csv");
-		var content = @"Product,Description,Price
+		WriteTestFile("with-quotes.csv", @"Product,Description,Price
 ""Premium Widget"",""High-quality, durable widget"",29.99
 ""Basic Widget"",""Standard widget, good value"",14.99
-""Deluxe Widget"",""Top-of-the-line, includes warranty"",49.99";
-
-		File.WriteAllText(filePath, content, Encoding.UTF8);
+""Deluxe Widget"",""Top-of-the-line, includes warranty"",49.99");
 	}
 
 	/// <summary>
@@ -84,19 +77,13 @@ Charlie,35,Tokyo";
 	private static void CreateWithDifferentDelimiters()
 	{
 		// Tab-delimited
-		var tabPath = Path.Combine(_testDataPath, "tab-delimited.csv");
-		var tabContent = "Name\tAge\tCity\nAlice\t30\tNew York\nBob\t25\tLondon";
-		File.WriteAllText(tabPath, tabContent, Encoding.UTF8);
+		WriteTestFile("tab-delimited.csv", "Name\tAge\tCity\nAlice\t30\tNew York\nBob\t25\tLondon");
 
 		// Semicolon-delimited
-		var semiPath = Path.Combine(_testDataPath, "semicolon-delimited.csv");
-		var semiContent = "Name;Age;City\nAlice;30;New York\nBob;25;London";
-		File.WriteAllText(semiPath, semiContent, Encoding.UTF8);
+		WriteTestFile("semicolon-delimited.csv", "Name;Age;City\nAlice;30;New York\nBob;25;London");
 
 		// Pipe-delimited
-		var pipePath = Path.Combine(_testDataPath, "pipe-delimited.csv");
-		var pipeContent = "Name|Age|City\nAlice|30|New York\nBob|25|London";
-		File.WriteAllText(pipePath, pipeContent, Encoding.UTF8);
+		WriteTestFile("pipe-delimited.csv", "Name|Age|City\nAlice|30|New York\nBob|25|London");
 	}
 
 	/// <summary>
@@ -104,7 +91,6 @@ Charlie,35,Tokyo";
 	/// </summary>
 	private static void CreateLargeCsv()
 	{
-		var filePath = Path.Combine(_testDataPath, "large.csv");
 		var sb = new StringBuilder();
 
 		_ = sb.AppendLine("ID,Name,Value,Date,Status");
@@ -114,7 +100,7 @@ Charlie,35,Tokyo";
 			_ = sb.AppendLine($"{i},Item {i},{i * 10.5:F2},2025-01-{(i % 28) + 1:D2},{(i % 3 == 0 ? "Active" : "Inactive")}");
 		}
 
-		File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
+		WriteTestFile("large.csv", sb.ToString());
 	}
 
 	/// <summary>
@@ -122,12 +108,9 @@ Charlie,35,Tokyo";
 	/// </summary>
 	private static void CreateNoHeader()
 	{
-		var filePath = Path.Combine(_testDataPath, "no-header.csv");
-		var content = @"1,John,100
+		WriteTestFile("no-header.csv", @"1,John,100
 2,Jane,200
-3,Bob,300";
-
-		File.WriteAllText(filePath, content, Encoding.UTF8);
+3,Bob,300");
 	}
 
 	/// <summary>
@@ -135,12 +118,12 @@ Charlie,35,Tokyo";
 	/// </summary>
 	private static void CreateMixedData()
 	{
-		var filePath = Path.Combine(_testDataPath, "mixed-data.csv");
-		var content = @"Text,Number,Date,Boolean,Currency
+		WriteTestFile("mixed-data.csv", @"Text,Number,Date,Boolean,Currency
 Sample,123.45,2025-01-23,true,$1234.56
 Another,456.78,2025-01-24,false,$2345.67
-Test,789.01,2025-01-25,true,$3456.78";
-
-		File.WriteAllText(filePath, content, Encoding.UTF8);
+Test,789.01,2025-01-25,true,$3456.78");
 	}
+
+	private static void WriteTestFile(string name, string content)
+		=> File.WriteAllText(Path.Combine(_testDataPath, name), content, Encoding.UTF8);
 }
