@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
+using PanoramicData.Chunker.Models;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -16,8 +17,7 @@ public class MarkdownDocumentChunkerTests : BaseTest
 
 	public MarkdownDocumentChunkerTests(ITestOutputHelper output) : base(output)
 	{
-		var tokenCounter = new CharacterBasedTokenCounter();
-		_chunker = new MarkdownDocumentChunker(tokenCounter);
+		_chunker = new MarkdownDocumentChunker(new CharacterBasedTokenCounter());
 		_defaultOptions = new ChunkingOptions
 		{
 			MaxTokens = 1000,
@@ -28,71 +28,44 @@ public class MarkdownDocumentChunkerTests : BaseTest
 	[Fact]
 	public void Constructor_WithNullTokenCounter_ShouldThrow()
 	{
-		// Act
 		var act = () => new MarkdownDocumentChunker(null!);
 
-		// Assert
 		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
 	public void SupportedType_ShouldReturnMarkdown()
 	{
-		// Act
-		var result = _chunker.SupportedType;
-
-		// Assert
-		_ = result.Should().Be(DocumentType.Markdown);
+		_ = _chunker.SupportedType.Should().Be(DocumentType.Markdown);
 	}
 
 	[Fact]
 	public async Task CanHandleAsync_WithMarkdownContent_ShouldReturnTrue()
 	{
-		// Arrange
-		var markdown = "# Header\n\nSome content";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes("# Header\n\nSome content"));
 
-		// Act
-		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
-
-		// Assert
-		_ = result.Should().BeTrue();
+		_ = (await _chunker.CanHandleAsync(stream, CancellationToken)).Should().BeTrue();
 	}
 
 	[Fact]
 	public async Task CanHandleAsync_WithEmptyStream_ShouldReturnFalse()
 	{
-		// Arrange
 		using var stream = new MemoryStream();
 
-		// Act
-		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
-
-		// Assert
-		_ = result.Should().BeFalse();
+		_ = (await _chunker.CanHandleAsync(stream, CancellationToken)).Should().BeFalse();
 	}
 
 	[Fact]
 	public async Task CanHandleAsync_WithNullStream_ShouldReturnFalse()
 	{
-		// Act
-		var result = await _chunker.CanHandleAsync(null!, CancellationToken);
-
-		// Assert
-		_ = result.Should().BeFalse();
+		_ = (await _chunker.CanHandleAsync(null!, CancellationToken)).Should().BeFalse();
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithSimpleHeader_ShouldCreateSectionChunk()
 	{
-		// Arrange
-		var markdown = "# Test Header";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		var result = await ChunkMarkdownAsync("# Test Header");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().ContainSingle();
 		_ = result.Chunks[0].Should().BeOfType<MarkdownSectionChunk>();
@@ -106,24 +79,11 @@ public class MarkdownDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithHeadersAndParagraphs_ShouldCreateHierarchy()
 	{
-		// Arrange
-		var markdown = @"# Main Header
+		var result = await ChunkMarkdownAsync("# Main Header\n\nFirst paragraph.\n\n## Subheader\n\nSecond paragraph.");
 
-First paragraph.
-
-## Subheader
-
-Second paragraph.";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().HaveCount(4); // H1, para1, H2, para2
+		_ = result.Chunks.Should().HaveCount(4);
 
-		// Check hierarchy
 		var h1 = result.Chunks[0] as MarkdownSectionChunk;
 		_ = h1.Should().NotBeNull();
 		_ = h1!.HeadingLevel.Should().Be(1);
@@ -146,22 +106,12 @@ Second paragraph.";
 	[Fact]
 	public async Task ChunkAsync_WithLists_ShouldCreateListItemChunks()
 	{
-		// Arrange
-		var markdown = @"# Header
+		var result = await ChunkMarkdownAsync("# Header\n\n- Item 1\n- Item 2\n- Item 3");
 
-- Item 1
-- Item 2
-- Item 3";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.OfType<MarkdownListItemChunk>().Should().HaveCount(3);
 
 		var items = result.Chunks.OfType<MarkdownListItemChunk>().ToList();
+		_ = items.Should().HaveCount(3);
 		_ = items[0].IsOrdered.Should().BeFalse();
 		_ = items[0].Content.Should().Contain("Item 1");
 	}
@@ -169,16 +119,8 @@ Second paragraph.";
 	[Fact]
 	public async Task ChunkAsync_WithOrderedList_ShouldSetItemNumbers()
 	{
-		// Arrange
-		var markdown = @"1. First
-2. Second
-3. Third";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		var result = await ChunkMarkdownAsync("1. First\n2. Second\n3. Third");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		var items = result.Chunks.OfType<MarkdownListItemChunk>().ToList();
 		_ = items.Should().HaveCount(3);
 		_ = items[0].IsOrdered.Should().BeTrue();
@@ -189,18 +131,8 @@ Second paragraph.";
 	[Fact]
 	public async Task ChunkAsync_WithCodeBlock_ShouldCreateCodeChunk()
 	{
-		// Arrange
-		var markdown = @"# Header
+		var result = await ChunkMarkdownAsync("# Header\n\n```csharp\npublic class Test { }\n```");
 
-```csharp
-public class Test { }
-```";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		var codeChunk = result.Chunks.OfType<MarkdownCodeBlockChunk>().FirstOrDefault();
 		_ = codeChunk.Should().NotBeNull();
 		_ = codeChunk!.Language.Should().Be("csharp");
@@ -211,17 +143,8 @@ public class Test { }
 	[Fact]
 	public async Task ChunkAsync_WithBlockquote_ShouldCreateQuoteChunk()
 	{
-		// Arrange
-		var markdown = @"# Header
+		var result = await ChunkMarkdownAsync("# Header\n\n> This is a quote\n> with multiple lines");
 
-> This is a quote
-> with multiple lines";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		var quoteChunk = result.Chunks.OfType<MarkdownQuoteChunk>().FirstOrDefault();
 		_ = quoteChunk.Should().NotBeNull();
 		_ = quoteChunk!.Content.Should().Contain("This is a quote");
@@ -230,19 +153,8 @@ public class Test { }
 	[Fact]
 	public async Task ChunkAsync_WithTable_ShouldCreateTableChunk()
 	{
-		// Arrange
-		var markdown = @"# Header
+		var result = await ChunkMarkdownAsync("# Header\n\n| Col1 | Col2 |\n|------|------|\n| A    | B    |\n| C    | D    |");
 
-| Col1 | Col2 |
-|------|------|
-| A    | B    |
-| C    | D    |";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		var tableChunk = result.Chunks.OfType<MarkdownTableChunk>().FirstOrDefault();
 		_ = tableChunk.Should().NotBeNull();
 		_ = tableChunk!.TableInfo.ColumnCount.Should().Be(2);
@@ -254,14 +166,8 @@ public class Test { }
 	[Fact]
 	public async Task ChunkAsync_ShouldPopulateQualityMetrics()
 	{
-		// Arrange
-		var markdown = "# Header\n\nTest paragraph with some content.";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		var result = await ChunkMarkdownAsync("# Header\n\nTest paragraph with some content.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
 			_ = chunk.QualityMetrics.Should().NotBeNull();
@@ -273,14 +179,8 @@ public class Test { }
 	[Fact]
 	public async Task ChunkAsync_ShouldPopulateStatistics()
 	{
-		// Arrange
-		var markdown = "# Header\n\nParagraph.";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		var result = await ChunkMarkdownAsync("# Header\n\nParagraph.");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		_ = result.Statistics.Should().NotBeNull();
 		_ = result.Statistics.TotalChunks.Should().Be(2);
 		_ = result.Statistics.StructuralChunks.Should().Be(1);
@@ -291,14 +191,8 @@ public class Test { }
 	[Fact]
 	public async Task ChunkAsync_WithValidation_ShouldValidateChunks()
 	{
-		// Arrange
-		var markdown = "# Header\n\nContent";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		var result = await ChunkMarkdownAsync("# Header\n\nContent");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		_ = result.ValidationResult.Should().NotBeNull();
 		_ = result.ValidationResult!.IsValid.Should().BeTrue();
 	}
@@ -306,21 +200,15 @@ public class Test { }
 	[Fact]
 	public async Task ChunkAsync_WithOversizedChunk_ShouldSplit()
 	{
-		// Arrange
 		var longText = string.Join(". ", Enumerable.Range(1, 100).Select(i => $"Sentence {i}"));
-		var markdown = $"# Header\n\n{longText}";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
-
 		var options = new ChunkingOptions
 		{
 			MaxTokens = 50,
 			ValidateChunks = false
 		};
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
+		var result = await ChunkMarkdownAsync($"# Header\n\n{longText}", options);
 
-		// Assert
 		var paragraphs = result.Chunks.OfType<MarkdownParagraphChunk>().ToList();
 		_ = paragraphs.Should().HaveCountGreaterThan(1);
 		paragraphs.Should().AllSatisfy(p =>
@@ -332,14 +220,8 @@ public class Test { }
 	[Fact]
 	public async Task ChunkAsync_ShouldSetSequenceNumbers()
 	{
-		// Arrange
-		var markdown = "# H1\n\nP1\n\n## H2\n\nP2";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		var result = await ChunkMarkdownAsync("# H1\n\nP1\n\n## H2\n\nP2");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		_ = result.Chunks.Select(c => c.SequenceNumber).Should().BeInAscendingOrder();
 		_ = result.Chunks[0].SequenceNumber.Should().Be(0);
 	}
@@ -347,14 +229,8 @@ public class Test { }
 	[Fact]
 	public async Task ChunkAsync_ShouldBuildHierarchy()
 	{
-		// Arrange
-		var markdown = "# H1\n\n## H2\n\n### H3\n\nContent";
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		var result = await ChunkMarkdownAsync("# H1\n\n## H2\n\n### H3\n\nContent");
 
-		// Act
-		var result = await _chunker.ChunkAsync(stream, _defaultOptions, CancellationToken);
-
-		// Assert
 		var h1 = result.Chunks[0];
 		var h2 = result.Chunks[1];
 		var h3 = result.Chunks[2];
@@ -366,5 +242,11 @@ public class Test { }
 		_ = h2.AncestorIds.Should().Contain(h1.Id);
 		_ = h3.AncestorIds.Should().Contain(h1.Id);
 		_ = h3.AncestorIds.Should().Contain(h2.Id);
+	}
+
+	private async Task<ChunkingResult> ChunkMarkdownAsync(string markdown, ChunkingOptions? options = null)
+	{
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(markdown));
+		return await _chunker.ChunkAsync(stream, options ?? _defaultOptions, CancellationToken);
 	}
 }
