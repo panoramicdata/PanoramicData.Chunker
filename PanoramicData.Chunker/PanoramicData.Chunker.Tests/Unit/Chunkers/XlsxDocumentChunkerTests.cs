@@ -10,34 +10,15 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// <summary>
 /// Unit tests for XlsxDocumentChunker.
 /// </summary>
-public class XlsxDocumentChunkerTests : BaseTest
+public class XlsxDocumentChunkerTests : DocumentChunkerContractTests
 {
 	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly XlsxDocumentChunker _chunker;
 
-	public XlsxDocumentChunkerTests(ITestOutputHelper output) : base(output)
+	public XlsxDocumentChunkerTests(ITestOutputHelper output) : base(output, tokenCounter => new XlsxDocumentChunker(tokenCounter), DocumentType.Xlsx)
 	{
 		_tokenCounter = new CharacterBasedTokenCounter();
 		_chunker = new XlsxDocumentChunker(_tokenCounter);
-	}
-
-	[Fact]
-	public void Constructor_WithValidTokenCounter_ShouldInitialize()
-	{
-		// Arrange & Act
-		var chunker = new XlsxDocumentChunker(_tokenCounter);
-
-		// Assert
-		_ = chunker.Should().NotBeNull();
-		_ = chunker.SupportedType.Should().Be(DocumentType.Xlsx);
-	}
-
-	[Fact]
-	public void Constructor_WithNullTokenCounter_ShouldThrow()
-	{
-		// Arrange, Act & Assert
-		var act = () => new XlsxDocumentChunker(null!);
-		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -91,32 +72,6 @@ public class XlsxDocumentChunkerTests : BaseTest
 
 		// Assert
 		_ = result.Should().BeFalse();
-	}
-
-	[Fact]
-	public async Task ChunkAsync_WithNullStream_ShouldThrow()
-	{
-		// Arrange
-		var options = new ChunkingOptions();
-
-		// Act
-		var act = async () => await _chunker.ChunkAsync(null!, options, CancellationToken);
-
-		// Assert
-		_ = await act.Should().ThrowAsync<ArgumentNullException>();
-	}
-
-	[Fact]
-	public async Task ChunkAsync_WithNullOptions_ShouldThrow()
-	{
-		// Arrange
-		using var stream = new MemoryStream();
-
-		// Act
-		var act = async () => await _chunker.ChunkAsync(stream, null!, CancellationToken);
-
-		// Assert
-		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]

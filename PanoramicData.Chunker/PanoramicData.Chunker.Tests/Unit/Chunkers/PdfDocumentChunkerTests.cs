@@ -10,34 +10,15 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// <summary>
 /// Unit tests for PdfDocumentChunker.
 /// </summary>
-public class PdfDocumentChunkerTests : BaseTest
+public class PdfDocumentChunkerTests : DocumentChunkerContractTests
 {
 	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly PdfDocumentChunker _chunker;
 
-	public PdfDocumentChunkerTests(ITestOutputHelper output) : base(output)
+	public PdfDocumentChunkerTests(ITestOutputHelper output) : base(output, tokenCounter => new PdfDocumentChunker(tokenCounter), DocumentType.Pdf)
 	{
 		_tokenCounter = new CharacterBasedTokenCounter();
 		_chunker = new PdfDocumentChunker(_tokenCounter);
-	}
-
-	[Fact]
-	public void Constructor_WithValidTokenCounter_ShouldInitialize()
-	{
-		// Arrange & Act
-		var chunker = new PdfDocumentChunker(_tokenCounter);
-
-		// Assert
-		_ = chunker.Should().NotBeNull();
-		_ = chunker.SupportedType.Should().Be(DocumentType.Pdf);
-	}
-
-	[Fact]
-	public void Constructor_WithNullTokenCounter_ShouldThrow()
-	{
-		// Arrange, Act & Assert
-		var act = () => new PdfDocumentChunker(null!);
-		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -104,32 +85,6 @@ public class PdfDocumentChunkerTests : BaseTest
 
 		// Assert
 		_ = result.Should().BeFalse();
-	}
-
-	[Fact]
-	public async Task ChunkAsync_WithNullStream_ShouldThrow()
-	{
-		// Arrange
-		var options = new ChunkingOptions();
-
-		// Act
-		var act = async () => await _chunker.ChunkAsync(null!, options, CancellationToken);
-
-		// Assert
-		_ = await act.Should().ThrowAsync<ArgumentNullException>();
-	}
-
-	[Fact]
-	public async Task ChunkAsync_WithNullOptions_ShouldThrow()
-	{
-		// Arrange
-		using var stream = new MemoryStream();
-
-		// Act
-		var act = async () => await _chunker.ChunkAsync(stream, null!, CancellationToken);
-
-		// Assert
-		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
