@@ -14,29 +14,15 @@ public static class PdfTestFileGenerator
 	/// <summary>
 	/// Generate all test PDF files.
 	/// </summary>
-	private static readonly object _generationLock = new();
-
 	public static void GenerateAllTestFiles()
 	{
-		lock (_generationLock)
-		{
-			GenerateAllTestFilesCore();
-		}
+		// Configure QuestPDF license (community license)
+		QuestPDF.Settings.License = LicenseType.Community;
+		TestFileGeneration.Run(_testDataPath, "large.pdf", GenerateAllTestFilesCore);
 	}
 
 	private static void GenerateAllTestFilesCore()
 	{
-		// Configure QuestPDF license (community license)
-		QuestPDF.Settings.License = LicenseType.Community;
-
-		_ = Directory.CreateDirectory(_testDataPath);
-
-		// If files already exist, skip generation
-		if (File.Exists(Path.Combine(_testDataPath, "large.pdf")))
-		{
-			return;
-		}
-
 		BuildPdf("simple.pdf", "Simple PDF Document", ComposeSimpleColumn, ComposePageNumber);
 		CreateEmptyPdf();
 		BuildPdf("multi-page.pdf", "Multi-Page Document", ComposeMultiPageColumn, ComposePageNumberOfTotal);

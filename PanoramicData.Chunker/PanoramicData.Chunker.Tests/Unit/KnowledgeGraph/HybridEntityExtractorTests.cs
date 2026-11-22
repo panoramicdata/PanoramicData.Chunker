@@ -15,17 +15,10 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 	public async Task ExtractEntitiesAsync_ShouldExtract_MultiWordProperNouns()
 	{
 		// Arrange
-		var extractor = new HybridEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "The Plinian Society was founded by Professor Jameson. HMS Beagle was commanded by Captain FitzRoy. Robert Grant taught marine biology at Edinburgh University."
-			}
-		};
+		const string content = "The Plinian Society was founded by Professor Jameson. HMS Beagle was commanded by Captain FitzRoy. Robert Grant taught marine biology at Edinburgh University.";
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
+		var entities = await ExtractAsync(content);
 
 		// Assert
 		entities.Should().NotBeEmpty("Should extract entities from content");
@@ -41,54 +34,29 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 		}
 
 		// Verify key multi-word entities are extracted
-		var societyEntities = entities.Where(e =>
-			e.Name.Contains("Society", StringComparison.OrdinalIgnoreCase) ||
-			e.Name.Contains("Plinian", StringComparison.OrdinalIgnoreCase)).ToList();
-
-		societyEntities.Should().NotBeEmpty("Should extract 'Plinian Society' or 'Plinian'");
+		WithNameContaining(entities, "Society", "Plinian").Should().NotBeEmpty("Should extract 'Plinian Society' or 'Plinian'");
 
 		// Verify HMS Beagle (might be "Beagle" or "HMS Beagle")
-		var beagleEntities = entities.Where(e =>
-			e.Name.Contains("Beagle", StringComparison.OrdinalIgnoreCase)).ToList();
-
-		beagleEntities.Should().NotBeEmpty("Should extract 'Beagle' or 'HMS Beagle'");
+		WithNameContaining(entities, "Beagle").Should().NotBeEmpty("Should extract 'Beagle' or 'HMS Beagle'");
 
 		// Verify person names with titles
-		var jamesonEntities = entities.Where(e =>
-			e.Name.Contains("Jameson", StringComparison.OrdinalIgnoreCase)).ToList();
-
-		jamesonEntities.Should().NotBeEmpty("Should extract 'Jameson' or 'Professor Jameson'");
+		WithNameContaining(entities, "Jameson").Should().NotBeEmpty("Should extract 'Jameson' or 'Professor Jameson'");
 
 		// Verify Robert Grant
-		var grantEntities = entities.Where(e =>
-			e.Name.Contains("Grant", StringComparison.OrdinalIgnoreCase) ||
-			e.Name.Contains("Robert", StringComparison.OrdinalIgnoreCase)).ToList();
-
-		grantEntities.Should().NotBeEmpty("Should extract 'Grant' or 'Robert Grant'");
+		WithNameContaining(entities, "Grant", "Robert").Should().NotBeEmpty("Should extract 'Grant' or 'Robert Grant'");
 
 		// Verify Edinburgh University
-		var universityEntities = entities.Where(e =>
-			e.Name.Contains("University", StringComparison.OrdinalIgnoreCase) ||
-			e.Name.Contains("Edinburgh", StringComparison.OrdinalIgnoreCase)).ToList();
-
-		universityEntities.Should().NotBeEmpty("Should extract 'University' or 'Edinburgh University'");
+		WithNameContaining(entities, "University", "Edinburgh").Should().NotBeEmpty("Should extract 'University' or 'Edinburgh University'");
 	}
 
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldGenerate_NameAliases()
 	{
 		// Arrange
-		var extractor = new HybridEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "HMS Beagle sailed with Charles Darwin. The 'Beagle' was a survey vessel. Professor Jameson founded the society."
-			}
-		};
+		const string content = "HMS Beagle sailed with Charles Darwin. The 'Beagle' was a survey vessel. Professor Jameson founded the society.";
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
+		var entities = await ExtractAsync(content);
 
 		// Assert
 		_output.WriteLine("Entities with aliases:");
@@ -107,36 +75,27 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 		entitiesWithAliases.Should().NotBeEmpty("Should generate aliases for some entities");
 
 		// Check specific alias patterns
-		var beagleEntity = entities.FirstOrDefault(e =>
-			e.Name.Contains("Beagle", StringComparison.OrdinalIgnoreCase));
+		var beagleEntity = WithNameContaining(entities, "Beagle").FirstOrDefault();
 
 		if (beagleEntity != null && beagleEntity.Name.StartsWith("HMS ", StringComparison.OrdinalIgnoreCase))
 		{
-			beagleEntity.Aliases.Should().Contain(a =>
-				a.Equals("Beagle", StringComparison.OrdinalIgnoreCase),
-				"HMS Beagle should have 'Beagle' as an alias");
+			AssertHasAlias(beagleEntity, "Beagle", "HMS Beagle should have 'Beagle' as an alias");
 		}
 
 		// Check for person name aliases
-		var darwinEntity = entities.FirstOrDefault(e =>
-			e.Name.Contains("Darwin", StringComparison.OrdinalIgnoreCase));
+		var darwinEntity = WithNameContaining(entities, "Darwin").FirstOrDefault();
 
 		if (darwinEntity != null && darwinEntity.Name.Contains("Charles"))
 		{
-			darwinEntity.Aliases.Should().Contain(a =>
-				a.Equals("Darwin", StringComparison.OrdinalIgnoreCase),
-				"Charles Darwin should have 'Darwin' as an alias");
+			AssertHasAlias(darwinEntity, "Darwin", "Charles Darwin should have 'Darwin' as an alias");
 		}
 
 		// Check for title removal aliases
-		var jamesonEntity = entities.FirstOrDefault(e =>
-			e.Name.Contains("Jameson", StringComparison.OrdinalIgnoreCase));
+		var jamesonEntity = WithNameContaining(entities, "Jameson").FirstOrDefault();
 
 		if (jamesonEntity != null && jamesonEntity.Name.Contains("Professor"))
 		{
-			jamesonEntity.Aliases.Should().Contain(a =>
-				a.Equals("Jameson", StringComparison.OrdinalIgnoreCase),
-				"Professor Jameson should have 'Jameson' as an alias");
+			AssertHasAlias(jamesonEntity, "Jameson", "Professor Jameson should have 'Jameson' as an alias");
 		}
 	}
 
@@ -144,17 +103,10 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 	public async Task ExtractEntitiesAsync_ShouldMerge_KeywordsAndProperNouns()
 	{
 		// Arrange
-		var extractor = new HybridEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "Darwin studied natural history and marine biology. Charles Darwin was a naturalist. Darwin's work on evolution changed biology forever. Natural selection was Darwin's key insight."
-			}
-		};
+		const string content = "Darwin studied natural history and marine biology. Charles Darwin was a naturalist. Darwin's work on evolution changed biology forever. Natural selection was Darwin's key insight.";
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
+		var entities = await ExtractAsync(content);
 
 		// Assert
 		_output.WriteLine($"Extracted {entities.Count} entities (merged):");
@@ -165,8 +117,7 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 
 		// "Darwin" should appear as both keyword (frequent) and proper noun (capitalized)
 		// The extractor should merge these into one entity
-		var darwinEntities = entities.Where(e =>
-			e.Name.Contains("Darwin", StringComparison.OrdinalIgnoreCase)).ToList();
+		var darwinEntities = WithNameContaining(entities, "Darwin");
 
 		darwinEntities.Should().NotBeEmpty("Should extract Darwin entity");
 
@@ -193,15 +144,8 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldHandle_EmptyContent()
 	{
-		// Arrange
-		var extractor = new HybridEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk { Content = string.Empty }
-		};
-
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
+		var entities = await ExtractAsync(string.Empty);
 
 		// Assert
 		entities.Should().BeEmpty("Should return empty list for empty content");
@@ -211,20 +155,13 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 	public async Task ExtractEntitiesAsync_ShouldExtract_DarwinGroundTruthEntities()
 	{
 		// Arrange
-		var extractor = new HybridEntityExtractor();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = @"The Plinian Society was encouraged and, I believe, founded by Professor Jameson.
+		const string content = @"The Plinian Society was encouraged and, I believe, founded by Professor Jameson.
 					HMS Beagle was a Royal Navy survey vessel.
 					Charles Darwin studied at Edinburgh University with Robert Grant.
-					Captain FitzRoy commanded the Beagle during its voyage to the Galapagos Islands."
-			}
-		};
+					Captain FitzRoy commanded the Beagle during its voyage to the Galapagos Islands.";
 
 		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
+		var entities = await ExtractAsync(content);
 
 		// Assert
 		_output.WriteLine($"\n=== Ground Truth Entities Test ===");
@@ -250,6 +187,15 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 		coverage.Should().BeGreaterThanOrEqualTo(0.5,
 			"Should extract at least 50% of ground truth entities");
 	}
+
+	private Task<List<Entity>> ExtractAsync(string content)
+		=> new HybridEntityExtractor().ExtractEntitiesAsync([new HtmlParagraphChunk { Content = content }], CancellationToken);
+
+	private static List<Entity> WithNameContaining(List<Entity> entities, params string[] fragments)
+		=> [.. entities.Where(e => fragments.Any(f => e.Name.Contains(f, StringComparison.OrdinalIgnoreCase)))];
+
+	private static void AssertHasAlias(Entity entity, string alias, string because)
+		=> entity.Aliases.Should().Contain(a => a.Equals(alias, StringComparison.OrdinalIgnoreCase), because);
 
 	private void WriteProperNouns(List<Entity> entities)
 	{

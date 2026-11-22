@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.LLM.Caching;
 using PanoramicData.Chunker.Models.Llm;
 
@@ -6,6 +7,8 @@ namespace PanoramicData.Chunker.Tests.Unit.LLM;
 
 public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(output)
 {
+	private static readonly TimeSpan _oneHour = TimeSpan.FromHours(1);
+
 	[Fact]
 	public void TryGet_WithNonExistentKey_ShouldReturnFalse()
 	{
@@ -25,17 +28,14 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 	{
 		// Arrange
 		var cache = new InMemoryEnrichmentCache();
-		var enrichedChunk = new EnrichedChunk
+		var enrichedChunk = CreateChunk("Test content", "Test summary") with
 		{
-			ChunkId = Guid.NewGuid(),
-			OriginalContent = "Test content",
-			Summary = "Test summary",
 			Keywords = ["test", "content"],
 			TokensUsed = 50
 		};
 
 		// Act
-		cache.Set("test-key", enrichedChunk, TimeSpan.FromHours(1));
+		cache.Set("test-key", enrichedChunk, _oneHour);
 		var result = cache.TryGet("test-key", out var value);
 
 		// Assert
@@ -52,12 +52,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 	{
 		// Arrange
 		var cache = new InMemoryEnrichmentCache();
-		var enrichedChunk = new EnrichedChunk
-		{
-			ChunkId = Guid.NewGuid(),
-			OriginalContent = "Test",
-			Summary = "Summary"
-		};
+		var enrichedChunk = CreateChunk("Test", "Summary");
 
 		// Act
 		cache.Set("test-key", enrichedChunk, TimeSpan.FromMilliseconds(50));
@@ -75,14 +70,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 	public void GetStatistics_AfterCacheHit_ShouldIncrementHits()
 	{
 		// Arrange
-		var cache = new InMemoryEnrichmentCache();
-		var enrichedChunk = new EnrichedChunk
-		{
-			ChunkId = Guid.NewGuid(),
-			OriginalContent = "Test"
-		};
-
-		cache.Set("key", enrichedChunk, TimeSpan.FromHours(1));
+		var cache = CreateCacheWithKey();
 
 		// Act
 		_ = cache.TryGet("key", out _);
@@ -90,8 +78,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 		var stats = cache.GetStatistics();
 
 		// Assert
-		_ = stats.Hits.Should().Be(2);
-		_ = stats.Misses.Should().Be(0);
+		AssertCounts(stats, 2, 0);
 		_ = stats.Size.Should().Be(1);
 
 		_output.WriteLine($"Cache statistics - Hits: {stats.Hits}, Misses: {stats.Misses}, Size: {stats.Size}");
@@ -109,8 +96,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 		var stats = cache.GetStatistics();
 
 		// Assert
-		_ = stats.Hits.Should().Be(0);
-		_ = stats.Misses.Should().Be(2);
+		AssertCounts(stats, 0, 2);
 		_ = stats.Size.Should().Be(0);
 
 		_output.WriteLine($"Cache statistics - Hits: {stats.Hits}, Misses: {stats.Misses}");
@@ -120,14 +106,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 	public void GetStatistics_HitRate_ShouldBeCalculatedCorrectly()
 	{
 		// Arrange
-		var cache = new InMemoryEnrichmentCache();
-		var enrichedChunk = new EnrichedChunk
-		{
-			ChunkId = Guid.NewGuid(),
-			OriginalContent = "Test"
-		};
-
-		cache.Set("key", enrichedChunk, TimeSpan.FromHours(1));
+		var cache = CreateCacheWithKey();
 
 		// Act
 		_ = cache.TryGet("key", out _); // Hit
@@ -136,8 +115,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 		var stats = cache.GetStatistics();
 
 		// Assert
-		_ = stats.Hits.Should().Be(2);
-		_ = stats.Misses.Should().Be(1);
+		AssertCounts(stats, 2, 1);
 		_ = stats.HitRate.Should().BeApproximately(0.666, 0.01); // 2/3
 
 		_output.WriteLine($"Hit rate: {stats.HitRate:P}");
@@ -150,11 +128,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 		var cache = new InMemoryEnrichmentCache();
 		for (var i = 0; i < 5; i++)
 		{
-			cache.Set($"key{i}", new EnrichedChunk
-			{
-				ChunkId = Guid.NewGuid(),
-				OriginalContent = $"Content {i}"
-			}, TimeSpan.FromHours(1));
+			cache.Set($"key{i}", CreateChunk($"Content {i}"), _oneHour);
 		}
 
 		// Act
@@ -163,8 +137,7 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 
 		// Assert
 		_ = stats.Size.Should().Be(0);
-		_ = stats.Hits.Should().Be(0);
-		_ = stats.Misses.Should().Be(0);
+		AssertCounts(stats, 0, 0);
 
 		_output.WriteLine("Cache cleared successfully");
 	}
@@ -174,22 +147,12 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 	{
 		// Arrange
 		var cache = new InMemoryEnrichmentCache();
-		var chunk1 = new EnrichedChunk
-		{
-			ChunkId = Guid.NewGuid(),
-			OriginalContent = "Original",
-			Summary = "First summary"
-		};
-		var chunk2 = new EnrichedChunk
-		{
-			ChunkId = Guid.NewGuid(),
-			OriginalContent = "Updated",
-			Summary = "Second summary"
-		};
+		var chunk1 = CreateChunk("Original", "First summary");
+		var chunk2 = CreateChunk("Updated", "Second summary");
 
 		// Act
-		cache.Set("key", chunk1, TimeSpan.FromHours(1));
-		cache.Set("key", chunk2, TimeSpan.FromHours(1));
+		cache.Set("key", chunk1, _oneHour);
+		cache.Set("key", chunk2, _oneHour);
 		_ = cache.TryGet("key", out var value);
 
 		// Assert
@@ -210,9 +173,28 @@ public class InMemoryEnrichmentCacheTests(ITestOutputHelper output) : BaseTest(o
 
 		// Assert
 		_ = stats.HitRate.Should().Be(0.0);
-		_ = stats.Hits.Should().Be(0);
-		_ = stats.Misses.Should().Be(0);
+		AssertCounts(stats, 0, 0);
 
 		_output.WriteLine($"Initial hit rate: {stats.HitRate}");
+	}
+
+	private static EnrichedChunk CreateChunk(string content, string? summary = null) => new()
+	{
+		ChunkId = Guid.NewGuid(),
+		OriginalContent = content,
+		Summary = summary
+	};
+
+	private static InMemoryEnrichmentCache CreateCacheWithKey()
+	{
+		var cache = new InMemoryEnrichmentCache();
+		cache.Set("key", CreateChunk("Test"), _oneHour);
+		return cache;
+	}
+
+	private static void AssertCounts(CacheStatistics stats, int hits, int misses)
+	{
+		_ = stats.Hits.Should().Be(hits);
+		_ = stats.Misses.Should().Be(misses);
 	}
 }

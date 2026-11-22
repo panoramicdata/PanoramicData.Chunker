@@ -10,31 +10,15 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// <summary>
 /// Unit tests for CsvDocumentChunker.
 /// </summary>
-public class CsvDocumentChunkerTests : BaseTest
+public class CsvDocumentChunkerTests : DocumentChunkerContractTests
 {
 	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly CsvDocumentChunker _chunker;
 
-	public CsvDocumentChunkerTests(ITestOutputHelper output) : base(output)
+	public CsvDocumentChunkerTests(ITestOutputHelper output) : base(output, tokenCounter => new CsvDocumentChunker(tokenCounter), DocumentType.Csv)
 	{
 		_tokenCounter = new CharacterBasedTokenCounter();
 		_chunker = new CsvDocumentChunker(_tokenCounter);
-	}
-
-	[Fact]
-	public void Constructor_WithValidTokenCounter_ShouldInitialize()
-	{
-		var chunker = new CsvDocumentChunker(_tokenCounter);
-
-		_ = chunker.Should().NotBeNull();
-		_ = chunker.SupportedType.Should().Be(DocumentType.Csv);
-	}
-
-	[Fact]
-	public void Constructor_WithNullTokenCounter_ShouldThrow()
-	{
-		var act = () => new CsvDocumentChunker(null!);
-		_ = act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
@@ -56,24 +40,6 @@ public class CsvDocumentChunkerTests : BaseTest
 
 		_ = result.Should().Be(expected);
 		_ = stream.Position.Should().Be(0);
-	}
-
-	[Fact]
-	public async Task ChunkAsync_WithNullStream_ShouldThrow()
-	{
-		var act = async () => await _chunker.ChunkAsync(null!, new ChunkingOptions(), CancellationToken);
-
-		_ = await act.Should().ThrowAsync<ArgumentNullException>();
-	}
-
-	[Fact]
-	public async Task ChunkAsync_WithNullOptions_ShouldThrow()
-	{
-		using var stream = new MemoryStream();
-
-		var act = async () => await _chunker.ChunkAsync(stream, null!, CancellationToken);
-
-		_ = await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]

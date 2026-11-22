@@ -15,26 +15,15 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 	public async Task ExtractRelationshipsAsync_WithFoundedPattern_ShouldDetectFoundedRelationship()
 	{
 		// Arrange
-		var extractor = new PatternBasedRelationshipExtractor();
-
 		var darwinEntity = new Entity(EntityType.Person, "Darwin", 1.0);
 		var societyEntity = new Entity(EntityType.Organization, "Plinian Society", 1.0);
 
-		var chunk = new HtmlParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = "Darwin founded the Plinian Society in 1823.",
-			QualityMetrics = new ChunkQualityMetrics()
-		};
-
-		darwinEntity.AddSource(chunk.Id, 0, chunk.Content);
-		societyEntity.AddSource(chunk.Id, 20, chunk.Content);
-
-		var entities = new List<Entity> { darwinEntity, societyEntity };
-		var chunks = new List<ChunkerBase> { chunk };
-
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
+		var relationships = await ExtractFromChunkAsync(
+			new PatternBasedRelationshipExtractor(),
+			"Darwin founded the Plinian Society in 1823.",
+			(darwinEntity, 0),
+			(societyEntity, 20));
 
 		// Assert
 		relationships.Should().NotBeEmpty();
@@ -49,26 +38,15 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 	public async Task ExtractRelationshipsAsync_WithMemberOfPattern_ShouldDetectMemberRelationship()
 	{
 		// Arrange
-		var extractor = new PatternBasedRelationshipExtractor();
-
 		var darwinEntity = new Entity(EntityType.Person, "Charles Darwin", 1.0);
 		var societyEntity = new Entity(EntityType.Organization, "Plinian Society", 1.0);
 
-		var chunk = new HtmlParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = "Charles Darwin was a member of the Plinian Society.",
-			QualityMetrics = new ChunkQualityMetrics()
-		};
-
-		darwinEntity.AddSource(chunk.Id, 0, chunk.Content);
-		societyEntity.AddSource(chunk.Id, 40, chunk.Content);
-
-		var entities = new List<Entity> { darwinEntity, societyEntity };
-		var chunks = new List<ChunkerBase> { chunk };
-
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
+		var relationships = await ExtractFromChunkAsync(
+			new PatternBasedRelationshipExtractor(),
+			"Charles Darwin was a member of the Plinian Society.",
+			(darwinEntity, 0),
+			(societyEntity, 40));
 
 		// Assert
 		relationships.Should().NotBeEmpty();
@@ -89,19 +67,8 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 		var societyEntity = new Entity(EntityType.Organization, "Plinian Society", 1.0);
 		var universityEntity = new Entity(EntityType.Organization, "Edinburgh University", 1.0);
 
-		var chunk1 = new HtmlParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = "The Plinian Society was founded by Professor Jameson at Edinburgh University.",
-			QualityMetrics = new ChunkQualityMetrics()
-		};
-
-		var chunk2 = new HtmlParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = "Darwin was a member of the Plinian Society who regularly attended meetings.",
-			QualityMetrics = new ChunkQualityMetrics()
-		};
+		var chunk1 = CreateChunk("The Plinian Society was founded by Professor Jameson at Edinburgh University.");
+		var chunk2 = CreateChunk("Darwin was a member of the Plinian Society who regularly attended meetings.");
 
 		jamesonEntity.AddSource(chunk1.Id, chunk1.Content.IndexOf("Professor Jameson", StringComparison.Ordinal), chunk1.Content);
 		societyEntity.AddSource(chunk1.Id, 4, chunk1.Content);
@@ -146,21 +113,8 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 		var entity1 = new Entity(EntityType.Person, "Darwin", 1.0);
 		var entity2 = new Entity(EntityType.Organization, "HMS Beagle", 1.0);
 
-		var chunk = new HtmlParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = "Darwin sailed on HMS Beagle.",
-			QualityMetrics = new ChunkQualityMetrics()
-		};
-
-		entity1.AddSource(chunk.Id, 0, chunk.Content);
-		entity2.AddSource(chunk.Id, 18, chunk.Content);
-
-		var entities = new List<Entity> { entity1, entity2 };
-		var chunks = new List<ChunkerBase> { chunk };
-
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
+		var relationships = await ExtractFromChunkAsync(extractor, "Darwin sailed on HMS Beagle.", (entity1, 0), (entity2, 18));
 
 		// Assert
 		relationships.Should().NotBeEmpty();
@@ -174,15 +128,7 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 		// Arrange
 		var extractor = new PatternBasedRelationshipExtractor();
 		var entities = new List<Entity>();
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Some content",
-				QualityMetrics = new ChunkQualityMetrics()
-			}
-		};
+		var chunks = new List<ChunkerBase> { CreateChunk("Some content") };
 
 		// Act
 		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
@@ -195,26 +141,15 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 	public async Task ExtractRelationshipsAsync_WithDistantEntities_ShouldNotCreateRelationship()
 	{
 		// Arrange
-		var extractor = new PatternBasedRelationshipExtractor(maxDistance: 50);
-
 		var entity1 = new Entity(EntityType.Person, "Darwin", 1.0);
 		var entity2 = new Entity(EntityType.Organization, "Society", 1.0);
 
-		var chunk = new HtmlParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = "Darwin was a famous naturalist. Many years later, he joined a scientific Society.",
-			QualityMetrics = new ChunkQualityMetrics()
-		};
-
-		entity1.AddSource(chunk.Id, 0, chunk.Content);
-		entity2.AddSource(chunk.Id, 75, chunk.Content);
-
-		var entities = new List<Entity> { entity1, entity2 };
-		var chunks = new List<ChunkerBase> { chunk };
-
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
+		var relationships = await ExtractFromChunkAsync(
+			new PatternBasedRelationshipExtractor(maxDistance: 50),
+			"Darwin was a famous naturalist. Many years later, he joined a scientific Society.",
+			(entity1, 0),
+			(entity2, 75));
 
 		// Assert
 		relationships.Should().BeEmpty("Entities are too far apart");
@@ -224,26 +159,15 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 	public async Task ExtractRelationshipsAsync_WithWorksForPattern_ShouldDetectWorkRelationship()
 	{
 		// Arrange
-		var extractor = new PatternBasedRelationshipExtractor();
-
 		var personEntity = new Entity(EntityType.Person, "John Smith", 1.0);
 		var companyEntity = new Entity(EntityType.Organization, "Microsoft", 1.0);
 
-		var chunk = new HtmlParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = "John Smith works for Microsoft.",
-			QualityMetrics = new ChunkQualityMetrics()
-		};
-
-		personEntity.AddSource(chunk.Id, 0, chunk.Content);
-		companyEntity.AddSource(chunk.Id, 26, chunk.Content);
-
-		var entities = new List<Entity> { personEntity, companyEntity };
-		var chunks = new List<ChunkerBase> { chunk };
-
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
+		var relationships = await ExtractFromChunkAsync(
+			new PatternBasedRelationshipExtractor(),
+			"John Smith works for Microsoft.",
+			(personEntity, 0),
+			(companyEntity, 26));
 
 		// Assert
 		relationships.Should().NotBeEmpty();
@@ -255,26 +179,16 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 	public async Task ExtractRelationshipsAsync_WithInfluencesPattern_ShouldDetectInfluence()
 	{
 		// Arrange
-		var extractor = new PatternBasedRelationshipExtractor();
-
+		const string content = "The theory of evolution influenced modern biologists greatly.";
 		var theoryEntity = new Entity(EntityType.Concept, "theory of evolution", 1.0);
 		var personEntity = new Entity(EntityType.Person, "modern biologists", 1.0);
 
-		var chunk = new HtmlParagraphChunk
-		{
-			Id = Guid.NewGuid(),
-			Content = "The theory of evolution influenced modern biologists greatly.",
-			QualityMetrics = new ChunkQualityMetrics()
-		};
-
-		theoryEntity.AddSource(chunk.Id, 4, chunk.Content);
-		personEntity.AddSource(chunk.Id, chunk.Content.IndexOf("modern biologists", StringComparison.Ordinal), chunk.Content);
-
-		var entities = new List<Entity> { theoryEntity, personEntity };
-		var chunks = new List<ChunkerBase> { chunk };
-
 		// Act
-		var relationships = await extractor.ExtractRelationshipsAsync(entities, chunks, CancellationToken);
+		var relationships = await ExtractFromChunkAsync(
+			new PatternBasedRelationshipExtractor(),
+			content,
+			(theoryEntity, 4),
+			(personEntity, content.IndexOf("modern biologists", StringComparison.Ordinal)));
 
 		// Assert
 		relationships.Should().NotBeEmpty();
@@ -292,8 +206,8 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 		var entity2 = new Entity(EntityType.Organization, "Society", 1.0);
 
 		// Add entity in multiple chunks to increase relationship weight
-		var chunk1 = new HtmlParagraphChunk { Id = Guid.NewGuid(), Content = "Darwin founded the Society.", QualityMetrics = new ChunkQualityMetrics() };
-		var chunk2 = new HtmlParagraphChunk { Id = Guid.NewGuid(), Content = "Darwin joined the Society.", QualityMetrics = new ChunkQualityMetrics() };
+		var chunk1 = CreateChunk("Darwin founded the Society.");
+		var chunk2 = CreateChunk("Darwin joined the Society.");
 
 		entity1.AddSource(chunk1.Id, 0);
 		entity1.AddSource(chunk2.Id, 0);
@@ -309,5 +223,29 @@ public class PatternBasedRelationshipExtractorTests(ITestOutputHelper output) : 
 		// Assert
 		relationships.Should().NotBeEmpty();
 		relationships.Should().OnlyContain(r => r.Weight >= 0.0 && r.Weight <= 1.0, "Weights should be normalized between 0 and 1");
+	}
+
+	private static HtmlParagraphChunk CreateChunk(string content) => new()
+	{
+		Id = Guid.NewGuid(),
+		Content = content,
+		QualityMetrics = new ChunkQualityMetrics()
+	};
+
+	private Task<List<Relationship>> ExtractFromChunkAsync(
+		PatternBasedRelationshipExtractor extractor,
+		string content,
+		(Entity Entity, int Position) first,
+		(Entity Entity, int Position) second)
+	{
+		var chunk = CreateChunk(content);
+
+		first.Entity.AddSource(chunk.Id, first.Position, chunk.Content);
+		second.Entity.AddSource(chunk.Id, second.Position, chunk.Content);
+
+		return extractor.ExtractRelationshipsAsync(
+			[first.Entity, second.Entity],
+			[chunk],
+			CancellationToken);
 	}
 }
