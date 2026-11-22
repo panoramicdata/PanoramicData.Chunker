@@ -128,10 +128,10 @@ public partial class Graph
 	/// <summary>
 	/// Validates the integrity of the knowledge graph.
 	/// </summary>
-	/// <returns>True if the graph is valid.</returns>
-	public bool Validate(out List<string> errors)
+	/// <returns>The errors found; valid when there are none.</returns>
+	public IntegrityCheckResult Validate()
 	{
-		errors = [];
+		List<string> errors = [];
 
 		// Check for duplicate entity IDs
 		var entityIds = new HashSet<Guid>();
@@ -166,7 +166,7 @@ public partial class Graph
 			}
 		}
 
-		return errors.Count == 0;
+		return new IntegrityCheckResult(errors);
 	}
 
 	/// <summary>

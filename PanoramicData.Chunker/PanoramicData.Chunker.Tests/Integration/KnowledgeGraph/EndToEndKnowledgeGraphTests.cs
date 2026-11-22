@@ -89,9 +89,10 @@ public partial class EndToEndKnowledgeGraphTests(ApacheAgeFixture fixture, ITest
 		var loadedGraphForValidation = await graphStore.LoadGraphAsync(graph.Id, _cancellationToken);
 		loadedGraphForValidation.Should().NotBeNull();
 
-		var validationResult = loadedGraphForValidation!.Validate(out var errors);
+		var validation = loadedGraphForValidation!.Validate();
+		var validationResult = validation.IsValid;
 
-		LogGraphValidation(validationResult, errors);
+		LogGraphValidation(validationResult, [.. validation.Errors]);
 
 		// === ASSERTIONS ===
 		_output.WriteLine("=== Test Assertions ===");
@@ -157,7 +158,7 @@ public partial class EndToEndKnowledgeGraphTests(ApacheAgeFixture fixture, ITest
 		loaded.Should().NotBeNull("Should load graph from database");
 		loaded.Entities.Should().NotBeEmpty("Loaded graph should contain entities");
 		loaded.Relationships.Should().NotBeEmpty("Loaded graph should contain relationships");
-		loaded.Validate(out _).Should().BeTrue("Loaded graph should be valid");
+		loaded.Validate().IsValid.Should().BeTrue("Loaded graph should be valid");
 
 		// Entity assertions
 		loadedDarwin.Should().NotBeNull("Should find Darwin entity");

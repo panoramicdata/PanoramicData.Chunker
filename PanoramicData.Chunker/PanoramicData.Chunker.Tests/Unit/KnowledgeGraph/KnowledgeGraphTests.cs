@@ -245,11 +245,11 @@ public class KnowledgeGraphTests
 		graph.BuildIndexes();
 
 		// Act
-		var isValid = graph.Validate(out var errors);
+		var validation = graph.Validate();
 
 		// Assert
-		isValid.Should().BeTrue();
-		errors.Should().BeEmpty();
+		validation.IsValid.Should().BeTrue();
+		validation.Errors.Should().BeEmpty();
 	}
 
 	[Fact]
@@ -266,11 +266,11 @@ public class KnowledgeGraphTests
 		graph.BuildIndexes();
 
 		// Act
-		var isValid = graph.Validate(out var errors);
+		var validation = graph.Validate();
 
 		// Assert
-		isValid.Should().BeFalse();
-		errors.Should().NotBeEmpty();
+		validation.IsValid.Should().BeFalse();
+		validation.Errors.Should().NotBeEmpty();
 	}
 
 	[Fact]

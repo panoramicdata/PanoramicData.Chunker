@@ -104,12 +104,9 @@ public class KnowledgeGraphBuilder(IEntityResolver? entityResolver = null)
 		AddConsolidatedRelationships(allRelationships, graph, result);
 		BuildIndexes(graph, result);
 
-		if (!graph.Validate(out var errors))
+		foreach (var error in graph.Validate().Errors)
 		{
-			foreach (var error in errors)
-			{
-				result.AddError(error);
-			}
+			result.AddError(error);
 		}
 
 		result.Graph = graph;
