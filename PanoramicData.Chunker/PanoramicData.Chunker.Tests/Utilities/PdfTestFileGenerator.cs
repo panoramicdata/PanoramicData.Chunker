@@ -37,23 +37,17 @@ public static class PdfTestFileGenerator
 			return;
 		}
 
-		CreateSimplePdf();
+		BuildPdf("simple.pdf", "Simple PDF Document", ComposeSimpleColumn, ComposePageNumber);
 		CreateEmptyPdf();
-		CreateMultiPagePdf();
-		CreateWithHeadings();
-		CreateWithLists();
-		CreateWithTables();
-		CreateLargePdf();
+		BuildPdf("multi-page.pdf", "Multi-Page Document", ComposeMultiPageColumn, ComposePageNumberOfTotal);
+		BuildPdf("with-headings.pdf", "Document with Headings", ComposeHeadingsColumn, ComposePageNumber);
+		BuildPdf("with-lists.pdf", "Document with Lists", ComposeListsColumn, ComposePageNumber);
+		BuildPdf("with-tables.pdf", "Document with Table", ComposeEmployeeColumn, ComposePageNumber);
+		BuildPdf("large.pdf", "Large PDF Document", ComposeLargeColumn, ComposePageNumberOfTotal);
 	}
 
-	/// <summary>
-	/// Create a simple single-page PDF.
-	/// </summary>
-	private static void CreateSimplePdf()
-	{
-		var filePath = Path.Combine(_testDataPath, "simple.pdf");
-
-		Document.Create(container =>
+	private static void BuildPdf(string fileName, string title, Action<ColumnDescriptor> composeContent, Action<TextDescriptor> composeFooter)
+		=> Document.Create(container =>
 		{
 			_ = container.Page(page =>
 			{
@@ -63,36 +57,19 @@ public static class PdfTestFileGenerator
 				page.DefaultTextStyle(x => x.FontSize(12));
 
 				_ = page.Header()
-					.Text("Simple PDF Document")
+					.Text(title)
 					.SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
 
 				page.Content()
 					.PaddingVertical(10)
-					.Column(x =>
-					{
-						x.Spacing(20);
-
-						_ = x.Item().Text("Introduction");
-						_ = x.Item().Text("This is a simple PDF document with basic text content.");
-
-						_ = x.Item().Text("Body");
-						_ = x.Item().Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
-
-						_ = x.Item().Text("Conclusion");
-						_ = x.Item().Text("This document demonstrates basic PDF text extraction.");
-					});
+					.Column(composeContent);
 
 				page.Footer()
 					.AlignCenter()
-					.Text(x =>
-					{
-						_ = x.Span("Page ");
-						_ = x.CurrentPageNumber();
-					});
+					.Text(composeFooter);
 			});
 		})
-		.GeneratePdf(filePath);
-	}
+		.GeneratePdf(Path.Combine(_testDataPath, fileName));
 
 	/// <summary>
 	/// Create an empty PDF.
@@ -115,200 +92,78 @@ public static class PdfTestFileGenerator
 		.GeneratePdf(filePath);
 	}
 
-	/// <summary>
-	/// Create a multi-page PDF.
-	/// </summary>
-	private static void CreateMultiPagePdf()
+	private static void ComposeSimpleColumn(ColumnDescriptor x)
 	{
-		var filePath = Path.Combine(_testDataPath, "multi-page.pdf");
+		x.Spacing(20);
 
-		Document.Create(container =>
-		{
-			_ = container.Page(page =>
-			{
-				page.Size(PageSizes.A4);
-				page.Margin(20);
-				page.PageColor(Colors.White);
-				page.DefaultTextStyle(x => x.FontSize(12));
+		_ = x.Item().Text("Introduction");
+		_ = x.Item().Text("This is a simple PDF document with basic text content.");
 
-				_ = page.Header()
-					.Text("Multi-Page Document")
-					.SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
+		_ = x.Item().Text("Body");
+		_ = x.Item().Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
 
-				page.Content()
-					.PaddingVertical(10)
-					.Column(x =>
-					{
-						x.Spacing(20);
-
-						// Page 1 content
-						_ = x.Item().Text("Chapter 1: Introduction").FontSize(16).SemiBold();
-						_ = x.Item().Text("This is the first page of a multi-page document.");
-						_ = x.Item().Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
-							"Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " +
-							"Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.");
-
-						x.Item().PageBreak();
-
-						// Page 2 content
-						_ = x.Item().Text("Chapter 2: Middle Content").FontSize(16).SemiBold();
-						_ = x.Item().Text("This is the second page with more content.");
-						_ = x.Item().Text("Duis aute irure dolor in reprehenderit in voluptate velit esse " +
-							"cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat " +
-							"non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
-
-						x.Item().PageBreak();
-
-						// Page 3 content
-						_ = x.Item().Text("Chapter 3: Conclusion").FontSize(16).SemiBold();
-						_ = x.Item().Text("This is the final page of the document.");
-						_ = x.Item().Text("Thank you for reading this multi-page PDF document.");
-					});
-
-				page.Footer()
-					.AlignCenter()
-					.Text(x =>
-					{
-						_ = x.Span("Page ");
-						_ = x.CurrentPageNumber();
-						_ = x.Span(" of ");
-						_ = x.TotalPages();
-					});
-			});
-		})
-		.GeneratePdf(filePath);
+		_ = x.Item().Text("Conclusion");
+		_ = x.Item().Text("This document demonstrates basic PDF text extraction.");
 	}
 
-	/// <summary>
-	/// Create a PDF with headings.
-	/// </summary>
-	private static void CreateWithHeadings()
+	private static void ComposeMultiPageColumn(ColumnDescriptor x)
 	{
-		var filePath = Path.Combine(_testDataPath, "with-headings.pdf");
+		x.Spacing(20);
 
-		Document.Create(container =>
-		{
-			_ = container.Page(page =>
-			{
-				page.Size(PageSizes.A4);
-				page.Margin(20);
-				page.PageColor(Colors.White);
-				page.DefaultTextStyle(x => x.FontSize(12));
+		// Page 1 content
+		_ = x.Item().Text("Chapter 1: Introduction").FontSize(16).SemiBold();
+		_ = x.Item().Text("This is the first page of a multi-page document.");
+		_ = x.Item().Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+			"Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " +
+			"Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.");
 
-				_ = page.Header()
-					.Text("Document with Headings")
-					.SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
+		x.Item().PageBreak();
 
-				page.Content()
-					.PaddingVertical(10)
-					.Column(x =>
-					{
-						x.Spacing(15);
+		// Page 2 content
+		_ = x.Item().Text("Chapter 2: Middle Content").FontSize(16).SemiBold();
+		_ = x.Item().Text("This is the second page with more content.");
+		_ = x.Item().Text("Duis aute irure dolor in reprehenderit in voluptate velit esse " +
+			"cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat " +
+			"non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
 
-						_ = x.Item().Text("Heading Level 1").FontSize(18).SemiBold();
-						_ = x.Item().Text("This is content under heading level 1.");
+		x.Item().PageBreak();
 
-						_ = x.Item().Text("Heading Level 2").FontSize(16).SemiBold();
-						_ = x.Item().Text("This is content under heading level 2.");
-
-						_ = x.Item().Text("Heading Level 3").FontSize(14).SemiBold();
-						_ = x.Item().Text("This is content under heading level 3.");
-
-						_ = x.Item().Text("Another Level 1 Heading").FontSize(18).SemiBold();
-						_ = x.Item().Text("More content to demonstrate heading hierarchy.");
-					});
-
-				page.Footer()
-					.AlignCenter()
-					.Text(x =>
-					{
-						_ = x.Span("Page ");
-						_ = x.CurrentPageNumber();
-					});
-			});
-		})
-		.GeneratePdf(filePath);
+		// Page 3 content
+		_ = x.Item().Text("Chapter 3: Conclusion").FontSize(16).SemiBold();
+		_ = x.Item().Text("This is the final page of the document.");
+		_ = x.Item().Text("Thank you for reading this multi-page PDF document.");
 	}
 
-	/// <summary>
-	/// Create a PDF with lists.
-	/// </summary>
-	private static void CreateWithLists()
+	private static void ComposeHeadingsColumn(ColumnDescriptor x)
 	{
-		var filePath = Path.Combine(_testDataPath, "with-lists.pdf");
+		x.Spacing(15);
 
-		Document.Create(container =>
-		{
-			_ = container.Page(page =>
-			{
-				page.Size(PageSizes.A4);
-				page.Margin(20);
-				page.PageColor(Colors.White);
-				page.DefaultTextStyle(x => x.FontSize(12));
+		_ = x.Item().Text("Heading Level 1").FontSize(18).SemiBold();
+		_ = x.Item().Text("This is content under heading level 1.");
 
-				_ = page.Header()
-					.Text("Document with Lists")
-					.SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
+		_ = x.Item().Text("Heading Level 2").FontSize(16).SemiBold();
+		_ = x.Item().Text("This is content under heading level 2.");
 
-				page.Content()
-					.PaddingVertical(10)
-					.Column(x =>
-					{
-						x.Spacing(15);
+		_ = x.Item().Text("Heading Level 3").FontSize(14).SemiBold();
+		_ = x.Item().Text("This is content under heading level 3.");
 
-						_ = x.Item().Text("Unordered List:").SemiBold();
-						_ = x.Item().Text("\u2022 First item");
-						_ = x.Item().Text("\u2022 Second item");
-						_ = x.Item().Text("\u2022 Third item");
-
-						_ = x.Item().PaddingTop(10).Text("Ordered List:").SemiBold();
-						_ = x.Item().Text("1. First item");
-						_ = x.Item().Text("2. Second item");
-						_ = x.Item().Text("3. Third item");
-					});
-
-				page.Footer()
-					.AlignCenter()
-					.Text(x =>
-					{
-						_ = x.Span("Page ");
-						_ = x.CurrentPageNumber();
-					});
-			});
-		})
-		.GeneratePdf(filePath);
+		_ = x.Item().Text("Another Level 1 Heading").FontSize(18).SemiBold();
+		_ = x.Item().Text("More content to demonstrate heading hierarchy.");
 	}
 
-	/// <summary>
-	/// Create a PDF with a table.
-	/// </summary>
-	private static void CreateWithTables()
+	private static void ComposeListsColumn(ColumnDescriptor x)
 	{
-		var filePath = Path.Combine(_testDataPath, "with-tables.pdf");
+		x.Spacing(15);
 
-		Document.Create(container =>
-		{
-			_ = container.Page(page =>
-			{
-				page.Size(PageSizes.A4);
-				page.Margin(20);
-				page.PageColor(Colors.White);
-				page.DefaultTextStyle(x => x.FontSize(12));
+		_ = x.Item().Text("Unordered List:").SemiBold();
+		_ = x.Item().Text("\u2022 First item");
+		_ = x.Item().Text("\u2022 Second item");
+		_ = x.Item().Text("\u2022 Third item");
 
-				_ = page.Header()
-					.Text("Document with Table")
-					.SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
-
-				page.Content()
-					.PaddingVertical(10)
-					.Column(ComposeEmployeeColumn);
-
-				page.Footer()
-					.AlignCenter()
-					.Text(ComposePageNumber);
-			});
-		})
-		.GeneratePdf(filePath);
+		_ = x.Item().PaddingTop(10).Text("Ordered List:").SemiBold();
+		_ = x.Item().Text("1. First item");
+		_ = x.Item().Text("2. Second item");
+		_ = x.Item().Text("3. Third item");
 	}
 
 	private static void ComposeEmployeeColumn(ColumnDescriptor x)
@@ -344,60 +199,32 @@ public static class PdfTestFileGenerator
 		}
 	}
 
+	private static void ComposeLargeColumn(ColumnDescriptor x)
+	{
+		x.Spacing(10);
+
+		// Generate 50 paragraphs
+		for (var i = 1; i <= 50; i++)
+		{
+			_ = x.Item().Text($"Section {i}").FontSize(14).SemiBold();
+			_ = x.Item().Text($"This is paragraph {i}. Lorem ipsum dolor sit amet, " +
+				"consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore " +
+				"et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation " +
+				"ullamco laboris nisi ut aliquip ex ea commodo consequat.");
+		}
+	}
+
 	private static void ComposePageNumber(TextDescriptor x)
 	{
 		_ = x.Span("Page ");
 		_ = x.CurrentPageNumber();
 	}
-	/// <summary>
-	/// Create a large PDF for performance testing.
-	/// </summary>
-	private static void CreateLargePdf()
+
+	private static void ComposePageNumberOfTotal(TextDescriptor x)
 	{
-		var filePath = Path.Combine(_testDataPath, "large.pdf");
-
-		Document.Create(container =>
-		{
-			_ = container.Page(page =>
-			{
-				page.Size(PageSizes.A4);
-				page.Margin(20);
-				page.PageColor(Colors.White);
-				page.DefaultTextStyle(x => x.FontSize(12));
-
-				_ = page.Header()
-					.Text("Large PDF Document")
-					.SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
-
-				page.Content()
-					.PaddingVertical(10)
-					.Column(x =>
-					{
-						x.Spacing(10);
-
-						// Generate 50 paragraphs
-						for (var i = 1; i <= 50; i++)
-						{
-							_ = x.Item().Text($"Section {i}").FontSize(14).SemiBold();
-							_ = x.Item().Text($"This is paragraph {i}. Lorem ipsum dolor sit amet, " +
-								"consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore " +
-								"et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation " +
-								"ullamco laboris nisi ut aliquip ex ea commodo consequat.");
-						}
-					});
-
-				page.Footer()
-					.AlignCenter()
-					.Text(x =>
-					{
-						_ = x.Span("Page ");
-						_ = x.CurrentPageNumber();
-						_ = x.Span(" of ");
-						_ = x.TotalPages();
-					});
-			});
-		})
-		.GeneratePdf(filePath);
+		ComposePageNumber(x);
+		_ = x.Span(" of ");
+		_ = x.TotalPages();
 	}
 
 	private static IContainer HeaderCellStyle(IContainer container)

@@ -73,18 +73,17 @@ public class HierarchyBuilderTests
 	}
 
 	private static (TestStructuralChunk Root, TestContentChunk Child1, TestContentChunk Child2) CreateChain()
-	{
-		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
-		var child1 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
-		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = child1.Id };
-		return (root, child1, child2);
-	}
+		=> CreateFamily((_, child1) => child1);
 
 	private static (TestStructuralChunk Root, TestContentChunk Child1, TestContentChunk Child2) CreateSiblings()
+		=> CreateFamily((root, _) => root);
+
+	private static (TestStructuralChunk Root, TestContentChunk Child1, TestContentChunk Child2) CreateFamily(
+		Func<ChunkerBase, ChunkerBase, ChunkerBase> secondChildParent)
 	{
 		var root = new TestStructuralChunk { Id = Guid.NewGuid() };
 		var child1 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
-		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = root.Id };
+		var child2 = new TestContentChunk { Id = Guid.NewGuid(), ParentId = secondChildParent(root, child1).Id };
 		return (root, child1, child2);
 	}
 
