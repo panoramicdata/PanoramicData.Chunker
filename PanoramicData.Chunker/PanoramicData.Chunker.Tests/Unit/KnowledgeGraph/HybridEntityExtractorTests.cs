@@ -3,6 +3,7 @@ using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.KnowledgeGraph.Extractors;
 using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
+using PanoramicData.Chunker.Tests.Utilities;
 
 namespace PanoramicData.Chunker.Tests.Unit.KnowledgeGraph;
 
@@ -197,44 +198,17 @@ public class HybridEntityExtractorTests(ITestOutputHelper output) : BaseTest(out
 	private static void AssertHasAlias(Entity entity, string alias, string because)
 		=> entity.Aliases.Should().Contain(a => a.Equals(alias, StringComparison.OrdinalIgnoreCase), because);
 
-	private void WriteProperNouns(List<Entity> entities)
-	{
-		var properNouns = entities.Where(e => e.Type == EntityType.ProperNoun).ToList();
-		_output.WriteLine($"\nProper Nouns ({properNouns.Count}):");
-		foreach (var entity in properNouns)
-		{
-			_output.WriteLine($"  - {entity.Name} (confidence: {entity.Confidence:F2}, frequency: {entity.Frequency})");
-			if (entity.Aliases.Count > 0)
-			{
-				_output.WriteLine($"  Aliases: {string.Join(", ", entity.Aliases)}");
-			}
-		}
-	}
+	private void WriteProperNouns(List<Entity> entities) => GroundTruthMatching.WriteProperNouns(_output, entities);
 
 	private void WriteGroundTruthCoverage(List<Entity> entities, string[] groundTruthEntities)
 	{
 		_output.WriteLine($"\n=== Ground Truth Entity Coverage ===");
 		foreach (var gt in groundTruthEntities)
 		{
-			var found = entities.Any(e =>
-				// Exact or partial match
-				e.Name.Equals(gt, StringComparison.OrdinalIgnoreCase) ||
-				e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase) ||
-				gt.Contains(e.Name, StringComparison.OrdinalIgnoreCase) ||
-				// Check aliases
-				e.Aliases.Any(a => a.Equals(gt, StringComparison.OrdinalIgnoreCase)));
-
-			_output.WriteLine($"  {(found ? "✓" : "✗")} {gt}");
+			_output.WriteLine($"  {(GroundTruthMatching.IsFound(entities, gt) ? "[found]" : "[missing]")} {gt}");
 		}
 	}
 
 	private static int CountFoundGroundTruth(List<Entity> entities, string[] groundTruthEntities)
-	{
-		var foundCount = groundTruthEntities.Count(gt =>
-			entities.Any(e =>
-				e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase) ||
-				gt.Contains(e.Name, StringComparison.OrdinalIgnoreCase) ||
-				e.Aliases.Any(a => gt.Contains(a, StringComparison.OrdinalIgnoreCase))));
-		return foundCount;
-	}
+		=> groundTruthEntities.Count(gt => GroundTruthMatching.IsFound(entities, gt));
 }

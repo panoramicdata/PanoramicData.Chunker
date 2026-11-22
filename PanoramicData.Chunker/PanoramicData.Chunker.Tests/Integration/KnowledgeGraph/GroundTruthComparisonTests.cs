@@ -8,6 +8,7 @@ using PanoramicData.Chunker.KnowledgeGraph.Extractors;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
 using PanoramicData.Chunker.Tests.Fixtures;
 using PanoramicData.Chunker.Tests.Helpers;
+using PanoramicData.Chunker.Tests.Utilities;
 
 namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 
@@ -17,13 +18,8 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 [Collection("PostgreSQL")]
 [Trait("Category", "Integration")]
 public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHelper output)
-	: IClassFixture<ApacheAgeFixture>
+	: DarwinIntegrationTestBase(fixture, output)
 {
-	private readonly ApacheAgeFixture _fixture = fixture;
-	private readonly ITestOutputHelper _output = output;
-
-	private readonly static CancellationToken _cancellationToken = TestContext.Current.CancellationToken;
-
 	[Fact]
 	public async Task ExtractedGraph_ShouldMatch_GroundTruthRelationships()
 	{
@@ -162,7 +158,7 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		var htmlContent = await DownloadDarwinHtmlAsync();
 
 		// Chunk document
-		var chunkingResult = await ChunkSeparateExtractorsDocumentAsync(htmlContent);
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent);
 
 		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
 		_output.WriteLine(string.Empty);
@@ -234,7 +230,7 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		_output.WriteLine($"Downloaded HTML document ({htmlContent.Length:N0} characters)");
 
 		// Chunk document with FIXED settings
-		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent);
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent, "ground-truth-test");
 
 		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
 
@@ -251,24 +247,7 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		return graph;
 	}
 
-	private void WriteProperNouns(Graph graph)
-	{
-		var properNouns = graph.Entities
-			.Where(e => e.Type == EntityType.ProperNoun)
-			.OrderByDescending(e => e.Confidence)
-			.Take(50)
-			.ToList();
-
-		_output.WriteLine($"Proper Nouns ({properNouns.Count}):");
-		foreach (var entity in properNouns)
-		{
-			_output.WriteLine($"  {entity.Name} (conf: {entity.Confidence:F2}, freq: {entity.Frequency})");
-			if (entity.Aliases.Count > 0)
-			{
-				_output.WriteLine($"    Aliases: {string.Join(", ", entity.Aliases)}");
-			}
-		}
-	}
+	private void WriteProperNouns(Graph graph) => GroundTruthMatching.WriteProperNouns(_output, graph.Entities);
 
 	private void WriteGroundTruthEntityCheck(Graph graph)
 	{
@@ -297,19 +276,7 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		}
 	}
 
-	private static bool GroundTruthEntityFound(Graph graph, string gt)
-	{
-		var found = graph.Entities.Any(e =>
-			// Exact or partial match
-			e.Name.Equals(gt, StringComparison.OrdinalIgnoreCase) ||
-			e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase) ||
-			gt.Contains(e.Name, StringComparison.OrdinalIgnoreCase) ||
-			// Check aliases
-			e.Aliases.Any(a =>
-				a.Equals(gt, StringComparison.OrdinalIgnoreCase) ||
-				gt.Contains(a, StringComparison.OrdinalIgnoreCase)));
-		return found;
-	}
+	private static bool GroundTruthEntityFound(Graph graph, string gt) => GroundTruthMatching.IsFound(graph.Entities, gt);
 
 	private void WriteWordPartialMatches(Graph graph, string gt)
 	{
@@ -323,39 +290,6 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		{
 			_output.WriteLine($"   Partial matches: {string.Join(", ", partialMatches.Take(3).Select(e => e.Name))}");
 		}
-	}
-
-	private static async Task<string> DownloadDarwinHtmlAsync()
-	{
-		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
-
-		string htmlContent;
-		using (var httpClient = new HttpClient())
-		{
-			httpClient.DefaultRequestHeaders.Add("User-Agent",
-				"PanoramicData.Chunker/1.0 (Educational Testing)");
-			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
-			response.EnsureSuccessStatusCode();
-			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
-		}
-		return htmlContent;
-	}
-
-	private static async Task<PanoramicData.Chunker.Models.ChunkingResult> ChunkSeparateExtractorsDocumentAsync(string htmlContent)
-	{
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new HtmlDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 512,
-			MaxCharactersPerChunk = 2000,
-			OverlapTokens = 100,
-			EnforceSentenceBoundaries = true
-		};
-
-		await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
-		var chunkingResult = await chunker.ChunkAsync(stream, options, _cancellationToken);
-		return chunkingResult;
 	}
 
 	private void WriteExtractorFindings(List<Entity> keywords, List<Entity> properNouns)
@@ -520,27 +454,6 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 				_output.WriteLine($"❌ {fullName}: NOT FOUND");
 			}
 		}
-	}
-
-	private static async Task<PanoramicData.Chunker.Models.ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent)
-	{
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new HtmlDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 512,
-			MaxCharactersPerChunk = 2000,  // ✅ FORCE smaller chunks for better relationship detection
-			OverlapTokens = 100,  // ✅ Increased from 50 to catch relationships at boundaries
-			EnforceSentenceBoundaries = true,  // ✅ Keep sentences intact
-			ExternalHierarchy = "Project Gutenberg/Charles Darwin/Autobiography",
-			Tags = ["darwin", "autobiography", "ground-truth-test"]
-		};
-
-		await using var stream = new MemoryStream(
-			System.Text.Encoding.UTF8.GetBytes(htmlContent));
-		var chunkingResult = await chunker.ChunkAsync(
-			stream, options, _cancellationToken);
-		return chunkingResult;
 	}
 
 	private async Task<Graph> BuildDarwinGraphAsync(PanoramicData.Chunker.Models.ChunkingResult chunkingResult)
