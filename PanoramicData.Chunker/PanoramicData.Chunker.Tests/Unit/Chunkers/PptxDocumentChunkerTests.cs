@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Pptx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
@@ -99,14 +100,7 @@ public class PptxDocumentChunkerTests(ITestOutputHelper output)
 		var result = await ChunkFixtureAsync("with-tables.pptx", new ChunkingOptions());
 
 		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.OfType<PptxTableChunk>().Should().AllSatisfy(table =>
-		{
-			_ = table.SerializedTable.Should().NotBeNullOrWhiteSpace("table should be serialized");
-			_ = table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
-			_ = table.TableInfo.Should().NotBeNull();
-			_ = table.TableInfo!.RowCount.Should().BePositive();
-			_ = table.TableInfo.ColumnCount.Should().BePositive();
-		});
+		ChunkAssert.TablesAreMarkdown(result.Chunks.OfType<PptxTableChunk>());
 	}
 
 	[Fact]

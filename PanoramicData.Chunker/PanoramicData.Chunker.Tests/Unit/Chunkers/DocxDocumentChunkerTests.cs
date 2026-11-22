@@ -83,11 +83,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 		_ = result.Success.Should().BeTrue();
 		var tables = result.Chunks.OfType<DocxTableChunk>().ToList();
 		_ = tables.Should().NotBeEmpty();
-		_ = tables.Should().AllSatisfy(table =>
-		{
-			_ = table.SerializedTable.Should().NotBeEmpty();
-			_ = table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
-		});
+		ChunkAssert.TablesAreMarkdown(tables);
 	}
 
 	[Fact]

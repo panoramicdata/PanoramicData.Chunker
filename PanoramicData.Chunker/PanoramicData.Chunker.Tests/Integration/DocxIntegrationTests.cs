@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
+using PanoramicData.Chunker.Tests.Utilities;
 
 namespace PanoramicData.Chunker.Tests.Integration;
 
@@ -42,13 +43,7 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 
 		var tables = result.Chunks.OfType<DocxTableChunk>().ToList();
 		_ = tables.Should().NotBeEmpty();
-		_ = tables.Should().AllSatisfy(table =>
-		{
-			_ = table.SerializedTable.Should().NotBeEmpty();
-			_ = table.TableInfo.Should().NotBeNull();
-			_ = table.TableInfo!.RowCount.Should().BePositive();
-			_ = table.TableInfo.ColumnCount.Should().BePositive();
-		});
+		ChunkAssert.TablesAreMarkdown(tables);
 	}
 
 	[Fact]

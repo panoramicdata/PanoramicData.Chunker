@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.PlainText;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Integration;
@@ -138,15 +139,7 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 		var charResult = await ChunkTextWithAsync("structured.txt", ChunkingPresets.ForFastProcessing());
 		var openAIResult = await ChunkTextWithAsync("structured.txt", ChunkingPresets.ForOpenAIEmbeddings());
 
-		_ = charResult.Success.Should().BeTrue();
-		_ = openAIResult.Success.Should().BeTrue();
-		_ = charResult.Chunks.Count.Should().Be(openAIResult.Chunks.Count);
-		_ = charResult.Statistics.TotalTokens.Should().BePositive("character-based counter should work");
-		_ = openAIResult.Statistics.TotalTokens.Should().BePositive("OpenAI counter should work");
-
-		var ratio = (double)Math.Max(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens) /
-					Math.Min(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens);
-		_ = ratio.Should().BeLessThan(2.0, "token counts should be within 2x of each other");
+		ChunkAssert.ComparableTokenCounts(charResult, openAIResult);
 	}
 
 	private Task<ChunkingResult> ChunkTestFileAsync(string fileName)

@@ -3,6 +3,7 @@ using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Infrastructure.TokenCounters;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Integration;
@@ -15,82 +16,25 @@ public class TokenCountingIntegrationTests(ITestOutputHelper output) : BaseTest(
 	[Fact]
 	public async Task MarkdownChunking_WithOpenAITokenCounter_ShouldCountTokensAccurately()
 	{
-		// Arrange
-		var markdown = @"# Main Header
-
-This is a paragraph with some content that should be counted accurately.
-
-## Subheader
-
-Another paragraph with different content for testing token counting.
-
-### Code Example
-
-```csharp
-public class Test {
-    public void Method() { }
-}
-```";
-
-		var tokenCounter = OpenAITokenCounter.ForGpt4();
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 100,
-			TokenCounter = tokenCounter,
-			TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
-		};
+		const string markdown = "# Main Header\n\nThis is a paragraph with some content that should be counted accurately.\n\n## Subheader\n\nAnother paragraph with different content for testing token counting.\n\n### Code Example\n\n```csharp\npublic class Test {\n    public void Method() { }\n}\n```";
+		var options = OpenAIOptions(100);
 
 		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
 
-		// Assert
 		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().AllSatisfy(chunk =>
-		{
-			if (chunk.QualityMetrics != null)
-			{
-				_ = chunk.QualityMetrics.TokenCount.Should().BePositive();
-				_ = chunk.QualityMetrics.TokenCount.Should().BeLessThanOrEqualTo(options.MaxTokens);
-			}
-		});
-
-		// Token counts should be different from character-based
-		var totalTokens = result.Statistics.TotalTokens;
-		_ = totalTokens.Should().BePositive();
+		AssertChunkTokenCounts(result, options.MaxTokens);
+		_ = result.Statistics.TotalTokens.Should().BePositive();
 	}
 
 	[Fact]
 	public async Task HtmlChunking_WithOpenAITokenCounter_ShouldCountTokensAccurately()
 	{
-		// Arrange
-		var html = @"<!DOCTYPE html>
-<html>
-<body>
-	<h1>Main Title</h1>
-	<p>This is a paragraph with some content that should be counted accurately.</p>
-	<h2>Subtitle</h2>
-	<p>Another paragraph with different content for testing token counting.</p>
-	<ul>
-		<li>List item one</li>
-		<li>List item two</li>
-		<li>List item three</li>
-	</ul>
-</body>
-</html>";
+		const string html = "<!DOCTYPE html>\n<html>\n<body>\n\t<h1>Main Title</h1>\n\t<p>This is a paragraph with some content that should be counted accurately.</p>\n\t<h2>Subtitle</h2>\n\t<p>Another paragraph with different content for testing token counting.</p>\n\t<ul>\n\t\t<li>List item one</li>\n\t\t<li>List item two</li>\n\t\t<li>List item three</li>\n\t</ul>\n</body>\n</html>";
 
-		var tokenCounter = OpenAITokenCounter.ForGpt4();
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 100,
-			TokenCounter = tokenCounter,
-			TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
-		};
+		var result = await ChunkTextAsync(html, DocumentType.Html, OpenAIOptions(100));
 
-		var result = await ChunkTextAsync(html, DocumentType.Html, options);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
-		AssertChunkTokenCountsPositive(result);
-
+		AssertChunkTokenCounts(result);
 		_ = result.Statistics.TotalTokens.Should().BePositive();
 		_ = result.Statistics.AverageTokensPerChunk.Should().BePositive();
 	}
@@ -98,19 +42,7 @@ public class Test {
 	[Fact]
 	public async Task CompareTokenCounters_CharacterBasedVsOpenAI_ShouldShowDifference()
 	{
-		// Arrange
-		var markdown = @"# Technical Documentation
-
-This is a comprehensive guide to understanding how different token counters work.
-
-## Character-Based Counting
-
-Character-based token counting estimates tokens as characters divided by 4.
-
-## OpenAI Token Counting
-
-OpenAI uses BPE tokenization which is more accurate for their models.";
-
+		const string markdown = "# Technical Documentation\n\nThis is a comprehensive guide to understanding how different token counters work.\n\n## Character-Based Counting\n\nCharacter-based token counting estimates tokens as characters divided by 4.\n\n## OpenAI Token Counting\n\nOpenAI uses BPE tokenization which is more accurate for their models.";
 		var charOptions = new ChunkingOptions
 		{
 			MaxTokens = 1000,
@@ -118,63 +50,32 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 			TokenCountingMethod = TokenCountingMethod.CharacterBased
 		};
 
-		var openAIOptions = new ChunkingOptions
-		{
-			MaxTokens = 1000,
-			TokenCounter = OpenAITokenCounter.ForGpt4(),
-			TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
-		};
-
-		// Act
 		var charResult = await ChunkTextAsync(markdown, DocumentType.Markdown, charOptions);
-		var openAIResult = await ChunkTextAsync(markdown, DocumentType.Markdown, openAIOptions);
+		var openAIResult = await ChunkTextAsync(markdown, DocumentType.Markdown, OpenAIOptions(1000));
 
-		// Assert
-		_ = charResult.Success.Should().BeTrue();
-		_ = openAIResult.Success.Should().BeTrue();
-
-		// Both should have the same number of chunks (structure is same)
-		_ = charResult.Chunks.Count.Should().Be(openAIResult.Chunks.Count);
-
-		// Both counters should produce positive token counts
-		_ = charResult.Statistics.TotalTokens.Should().BePositive("character-based counter should work");
-		_ = openAIResult.Statistics.TotalTokens.Should().BePositive("OpenAI counter should work");
-
-		// Token counts typically differ, but may occasionally be similar
-		// Just verify both are in a reasonable range (within 50% of each other)
-		var ratio = (double)Math.Max(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens) /
-					Math.Min(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens);
-		_ = ratio.Should().BeLessThan(2.0, "token counts should be within 2x of each other");
+		ChunkAssert.ComparableTokenCounts(charResult, openAIResult);
 	}
 
 	[Fact]
 	public async Task ChunkingPresets_ForOpenAIEmbeddings_ShouldUseOpenAITokenCounter()
 	{
-		// Arrange
-		var markdown = "# Test Document\n\nThis is test content for verifying preset configuration.";
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
-		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
+		var result = await ChunkTextAsync("# Test Document\n\nThis is test content for verifying preset configuration.", DocumentType.Markdown, options);
 
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = options.TokenCountingMethod.Should().Be(TokenCountingMethod.OpenAI_CL100K);
 		_ = options.TokenCounter.Should().BeOfType<OpenAITokenCounter>();
-
-		// Verify chunks have token counts
-		AssertChunkTokenCountsPositive(result);
+		AssertChunkTokenCounts(result);
 	}
 
 	[Fact]
 	public async Task ChunkingPresets_ForRAG_ShouldUseOpenAITokenCounter()
 	{
-		// Arrange
-		var markdown = "# RAG Test\n\nContent for retrieval augmented generation testing.";
 		var options = ChunkingPresets.ForRAG();
 
-		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
+		var result = await ChunkTextAsync("# RAG Test\n\nContent for retrieval augmented generation testing.", DocumentType.Markdown, options);
 
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = options.TokenCountingMethod.Should().Be(TokenCountingMethod.OpenAI_CL100K);
 		_ = options.TokenCounter.Should().BeOfType<OpenAITokenCounter>();
@@ -183,22 +84,12 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 	[Fact]
 	public async Task LargeDocument_WithTokenCounting_ShouldRespectMaxTokens()
 	{
-		// Arrange
 		var longText = string.Join("\n\n", Enumerable.Range(1, 50)
 			.Select(i => $"This is sentence number {i} with enough content to test token counting."));
+		var options = OpenAIOptions(50);
 
-		var markdown = $"# Large Document\n\n{longText}";
+		var result = await ChunkTextAsync($"# Large Document\n\n{longText}", DocumentType.Markdown, options);
 
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 50,
-			TokenCounter = OpenAITokenCounter.ForGpt4(),
-			TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
-		};
-
-		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
@@ -217,8 +108,6 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 	[InlineData(TokenCountingMethod.OpenAI_R50K)]
 	public async Task DifferentTokenCounters_ShouldAllWork(TokenCountingMethod method)
 	{
-		// Arrange
-		var markdown = "# Test\n\nContent for testing different token counting methods.";
 		var options = new ChunkingOptions
 		{
 			MaxTokens = 100,
@@ -226,32 +115,25 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 			TokenCountingMethod = method
 		};
 
-		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
+		var result = await ChunkTextAsync("# Test\n\nContent for testing different token counting methods.", DocumentType.Markdown, options);
 
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Statistics.TotalTokens.Should().BePositive();
-		AssertChunkTokenCountsPositive(result);
+		AssertChunkTokenCounts(result);
 	}
 
 	[Fact]
 	public async Task TokenCounterFactory_FromOptions_ShouldCreateCorrectCounter()
 	{
-		// Arrange
-		var markdown = "# Factory Test\n\nTesting factory integration.";
 		var options = new ChunkingOptions
 		{
 			TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
 		};
-
-		// Get counter from factory
 		var counter = TokenCounterFactory.GetOrCreate(options);
-
 		options.TokenCounter = counter;
 
-		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
+		var result = await ChunkTextAsync("# Factory Test\n\nTesting factory integration.", DocumentType.Markdown, options);
 
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = counter.Should().BeOfType<OpenAITokenCounter>();
 		_ = result.Statistics.TotalTokens.Should().BePositive();
@@ -260,30 +142,25 @@ OpenAI uses BPE tokenization which is more accurate for their models.";
 	[Fact]
 	public async Task Statistics_ShouldIncludeAccurateTokenMetrics()
 	{
-		// Arrange
-		var markdown = @"# Document
+		var result = await ChunkTextAsync(
+			"# Document\n\nFirst paragraph.\n\n## Section\n\nSecond paragraph.\n\nThird paragraph.",
+			DocumentType.Markdown,
+			ChunkingPresets.ForOpenAIEmbeddings());
 
-First paragraph.
-
-## Section
-
-Second paragraph.
-
-Third paragraph.";
-
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
-		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
-
-		// Assert
 		_ = result.Statistics.TotalTokens.Should().BePositive();
 		_ = result.Statistics.AverageTokensPerChunk.Should().BePositive();
 		_ = result.Statistics.MaxTokensInChunk.Should().BePositive();
 		_ = result.Statistics.MinTokensInChunk.Should().BeGreaterThanOrEqualTo(0);
-
-		// Max should be >= average >= min
 		_ = result.Statistics.MaxTokensInChunk.Should().BeGreaterThanOrEqualTo(result.Statistics.AverageTokensPerChunk);
 		_ = result.Statistics.AverageTokensPerChunk.Should().BeGreaterThanOrEqualTo(result.Statistics.MinTokensInChunk);
 	}
+
+	private static ChunkingOptions OpenAIOptions(int maxTokens) => new()
+	{
+		MaxTokens = maxTokens,
+		TokenCounter = OpenAITokenCounter.ForGpt4(),
+		TokenCountingMethod = TokenCountingMethod.OpenAI_CL100K
+	};
 
 	private static async Task<ChunkingResult> ChunkTextAsync(string content, DocumentType documentType, ChunkingOptions options)
 	{
@@ -291,13 +168,14 @@ Third paragraph.";
 		return await DocumentChunker.ChunkAsync(stream, documentType, options, CancellationToken);
 	}
 
-	private static void AssertChunkTokenCountsPositive(ChunkingResult result)
+	private static void AssertChunkTokenCounts(ChunkingResult result, int? maxTokens = null)
 	{
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
 			if (chunk.QualityMetrics != null)
 			{
 				_ = chunk.QualityMetrics.TokenCount.Should().BePositive();
+				_ = chunk.QualityMetrics.TokenCount.Should().BeLessThanOrEqualTo(maxTokens ?? int.MaxValue);
 			}
 		});
 	}
