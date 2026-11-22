@@ -12,13 +12,11 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// </summary>
 public class CsvDocumentChunkerTests : DocumentChunkerContractTests
 {
-	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly CsvDocumentChunker _chunker;
 
 	public CsvDocumentChunkerTests(ITestOutputHelper output) : base(output, tokenCounter => new CsvDocumentChunker(tokenCounter), DocumentType.Csv)
 	{
-		_tokenCounter = new CharacterBasedTokenCounter();
-		_chunker = new CsvDocumentChunker(_tokenCounter);
+		_chunker = new CsvDocumentChunker(new CharacterBasedTokenCounter());
 	}
 
 	[Fact]

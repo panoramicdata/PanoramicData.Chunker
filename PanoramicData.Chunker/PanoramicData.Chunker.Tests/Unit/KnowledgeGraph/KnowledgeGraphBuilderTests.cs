@@ -73,10 +73,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	{
 		// Arrange
 		var builder = new KnowledgeGraphBuilder();
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk { Content = "Test content with keywords." }
-		};
+		var chunks = CreateChunks("Test content with keywords.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
@@ -95,14 +92,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 		var builder = new KnowledgeGraphBuilder()
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 5));
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Machine learning and artificial intelligence are transforming technology. Machine learning models require data."
-			}
-		};
+		var chunks = CreateChunks("Machine learning and artificial intelligence are transforming technology. Machine learning models require data.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Test Graph", CancellationToken);
@@ -124,14 +114,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10))
 			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor(maxDistance: 500, minConfidence: 0.3));
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Microsoft Azure cloud computing platform provides services for machine learning and artificial intelligence applications."
-			}
-		};
+		var chunks = CreateChunks("Microsoft Azure cloud computing platform provides services for machine learning and artificial intelligence applications.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
@@ -152,14 +135,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 		var builder = new KnowledgeGraphBuilder()
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10));
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Machine learning is important. Machine learning transforms data. Machine learning requires expertise."
-			}
-		};
+		var chunks = CreateChunks("Machine learning is important. Machine learning transforms data. Machine learning requires expertise.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
@@ -222,14 +198,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 		var builder = new KnowledgeGraphBuilder()
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 5));
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Data science machine learning artificial intelligence analytics."
-			}
-		};
+		var chunks = CreateChunks("Data science machine learning artificial intelligence analytics.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
@@ -256,14 +225,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10))
 			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor());
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Machine learning and data science are important for artificial intelligence applications."
-			}
-		};
+		var chunks = CreateChunks("Machine learning and data science are important for artificial intelligence applications.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
@@ -285,14 +247,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 5))
 			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor());
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Cloud computing and machine learning technologies."
-			}
-		};
+		var chunks = CreateChunks("Cloud computing and machine learning technologies.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
@@ -313,14 +268,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 		var builder = new KnowledgeGraphBuilder()
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 5));
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Test content for timestamp validation."
-			}
-		};
+		var chunks = CreateChunks("Test content for timestamp validation.");
 
 		// Act
 		var startTime = DateTimeOffset.UtcNow;
@@ -373,10 +321,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 		var builder = new KnowledgeGraphBuilder()
 			.AddEntityExtractor(new SimpleKeywordExtractor());
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk { Content = "Test content." }
-		};
+		var chunks = CreateChunks("Test content.");
 
 		var cts = new CancellationTokenSource();
 		cts.Cancel();
@@ -398,14 +343,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 			.AddEntityExtractor(new SimpleKeywordExtractor())
 			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor());
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Machine learning and artificial intelligence."
-			}
-		};
+		var chunks = CreateChunks("Machine learning and artificial intelligence.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
@@ -425,14 +363,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 		var builder = new KnowledgeGraphBuilder(resolver)
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10));
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = Guid.NewGuid(),
-				Content = "Machine learning and machine-learning are similar terms."
-			}
-		};
+		var chunks = CreateChunks("Machine learning and machine-learning are similar terms.");
 
 		// Act
 		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
@@ -442,4 +373,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 		_output.WriteLine($"Entities before deduplication: {result.Statistics.EntitiesExtracted}");
 		_output.WriteLine($"Entities after deduplication: {result.Statistics.EntitiesAfterDeduplication}");
 	}
+
+	private static List<ChunkerBase> CreateChunks(string content)
+		=> [new TestContentChunk { Id = Guid.NewGuid(), Content = content }];
 }
