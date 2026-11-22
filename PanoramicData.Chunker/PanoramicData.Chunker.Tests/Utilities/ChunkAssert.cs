@@ -66,6 +66,9 @@ internal static class ChunkAssert
 		_ = ratio.Should().BeLessThan(2.0, "token counts should be within 2x of each other");
 	}
 
+	public static void AllHaveTokenCounts(IEnumerable<ChunkerBase> chunks)
+		=> _ = chunks.Select(chunk => chunk.QualityMetrics).Should().OnlyContain(metrics => metrics != null && metrics.TokenCount > 0);
+
 	public static void SucceededWithChunks(ChunkingResult result)
 	{
 		_ = result.Success.Should().BeTrue();

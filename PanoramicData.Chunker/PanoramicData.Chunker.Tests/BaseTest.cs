@@ -55,6 +55,14 @@ public class BaseTest(ITestOutputHelper output)
 		_ = result.Success.Should().BeTrue();
 		return [.. result.Chunks.OfType<T>()];
 	}
+	protected static async Task<List<DocxTableChunk>> SuccessfulDocxTablesAsync(string fileName, ChunkingOptions options)
+	{
+		var tables = await SuccessfulChunksAsync<DocxTableChunk>(ChunkDocxAsync(fileName, options));
+
+		_ = tables.Should().NotBeEmpty();
+		return tables;
+	}
+
 	protected static Task<ChunkingResult> ChunkDocxAsync(string fileName, ChunkingOptions options)
 		=> ChunkDocxAsync(fileName, options, new CharacterBasedTokenCounter());
 

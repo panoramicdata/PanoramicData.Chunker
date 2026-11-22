@@ -22,7 +22,7 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 		_ = result.Chunks.OfType<PlainTextParagraphChunk>().Should().HaveCountGreaterThan(1);
-		_ = result.Chunks.Select(chunk => chunk.QualityMetrics).Should().OnlyContain(metrics => metrics != null && metrics.TokenCount > 0);
+		ChunkAssert.AllHaveTokenCounts(result.Chunks);
 	}
 
 	[Fact]

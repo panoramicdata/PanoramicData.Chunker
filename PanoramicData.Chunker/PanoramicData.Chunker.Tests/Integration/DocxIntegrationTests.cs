@@ -15,10 +15,8 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_SimpleDocument_ShouldExtractAllElements()
 	{
-		var result = await ChunkDocxAsync("simple.docx", ChunkingPresets.ForRAG());
+		var result = await SuccessfulRagAsync("simple.docx");
 
-		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().NotBeEmpty();
 		_ = result.Statistics.Should().NotBeNull();
 		_output.WriteLine($"Simple document: {result.Statistics.TotalChunks} chunks, {result.Statistics.StructuralChunks} structural, {result.Statistics.ContentChunks} content, max depth {result.Statistics.MaxDepth}");
 	}
@@ -26,10 +24,8 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_ComplexDocument_ShouldHandleMixedContent()
 	{
-		var result = await ChunkDocxAsync("complex.docx", ChunkingPresets.ForRAG());
+		var result = await SuccessfulRagAsync("complex.docx");
 
-		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().NotBeEmpty();
 		_output.WriteLine($"Complex document: {result.Chunks.OfType<DocxSectionChunk>().Count()} sections, {result.Chunks.OfType<DocxParagraphChunk>().Count()} paragraphs, {result.Chunks.OfType<DocxListItemChunk>().Count()} list items, {result.Chunks.OfType<DocxTableChunk>().Count()} tables");
 		_ = result.Statistics.MaxDepth.Should().BePositive();
 	}
@@ -37,13 +33,7 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithTables_ShouldExtractTableStructure()
 	{
-		var result = await ChunkDocxAsync("with-tables.docx", ChunkingPresets.ForRAG());
-
-		_ = result.Success.Should().BeTrue();
-
-		var tables = result.Chunks.OfType<DocxTableChunk>().ToList();
-		_ = tables.Should().NotBeEmpty();
-		ChunkAssert.TablesAreMarkdown(tables);
+		ChunkAssert.TablesAreMarkdown(await SuccessfulDocxTablesAsync("with-tables.docx", ChunkingPresets.ForRAG()));
 	}
 
 	[Fact]
@@ -67,7 +57,7 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
-		_ = result.Chunks.Select(chunk => chunk.QualityMetrics).Should().OnlyContain(metrics => metrics != null && metrics.TokenCount > 0);
+		ChunkAssert.AllHaveTokenCounts(result.Chunks);
 
 		var maxTokens = options.MaxTokens;
 		_ = result.Chunks.Should().OnlyContain(c => c.QualityMetrics!.TokenCount <= maxTokens);
@@ -98,5 +88,13 @@ public class DocxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 			.ToList();
 
 		_output.WriteLine($"Paragraphs with annotations: {paragraphs.Count}");
+	}
+
+	private static async Task<PanoramicData.Chunker.Models.ChunkingResult> SuccessfulRagAsync(string fileName)
+	{
+		var result = await ChunkDocxAsync(fileName, ChunkingPresets.ForRAG());
+
+		ChunkAssert.SucceededWithChunks(result);
+		return result;
 	}
 }

@@ -117,8 +117,7 @@ public class TokenCountingIntegrationTests(ITestOutputHelper output) : BaseTest(
 
 		var result = await ChunkTextAsync("# Test\n\nContent for testing different token counting methods.", DocumentType.Markdown, options);
 
-		_ = result.Success.Should().BeTrue();
-		_ = result.Statistics.TotalTokens.Should().BePositive();
+		AssertSucceededWithTokens(result);
 		AssertChunkTokenCounts(result);
 	}
 
@@ -134,9 +133,8 @@ public class TokenCountingIntegrationTests(ITestOutputHelper output) : BaseTest(
 
 		var result = await ChunkTextAsync("# Factory Test\n\nTesting factory integration.", DocumentType.Markdown, options);
 
-		_ = result.Success.Should().BeTrue();
 		_ = counter.Should().BeOfType<OpenAITokenCounter>();
-		_ = result.Statistics.TotalTokens.Should().BePositive();
+		AssertSucceededWithTokens(result);
 	}
 
 	[Fact]
@@ -166,6 +164,12 @@ public class TokenCountingIntegrationTests(ITestOutputHelper output) : BaseTest(
 	{
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
 		return await DocumentChunker.ChunkAsync(stream, documentType, options, CancellationToken);
+	}
+
+	private static void AssertSucceededWithTokens(ChunkingResult result)
+	{
+		_ = result.Success.Should().BeTrue();
+		_ = result.Statistics.TotalTokens.Should().BePositive();
 	}
 
 	private static void AssertChunkTokenCounts(ChunkingResult result, int? maxTokens = null)
