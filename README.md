@@ -10,7 +10,7 @@
 
 A chunker for common document formats.
 
-Supports .NET 11.0.
+Supports .NET 10.0 and .NET 11.0. The EF Core and Npgsql packages are paired per target framework: EF Core 10 with Npgsql 10 on net10.0, EF Core 11 with Npgsql 11 on net11.0.
 
 ## Breaking changes
 
