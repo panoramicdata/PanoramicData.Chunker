@@ -66,10 +66,8 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 			CreateChunks("Machine learning and artificial intelligence are transforming technology. Machine learning models require data."),
 			"Test Graph");
 
-		result.Success.Should().BeTrue();
-		result.Graph.Should().NotBeNull();
-		result.Graph.Entities.Should().NotBeEmpty();
-		result.Graph.Name.Should().Be("Test Graph");
+		AssertEntitiesExtracted(result);
+		result.Graph!.Name.Should().Be("Test Graph");
 		_output.WriteLine($"Extracted {result.Statistics.EntitiesExtracted} entities");
 		_output.WriteLine($"After deduplication: {result.Statistics.EntitiesAfterDeduplication} entities");
 	}
@@ -81,9 +79,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 			BuilderWith(10, new CooccurrenceRelationshipExtractor(maxDistance: 500, minConfidence: 0.3)),
 			CreateChunks("Microsoft Azure cloud computing platform provides services for machine learning and artificial intelligence applications."));
 
-		result.Success.Should().BeTrue();
-		result.Graph.Should().NotBeNull();
-		result.Graph.Entities.Should().NotBeEmpty();
+		AssertEntitiesExtracted(result);
 		_output.WriteLine($"Entities extracted: {result.Statistics.EntitiesExtracted}");
 		_output.WriteLine($"Relationships extracted: {result.Statistics.RelationshipsExtracted}");
 		_output.WriteLine($"Extractors used: {string.Join(", ", result.Statistics.ExtractorsUsed)}");
@@ -112,11 +108,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldConsolidateRelationships()
 	{
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk { Id = Guid.NewGuid(), Content = "Cloud computing and machine learning are related technologies." },
-			new TestContentChunk { Id = Guid.NewGuid(), Content = "Cloud computing enables machine learning at scale." }
-		};
+		var chunks = CreateChunks("Cloud computing and machine learning are related technologies.", "Cloud computing enables machine learning at scale.");
 
 		var result = await BuildAsync(BuilderWith(10, new CooccurrenceRelationshipExtractor()), chunks);
 
@@ -192,12 +184,7 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldTrackExtractionStatistics()
 	{
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk { Id = Guid.NewGuid(), Content = "Cloud computing provides infrastructure." },
-			new TestContentChunk { Id = Guid.NewGuid(), Content = "Machine learning requires data processing." },
-			new TestContentChunk { Id = Guid.NewGuid(), Content = "Artificial intelligence transforms industries." }
-		};
+		var chunks = CreateChunks("Cloud computing provides infrastructure.", "Machine learning requires data processing.", "Artificial intelligence transforms industries.");
 
 		var result = await BuildAsync(BuilderWith(10, new CooccurrenceRelationshipExtractor()), chunks);
 
@@ -263,6 +250,13 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	private Task<KnowledgeGraphResult> BuildAsync(KnowledgeGraphBuilder builder, List<ChunkerBase> chunks, string name = "Knowledge Graph")
 		=> builder.BuildGraphAsync(chunks, name, CancellationToken);
 
-	private static List<ChunkerBase> CreateChunks(string content)
-		=> [new TestContentChunk { Id = Guid.NewGuid(), Content = content }];
+	private static List<ChunkerBase> CreateChunks(params string[] contents)
+		=> [.. contents.Select(content => (ChunkerBase)new TestContentChunk { Id = Guid.NewGuid(), Content = content })];
+
+	private static void AssertEntitiesExtracted(KnowledgeGraphResult result)
+	{
+		result.Success.Should().BeTrue();
+		result.Graph.Should().NotBeNull();
+		result.Graph.Entities.Should().NotBeEmpty();
+	}
 }
