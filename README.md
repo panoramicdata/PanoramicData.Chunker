@@ -16,3 +16,5 @@ Supports .NET 11.0.
 
 - `EntityPatternLoader.DefaultPatternsPath` and `RelationshipPatternLoader.DefaultPatternsPath` are now static read-only properties instead of constants. Code compiled against earlier versions must be recompiled.
 - The serialisation property order of `ChunkingStatistics` and `RelationshipMetadata` changed (the properties themselves did not).
+- `HierarchyBuilder.ValidateHierarchy(chunks, out errors)` is replaced by `HierarchyBuilder.ValidateHierarchy(chunks)`, which returns an `IntegrityCheckResult` with `IsValid` and `Errors`. The `out` overload is removed.
+- `Graph.Validate(out errors)` is replaced by `Graph.Validate()`, which returns an `IntegrityCheckResult` with `IsValid` and `Errors`. The `out` overload is removed.

@@ -111,9 +111,9 @@ public static class HierarchyBuilder
 	/// <summary>
 	/// Validate hierarchy integrity.
 	/// </summary>
-	public static bool ValidateHierarchy(IEnumerable<ChunkerBase> chunks, out List<string> errors)
+	public static IntegrityCheckResult ValidateHierarchy(IEnumerable<ChunkerBase> chunks)
 	{
-		errors = [];
+		List<string> errors = [];
 		var chunkList = chunks.ToList();
 		var chunkDictionary = chunkList.ToDictionary(c => c.Id);
 
@@ -133,6 +133,6 @@ public static class HierarchyBuilder
 			}
 		}
 
-		return errors.Count == 0;
+		return new IntegrityCheckResult(errors);
 	}
 }
