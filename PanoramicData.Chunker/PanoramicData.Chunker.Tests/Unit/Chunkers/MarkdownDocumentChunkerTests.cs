@@ -3,6 +3,7 @@ using PanoramicData.Chunker.Chunkers.Markdown;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -168,12 +169,7 @@ public class MarkdownDocumentChunkerTests : BaseTest
 	{
 		var result = await ChunkMarkdownAsync("# Header\n\nTest paragraph with some content.");
 
-		_ = result.Chunks.Should().AllSatisfy(chunk =>
-		{
-			_ = chunk.QualityMetrics.Should().NotBeNull();
-			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
-			_ = chunk.QualityMetrics.CharacterCount.Should().BePositive();
-		});
+		ChunkAssert.AllHaveMetrics(result.Chunks);
 	}
 
 	[Fact]
