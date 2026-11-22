@@ -43,29 +43,19 @@ public partial class PlainTextDocumentChunkerTests : BaseTest
 	[Fact]
 	public async Task ChunkAsync_WithParagraphs_ShouldCreateParagraphChunks()
 	{
-		var paragraphs = await ChunksOfAsync<PlainTextParagraphChunk>("First paragraph.\n\nSecond paragraph.\n\nThird paragraph.");
-
-		_ = paragraphs.Should().HaveCount(3);
-		_ = paragraphs[0].Content.Should().Contain("First");
-		_ = paragraphs[1].Content.Should().Contain("Second");
-		_ = paragraphs[2].Content.Should().Contain("Third");
+		await AssertParagraphsAsync("First paragraph.\n\nSecond paragraph.\n\nThird paragraph.", 3, "First", "Second", "Third");
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithMultiLineParagraph_ShouldCombineLines()
 	{
-		var paragraphs = await ChunksOfAsync<PlainTextParagraphChunk>("This is a paragraph\nthat spans multiple\nlines without blank lines.\n\nNext paragraph.");
-
-		_ = paragraphs.Should().HaveCount(2);
-		_ = paragraphs[0].Content.Should().Contain("multiple lines");
+		await AssertParagraphsAsync("This is a paragraph\nthat spans multiple\nlines without blank lines.\n\nNext paragraph.", 2, "multiple lines");
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithSingleParagraph_ShouldCreateOneChunk()
 	{
-		var paragraphs = await ChunksOfAsync<PlainTextParagraphChunk>("This is a single paragraph with no line breaks or additional content.");
-
-		_ = paragraphs.Should().ContainSingle();
+		await AssertParagraphsAsync("This is a single paragraph with no line breaks or additional content.", 1);
 	}
 
 	[Fact]
@@ -99,10 +89,8 @@ public partial class PlainTextDocumentChunkerTests : BaseTest
 		var result = await ChunkTextAsync("Heading\n=======\n\nParagraph 1.\n\nParagraph 2.");
 
 		_ = result.Statistics.Should().NotBeNull();
-		_ = result.Statistics.TotalChunks.Should().BePositive();
-		_ = result.Statistics.StructuralChunks.Should().BePositive();
-		_ = result.Statistics.ContentChunks.Should().BePositive();
-		_ = result.Statistics.TotalTokens.Should().BePositive();
+		var statistics = result.Statistics;
+		_ = new[] { statistics.TotalChunks, statistics.StructuralChunks, statistics.ContentChunks, statistics.TotalTokens }.Should().OnlyContain(count => count > 0);
 	}
 
 	[Fact]
@@ -121,6 +109,17 @@ public partial class PlainTextDocumentChunkerTests : BaseTest
 
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().BeEmpty();
+	}
+
+	private async Task AssertParagraphsAsync(string text, int count, params string[] fragments)
+	{
+		var paragraphs = await ChunksOfAsync<PlainTextParagraphChunk>(text);
+
+		_ = paragraphs.Should().HaveCount(count);
+		foreach (var (paragraph, fragment) in paragraphs.Zip(fragments))
+		{
+			_ = paragraph.Content.Should().Contain(fragment);
+		}
 	}
 
 	private async Task<ChunkingResult> ChunkTextAsync(string text)
