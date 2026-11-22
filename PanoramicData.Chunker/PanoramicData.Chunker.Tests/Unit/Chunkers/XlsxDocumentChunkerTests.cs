@@ -3,6 +3,7 @@ using PanoramicData.Chunker.Chunkers.Xlsx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -62,10 +63,8 @@ public class XlsxDocumentChunkerTests : FileBasedChunkerContractTests
 	[Fact]
 	public async Task ChunkAsync_WithValidXlsx_ShouldReturnChunks()
 	{
-		var result = await ChunkTestFileAsync("simple.xlsx");
+		var result = await ChunkSucceededAsync("simple.xlsx");
 
-		_ = result.Should().NotBeNull();
-		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 
 		// Should have at least document chunk
@@ -77,18 +76,13 @@ public class XlsxDocumentChunkerTests : FileBasedChunkerContractTests
 	{
 		var result = await ChunkTextAsync("This is not a valid XLSX file");
 
-		_ = result.Should().NotBeNull();
-		_ = result.Success.Should().BeFalse();
-		_ = result.Warnings.Should().NotBeEmpty();
+		ChunkAssert.FailedWithWarnings(result);
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithEmptyXlsx_ShouldHandleGracefully()
 	{
-		var result = await ChunkTestFileAsync("empty.xlsx");
-
-		_ = result.Should().NotBeNull();
-		_ = result.Success.Should().BeTrue();
+		_ = await ChunkSucceededAsync("empty.xlsx");
 		// Empty XLSX may still have structural chunks (document, worksheet)
 		// so we don't require it to be empty
 	}

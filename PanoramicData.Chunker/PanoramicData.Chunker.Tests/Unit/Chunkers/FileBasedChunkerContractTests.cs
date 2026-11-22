@@ -3,6 +3,7 @@ using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Interfaces;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -34,9 +35,7 @@ public abstract class FileBasedChunkerContractTests(
 	{
 		var result = await ChunkTestFileAsync(simpleFileName);
 
-		_ = result.Statistics.Should().NotBeNull();
-		_ = result.Statistics.TotalChunks.Should().BePositive();
-		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		ChunkAssert.HasStatistics(result);
 	}
 
 	[Fact]
@@ -46,8 +45,7 @@ public abstract class FileBasedChunkerContractTests(
 
 		var result = await _contractChunker.ChunkAsync(stream, new ChunkingOptions { ValidateChunks = true }, CancellationToken);
 
-		_ = result.ValidationResult.Should().NotBeNull();
-		_ = result.ValidationResult!.IsValid.Should().BeTrue();
+		ChunkAssert.IsValidated(result);
 	}
 
 	[Fact]
@@ -59,6 +57,13 @@ public abstract class FileBasedChunkerContractTests(
 		{
 			_ = chunk.QualityMetrics.Should().NotBeNull();
 		});
+	}
+
+	protected async Task<ChunkingResult> ChunkSucceededAsync(string fileName)
+	{
+		var result = await ChunkTestFileAsync(fileName);
+		ChunkAssert.Succeeded(result);
+		return result;
 	}
 
 	protected async Task<ChunkingResult> ChunkTestFileAsync(string fileName)

@@ -3,6 +3,7 @@ using PanoramicData.Chunker.Chunkers.Pdf;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
@@ -75,10 +76,8 @@ public class PdfDocumentChunkerTests : FileBasedChunkerContractTests
 	[Fact]
 	public async Task ChunkAsync_WithValidPdf_ShouldReturnChunks()
 	{
-		var result = await ChunkTestFileAsync("simple.pdf");
+		var result = await ChunkSucceededAsync("simple.pdf");
 
-		_ = result.Should().NotBeNull();
-		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 
 		// Should have document and page chunks
@@ -98,18 +97,14 @@ public class PdfDocumentChunkerTests : FileBasedChunkerContractTests
 		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
 
 		// Assert
-		_ = result.Should().NotBeNull();
-		_ = result.Success.Should().BeFalse();
-		_ = result.Warnings.Should().NotBeEmpty();
+		ChunkAssert.FailedWithWarnings(result);
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithEmptyPdf_ShouldHandleGracefully()
 	{
-		var result = await ChunkTestFileAsync("empty.pdf");
+		var result = await ChunkSucceededAsync("empty.pdf");
 
-		_ = result.Should().NotBeNull();
-		_ = result.Success.Should().BeTrue();
 		// Empty PDF should still have document and page chunks
 		_ = result.Chunks.Should().NotBeEmpty();
 	}
