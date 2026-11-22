@@ -12,13 +12,11 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// </summary>
 public class PdfDocumentChunkerTests : FileBasedChunkerContractTests
 {
-	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly PdfDocumentChunker _chunker;
 
 	public PdfDocumentChunkerTests(ITestOutputHelper output) : base(output, tokenCounter => new PdfDocumentChunker(tokenCounter), DocumentType.Pdf, "Pdf", "simple.pdf")
 	{
-		_tokenCounter = new CharacterBasedTokenCounter();
-		_chunker = new PdfDocumentChunker(_tokenCounter);
+		_chunker = new PdfDocumentChunker(new CharacterBasedTokenCounter());
 	}
 
 	[Fact]

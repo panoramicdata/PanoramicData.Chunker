@@ -12,13 +12,11 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// </summary>
 public class XlsxDocumentChunkerTests : FileBasedChunkerContractTests
 {
-	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly XlsxDocumentChunker _chunker;
 
 	public XlsxDocumentChunkerTests(ITestOutputHelper output) : base(output, tokenCounter => new XlsxDocumentChunker(tokenCounter), DocumentType.Xlsx, "Xlsx", "simple.xlsx")
 	{
-		_tokenCounter = new CharacterBasedTokenCounter();
-		_chunker = new XlsxDocumentChunker(_tokenCounter);
+		_chunker = new XlsxDocumentChunker(new CharacterBasedTokenCounter());
 	}
 
 	[Fact]
