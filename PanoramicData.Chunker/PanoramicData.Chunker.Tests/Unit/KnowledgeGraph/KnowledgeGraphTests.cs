@@ -77,8 +77,8 @@ public class KnowledgeGraphTests
 	{
 		// Arrange
 		var graph = new Graph("Test");
-		var entity1 = new Entity { Name = "Entity 1", Type = EntityType.Person, NormalizedName = "entity 1" };
-		var entity2 = new Entity { Name = "Entity 2", Type = EntityType.Organization, NormalizedName = "entity 2" };
+		var entity1 = CreateEntity("Entity 1", EntityType.Person);
+		var entity2 = CreateEntity("Entity 2", EntityType.Organization);
 		graph.AddEntity(entity1);
 		graph.AddEntity(entity2);
 
@@ -97,7 +97,7 @@ public class KnowledgeGraphTests
 	{
 		// Arrange
 		var graph = new Graph("Test");
-		var entity = new Entity { Name = "Test", Type = EntityType.Concept, NormalizedName = "test" };
+		var entity = CreateEntity("Test", EntityType.Concept);
 		graph.AddEntity(entity);
 		graph.BuildIndexes();
 
@@ -128,7 +128,7 @@ public class KnowledgeGraphTests
 	{
 		// Arrange
 		var graph = new Graph("Test");
-		var entity = new Entity { Name = "Microsoft", Type = EntityType.Organization, NormalizedName = "microsoft" };
+		var entity = CreateEntity("Microsoft", EntityType.Organization);
 		graph.AddEntity(entity);
 		graph.BuildIndexes();
 
@@ -145,8 +145,8 @@ public class KnowledgeGraphTests
 	{
 		// Arrange
 		var graph = new Graph("Test");
-		var entity1 = new Entity { Name = "Microsoft", Type = EntityType.Organization, NormalizedName = "microsoft" };
-		var entity2 = new Entity { Name = "Microsoft Azure", Type = EntityType.Product, NormalizedName = "microsoft azure" };
+		var entity1 = CreateEntity("Microsoft", EntityType.Organization);
+		var entity2 = CreateEntity("Microsoft Azure", EntityType.Product);
 		graph.AddEntity(entity1);
 		graph.AddEntity(entity2);
 		graph.BuildIndexes();
@@ -163,9 +163,9 @@ public class KnowledgeGraphTests
 	{
 		// Arrange
 		var graph = new Graph("Test");
-		var entity1 = new Entity { Name = "E1", Type = EntityType.Person, NormalizedName = "e1" };
-		var entity2 = new Entity { Name = "E2", Type = EntityType.Organization, NormalizedName = "e2" };
-		var entity3 = new Entity { Name = "E3", Type = EntityType.Location, NormalizedName = "e3" };
+		var entity1 = CreateEntity("E1", EntityType.Person);
+		var entity2 = CreateEntity("E2", EntityType.Organization);
+		var entity3 = CreateEntity("E3", EntityType.Location);
 		graph.AddEntity(entity1);
 		graph.AddEntity(entity2);
 		graph.AddEntity(entity3);
@@ -187,11 +187,7 @@ public class KnowledgeGraphTests
 	public void GetRelationshipsByType_ShouldFilterByType()
 	{
 		// Arrange
-		var graph = new Graph("Test");
-		var entity1 = new Entity { Name = "E1", Type = EntityType.Person, NormalizedName = "e1" };
-		var entity2 = new Entity { Name = "E2", Type = EntityType.Organization, NormalizedName = "e2" };
-		graph.AddEntity(entity1);
-		graph.AddEntity(entity2);
+		var (graph, entity1, entity2) = CreateGraphWithTwoEntities();
 
 		var rel1 = new Relationship(entity1.Id, entity2.Id, RelationshipType.Mentions);
 		var rel2 = new Relationship(entity1.Id, entity2.Id, RelationshipType.RelatedTo);
@@ -211,11 +207,7 @@ public class KnowledgeGraphTests
 	public void ComputeStatistics_ShouldCalculateCorrectly()
 	{
 		// Arrange
-		var graph = new Graph("Test");
-		var entity1 = new Entity { Name = "E1", Type = EntityType.Person, NormalizedName = "e1" };
-		var entity2 = new Entity { Name = "E2", Type = EntityType.Organization, NormalizedName = "e2" };
-		graph.AddEntity(entity1);
-		graph.AddEntity(entity2);
+		var (graph, entity1, entity2) = CreateGraphWithTwoEntities();
 
 		var relationship = new Relationship(entity1.Id, entity2.Id, RelationshipType.Mentions);
 		graph.AddRelationship(relationship);
@@ -234,11 +226,7 @@ public class KnowledgeGraphTests
 	public void Validate_WithValidGraph_ShouldReturnTrue()
 	{
 		// Arrange
-		var graph = new Graph("Test");
-		var entity1 = new Entity { Name = "E1", Type = EntityType.Person, NormalizedName = "e1" };
-		var entity2 = new Entity { Name = "E2", Type = EntityType.Organization, NormalizedName = "e2" };
-		graph.AddEntity(entity1);
-		graph.AddEntity(entity2);
+		var (graph, entity1, entity2) = CreateGraphWithTwoEntities();
 
 		var relationship = new Relationship(entity1.Id, entity2.Id, RelationshipType.Mentions);
 		graph.AddRelationship(relationship);
@@ -257,7 +245,7 @@ public class KnowledgeGraphTests
 	{
 		// Arrange
 		var graph = new Graph("Test");
-		var entity1 = new Entity { Name = "E1", Type = EntityType.Person, NormalizedName = "e1" };
+		var entity1 = CreateEntity("E1", EntityType.Person);
 		graph.AddEntity(entity1);
 
 		// Add relationship referencing non-existent entity
@@ -308,5 +296,22 @@ public class KnowledgeGraphTests
 		graph.Statistics.TotalEntities.Should().Be(0);
 		graph.Statistics.TotalRelationships.Should().Be(0);
 		graph.Statistics.AverageEntityConfidence.Should().Be(0);
+	}
+
+	private static Entity CreateEntity(string name, EntityType type) => new()
+	{
+		Name = name,
+		Type = type,
+		NormalizedName = name.ToLowerInvariant()
+	};
+
+	private static (Graph Graph, Entity First, Entity Second) CreateGraphWithTwoEntities()
+	{
+		var graph = new Graph("Test");
+		var first = CreateEntity("E1", EntityType.Person);
+		var second = CreateEntity("E2", EntityType.Organization);
+		graph.AddEntity(first);
+		graph.AddEntity(second);
+		return (graph, first, second);
 	}
 }

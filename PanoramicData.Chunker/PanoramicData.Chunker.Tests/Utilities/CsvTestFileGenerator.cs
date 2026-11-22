@@ -12,26 +12,11 @@ public static class CsvTestFileGenerator
 	/// <summary>
 	/// Generate all test CSV files.
 	/// </summary>
-	private static readonly object _generationLock = new();
-
 	public static void GenerateAllTestFiles()
-	{
-		lock (_generationLock)
-		{
-			GenerateAllTestFilesCore();
-		}
-	}
+		=> TestFileGeneration.Run(_testDataPath, "simple.csv", GenerateAllTestFilesCore);
 
 	private static void GenerateAllTestFilesCore()
 	{
-		_ = Directory.CreateDirectory(_testDataPath);
-
-		// If files already exist, skip generation
-		if (File.Exists(Path.Combine(_testDataPath, "simple.csv")))
-		{
-			return;
-		}
-
 		CreateSimpleCsv();
 		CreateEmptyCsv();
 		CreateWithQuotes();

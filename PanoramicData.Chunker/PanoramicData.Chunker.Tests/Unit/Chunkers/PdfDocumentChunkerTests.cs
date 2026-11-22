@@ -10,12 +10,12 @@ namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 /// <summary>
 /// Unit tests for PdfDocumentChunker.
 /// </summary>
-public class PdfDocumentChunkerTests : DocumentChunkerContractTests
+public class PdfDocumentChunkerTests : FileBasedChunkerContractTests
 {
 	private readonly CharacterBasedTokenCounter _tokenCounter;
 	private readonly PdfDocumentChunker _chunker;
 
-	public PdfDocumentChunkerTests(ITestOutputHelper output) : base(output, tokenCounter => new PdfDocumentChunker(tokenCounter), DocumentType.Pdf)
+	public PdfDocumentChunkerTests(ITestOutputHelper output) : base(output, tokenCounter => new PdfDocumentChunker(tokenCounter), DocumentType.Pdf, "Pdf", "simple.pdf")
 	{
 		_tokenCounter = new CharacterBasedTokenCounter();
 		_chunker = new PdfDocumentChunker(_tokenCounter);
@@ -28,7 +28,7 @@ public class PdfDocumentChunkerTests : DocumentChunkerContractTests
 		var type = _chunker.SupportedType;
 
 		// Assert
-		_ = type.Should().Be(DocumentType.Pdf);
+		_ = type.Should().Be(DocumentType.Pdf, "Pdf", "simple.pdf");
 	}
 
 	[Fact]
@@ -52,19 +52,6 @@ public class PdfDocumentChunkerTests : DocumentChunkerContractTests
 		// Arrange - Plain text is not PDF
 		var content = "This is plain text, not PDF";
 		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-
-		// Act
-		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
-
-		// Assert
-		_ = result.Should().BeFalse();
-	}
-
-	[Fact]
-	public async Task CanHandleAsync_WithEmptyStream_ShouldReturnFalse()
-	{
-		// Arrange
-		using var stream = new MemoryStream();
 
 		// Act
 		var result = await _chunker.CanHandleAsync(stream, CancellationToken);
@@ -130,44 +117,6 @@ public class PdfDocumentChunkerTests : DocumentChunkerContractTests
 	}
 
 	[Fact]
-	public async Task ChunkAsync_ShouldGenerateStatistics()
-	{
-		var result = await ChunkTestFileAsync("simple.pdf");
-
-		_ = result.Statistics.Should().NotBeNull();
-		_ = result.Statistics.TotalChunks.Should().BePositive();
-		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
-	}
-
-	[Fact]
-	public async Task ChunkAsync_WithValidation_ShouldValidateChunks()
-	{
-		// Arrange
-		var testDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf");
-		_ = File.Exists(Path.Combine(testDataPath, "simple.pdf")).Should().BeTrue("test data file must exist in " + testDataPath);
-		await using var stream = File.OpenRead(Path.Combine(testDataPath, "simple.pdf"));
-		var options = new ChunkingOptions { ValidateChunks = true };
-
-		// Act
-		var result = await _chunker.ChunkAsync(stream, options, CancellationToken);
-
-		// Assert
-		_ = result.ValidationResult.Should().NotBeNull();
-		_ = result.ValidationResult!.IsValid.Should().BeTrue();
-	}
-
-	[Fact]
-	public async Task ChunkAsync_ShouldCalculateQualityMetrics()
-	{
-		var result = await ChunkTestFileAsync("simple.pdf");
-
-		_ = result.Chunks.Should().AllSatisfy(chunk =>
-		{
-			_ = chunk.QualityMetrics.Should().NotBeNull();
-		});
-	}
-
-	[Fact]
 	public async Task ChunkAsync_ShouldExtractPageMetadata()
 	{
 		var result = await ChunkTestFileAsync("simple.pdf");
@@ -203,19 +152,5 @@ public class PdfDocumentChunkerTests : DocumentChunkerContractTests
 		{
 			_ = page.ParentId.Should().Be(doc.Id);
 		});
-	}
-
-	private async Task<ChunkingResult> ChunkTestFileAsync(string fileName)
-	{
-		var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "Pdf", fileName);
-		_ = File.Exists(path).Should().BeTrue("test data file must exist: " + path);
-		await using var stream = File.OpenRead(path);
-		return await _chunker.ChunkAsync(stream, new ChunkingOptions(), CancellationToken);
-	}
-
-	private async Task<ChunkingResult> ChunkTextAsync(string content)
-	{
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-		return await _chunker.ChunkAsync(stream, new ChunkingOptions(), CancellationToken);
 	}
 }

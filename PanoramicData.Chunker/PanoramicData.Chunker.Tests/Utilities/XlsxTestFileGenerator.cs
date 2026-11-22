@@ -14,26 +14,11 @@ public static class XlsxTestFileGenerator
 	/// <summary>
 	/// Generate all test XLSX files.
 	/// </summary>
-	private static readonly object _generationLock = new();
-
 	public static void GenerateAllTestFiles()
-	{
-		lock (_generationLock)
-		{
-			GenerateAllTestFilesCore();
-		}
-	}
+		=> TestFileGeneration.Run(_testDataPath, "simple.xlsx", GenerateAllTestFilesCore);
 
 	private static void GenerateAllTestFilesCore()
 	{
-		_ = Directory.CreateDirectory(_testDataPath);
-
-		// If files already exist, skip generation
-		if (File.Exists(Path.Combine(_testDataPath, "simple.xlsx")))
-		{
-			return;
-		}
-
 		CreateSimpleSpreadsheet();
 		CreateEmptySpreadsheet();
 		CreateMultipleWorksheets();
@@ -72,9 +57,9 @@ public static class XlsxTestFileGenerator
 	private static void CreateWithFormulas()
 		=> CreateSingleSheetWorkbook("with-formulas.xlsx", "Calculations",
 			CreateValueRow(1, "Item", "Price", "Quantity", "Total"),
-			CreateRow(2, CreateCell("A2", "Item 1"), CreateCell("B2", "10.50"), CreateCell("C2", "5"), CreateFormulaCell("D2", "B2*C2")),
-			CreateRow(3, CreateCell("A3", "Item 2"), CreateCell("B3", "20.00"), CreateCell("C3", "3"), CreateFormulaCell("D3", "B3*C3")),
-			CreateRow(4, CreateCell("A4", "Total"), CreateCell("B4", ""), CreateCell("C4", ""), CreateFormulaCell("D4", "SUM(D2:D3)")));
+			CreateFormulaRow(2, "B2*C2", "Item 1", "10.50", "5"),
+			CreateFormulaRow(3, "B3*C3", "Item 2", "20.00", "3"),
+			CreateFormulaRow(4, "SUM(D2:D3)", "Total", "", ""));
 
 	private static void CreateWithTable()
 		=> CreateSingleSheetWorkbook("with-table.xlsx", "TableData",
@@ -157,6 +142,13 @@ public static class XlsxTestFileGenerator
 
 	private static Row CreateValueRow(uint index, params string[] values)
 		=> CreateRow(index, [.. values.Select((value, column) => CreateCell($"{(char)('A' + column)}{index}", value))]);
+
+	private static Row CreateFormulaRow(uint index, string formula, params string[] values)
+	{
+		var row = CreateValueRow(index, values);
+		row.Append(CreateFormulaCell($"{(char)('A' + values.Length)}{index}", formula));
+		return row;
+	}
 
 	private static Cell CreateCell(string reference, string value) => new()
 	{

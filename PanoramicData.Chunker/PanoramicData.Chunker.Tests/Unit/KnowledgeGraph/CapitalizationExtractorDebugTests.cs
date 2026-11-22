@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.KnowledgeGraph.Extractors;
-using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Models.KnowledgeGraph;
 
 namespace PanoramicData.Chunker.Tests.Unit.KnowledgeGraph;
 
@@ -13,91 +13,24 @@ public class CapitalizationExtractorDebugTests(ITestOutputHelper output) : BaseT
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldExtract_PlinianSociety()
 	{
-		// Arrange
-		var extractor = new CapitalizationEntityExtractor(minOccurrences: 1, minWordLength: 2);
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "The Plinian Society was encouraged and, I believe, founded by Professor Jameson."
-			}
-		};
+		var entities = await ExtractAndLogAsync("The Plinian Society was encouraged and, I believe, founded by Professor Jameson.");
 
-		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
-
-		// Assert
-		_output.WriteLine($"Extracted {entities.Count} entities:");
-		foreach (var entity in entities)
-		{
-			_output.WriteLine($"  - {entity.Name} (confidence: {entity.Confidence:F2}, frequency: {entity.Frequency})");
-		}
-
-		var hasPlinianSociety = entities.Any(e =>
-			e.Name.Contains("Plinian", StringComparison.OrdinalIgnoreCase) &&
-			e.Name.Contains("Society", StringComparison.OrdinalIgnoreCase));
-
-		hasPlinianSociety.Should().BeTrue("Should extract 'Plinian Society'");
-
-		var hasProfessorJameson = entities.Any(e =>
-			e.Name.Contains("Professor", StringComparison.OrdinalIgnoreCase) &&
-			e.Name.Contains("Jameson", StringComparison.OrdinalIgnoreCase));
-
-		hasProfessorJameson.Should().BeTrue("Should extract 'Professor Jameson'");
+		HasNameWithAll(entities, "Plinian", "Society").Should().BeTrue("Should extract 'Plinian Society'");
+		HasNameWithAll(entities, "Professor", "Jameson").Should().BeTrue("Should extract 'Professor Jameson'");
 	}
 
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldExtract_EdinburghUniversity()
 	{
-		// Arrange
-		var extractor = new CapitalizationEntityExtractor(minOccurrences: 1, minWordLength: 2);
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "My father wisely took me away at a rather earlier age than usual, and sent me (Oct. 1825) to Edinburgh University with my brother."
-			}
-		};
+		var entities = await ExtractAndLogAsync("My father wisely took me away at a rather earlier age than usual, and sent me (Oct. 1825) to Edinburgh University with my brother.");
 
-		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
-
-		// Assert
-		_output.WriteLine($"Extracted {entities.Count} entities:");
-		foreach (var entity in entities)
-		{
-			_output.WriteLine($"  - {entity.Name} (confidence: {entity.Confidence:F2}, frequency: {entity.Frequency})");
-		}
-
-		var hasEdinburghUniversity = entities.Any(e =>
-			e.Name.Contains("Edinburgh", StringComparison.OrdinalIgnoreCase) &&
-			e.Name.Contains("University", StringComparison.OrdinalIgnoreCase));
-
-		hasEdinburghUniversity.Should().BeTrue("Should extract 'Edinburgh University'");
+		HasNameWithAll(entities, "Edinburgh", "University").Should().BeTrue("Should extract 'Edinburgh University'");
 	}
 
 	[Fact]
 	public async Task ExtractEntitiesAsync_ShouldExtract_OriginOfSpecies()
 	{
-		// Arrange
-		var extractor = new CapitalizationEntityExtractor(minOccurrences: 1, minWordLength: 2);
-		var chunks = new List<ChunkerBase>
-		{
-			new HtmlParagraphChunk
-			{
-				Content = "I admired my grandfather's upholding them under a different form in my 'Origin of Species.'"
-			}
-		};
-
-		// Act
-		var entities = await extractor.ExtractEntitiesAsync(chunks, CancellationToken);
-
-		// Assert
-		_output.WriteLine($"Extracted {entities.Count} entities:");
-		foreach (var entity in entities)
-		{
-			_output.WriteLine($"  - {entity.Name} (confidence: {entity.Confidence:F2}, frequency: {entity.Frequency})");
-		}
+		var entities = await ExtractAndLogAsync("I admired my grandfather's upholding them under a different form in my 'Origin of Species.'");
 
 		// "Origin of Species" might be extracted as "Origin of Species" or just "Species"
 		var hasOriginOfSpecies = entities.Any(e =>
@@ -106,4 +39,22 @@ public class CapitalizationExtractorDebugTests(ITestOutputHelper output) : BaseT
 
 		hasOriginOfSpecies.Should().BeTrue("Should extract 'Origin' or 'Species'");
 	}
+
+	private async Task<List<Entity>> ExtractAndLogAsync(string content)
+	{
+		var extractor = new CapitalizationEntityExtractor(minOccurrences: 1, minWordLength: 2);
+
+		var entities = await extractor.ExtractEntitiesAsync([new HtmlParagraphChunk { Content = content }], CancellationToken);
+
+		_output.WriteLine($"Extracted {entities.Count} entities:");
+		foreach (var entity in entities)
+		{
+			_output.WriteLine($"  - {entity.Name} (confidence: {entity.Confidence:F2}, frequency: {entity.Frequency})");
+		}
+
+		return entities;
+	}
+
+	private static bool HasNameWithAll(List<Entity> entities, params string[] fragments)
+		=> entities.Any(e => fragments.All(f => e.Name.Contains(f, StringComparison.OrdinalIgnoreCase)));
 }
