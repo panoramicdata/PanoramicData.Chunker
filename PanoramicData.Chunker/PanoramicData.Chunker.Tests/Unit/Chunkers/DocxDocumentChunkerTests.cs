@@ -1,9 +1,9 @@
 using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Docx;
 using PanoramicData.Chunker.Configuration;
-using PanoramicData.Chunker.Extensions;
 using PanoramicData.Chunker.Infrastructure.TokenCounters;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 
 namespace PanoramicData.Chunker.Tests.Unit.Chunkers;
 
@@ -59,13 +59,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
-		_ = result.Chunks.Should().AllSatisfy(chunk =>
-		{
-			_ = chunk.QualityMetrics.Should().NotBeNull();
-			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
-			_ = chunk.QualityMetrics.CharacterCount.Should().BePositive();
-			_output.WriteLine($"Content: '{chunk.ToPlainText()}' tokens: {chunk.QualityMetrics.TokenCount}");
-		});
+		ChunkAssert.AllHaveMetrics(result.Chunks);
 
 		var hasAccurateTokenization = result.Chunks.Any(chunk => chunk.QualityMetrics!.TokenCount != (int)Math.Ceiling(chunk.QualityMetrics.CharacterCount / 4.0));
 
