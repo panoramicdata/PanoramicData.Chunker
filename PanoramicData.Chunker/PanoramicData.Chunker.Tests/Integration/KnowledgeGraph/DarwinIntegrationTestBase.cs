@@ -1,7 +1,10 @@
 using PanoramicData.Chunker.Chunkers.Html;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Infrastructure;
+using PanoramicData.Chunker.Interfaces.KnowledgeGraph;
+using PanoramicData.Chunker.KnowledgeGraph.Extractors;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Models.KnowledgeGraph;
 using PanoramicData.Chunker.Tests.Fixtures;
 
 namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
@@ -60,6 +63,32 @@ public abstract class DarwinIntegrationTestBase(ApacheAgeFixture fixture, ITestO
 			return contentChunk.Content;
 		}
 		return string.Empty;
+	}
+
+	protected async Task<Graph> BuildDarwinGraphAsync(ChunkingResult chunkingResult, IEntityExtractor entityExtractor, string graphName)
+	{
+		var entities = await entityExtractor.ExtractEntitiesAsync(chunkingResult.Chunks, _cancellationToken);
+
+		_output.WriteLine($"Extracted {entities.Count} entities using {entityExtractor.Name}");
+
+		var graph = new Graph(graphName);
+		foreach (var entity in entities)
+		{
+			graph.AddEntity(entity);
+		}
+
+		var relationshipExtractor = new PatternBasedRelationshipExtractor(maxDistance: 500, minConfidence: 0.5);
+		var relationships = await relationshipExtractor.ExtractRelationshipsAsync(graph.Entities, chunkingResult.Chunks, _cancellationToken);
+
+		_output.WriteLine($"Extracted {relationships.Count} relationships");
+
+		foreach (var rel in relationships)
+		{
+			graph.AddRelationship(rel);
+		}
+
+		graph.ComputeStatistics();
+		return graph;
 	}
 
 	private static async Task<ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent, ChunkingOptions options)

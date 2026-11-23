@@ -197,9 +197,9 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		var plinian = graph.Entities.FirstOrDefault(e =>
 			e.Name.Contains("Plinian", StringComparison.OrdinalIgnoreCase));
 
-		ReportJamesonEntity(graph, jameson);
+		ReportEntity(graph, jameson, "Jameson", "James");
 
-		ReportPlinianEntity(graph, plinian);
+		ReportEntity(graph, plinian, "Plinian", "Plin", "Society");
 
 		_output.WriteLine(string.Empty);
 
@@ -255,12 +255,7 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		_output.WriteLine("=== GROUND TRUTH ENTITY CHECK ===");
 
 		// Ground truth entities we expect to find
-		var groundTruthEntities = new[]
-		{
-			"Plinian Society", "Professor Jameson", "HMS Beagle", "Charles Darwin",
-			"Edinburgh University", "Robert Grant", "Captain FitzRoy", "Galapagos Islands",
-			"John Henslow", "Cambridge University", "Origin of Species"
-		};
+		var groundTruthEntities = GroundTruthMatching.DarwinEntities;
 
 		foreach (var gt in groundTruthEntities)
 		{
@@ -319,23 +314,20 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		}
 	}
 
-	private void ReportJamesonEntity(Graph graph, Entity? jameson)
+	private void ReportEntity(Graph graph, Entity? entity, string label, params string[] nameFragments)
 	{
-		if (jameson == null)
+		if (entity == null)
 		{
-			_output.WriteLine("❌ PROBLEM: Jameson entity NOT FOUND");
+			_output.WriteLine($"❌ PROBLEM: {label} entity NOT FOUND");
 			_output.WriteLine("   Searching for partial matches...");
-			var partialMatches = graph.Entities
-				.Where(e => e.Name.Contains("James", StringComparison.OrdinalIgnoreCase))
-				.ToList();
-			WritePartialMatchCounts(partialMatches);
+			WritePartialMatchCounts([.. graph.Entities.Where(e => nameFragments.Any(f => e.Name.Contains(f, StringComparison.OrdinalIgnoreCase)))]);
 		}
 		else
 		{
-			_output.WriteLine($"✅ Jameson entity FOUND: '{jameson.Name}' (ID: {jameson.Id})");
-			_output.WriteLine($"   Type: {jameson.Type}, Confidence: {jameson.Confidence:F2}, Frequency: {jameson.Frequency}");
-			_output.WriteLine($"   Aliases: {(jameson.Aliases.Count > 0 ? string.Join(", ", jameson.Aliases) : "none")}");
-			_output.WriteLine($"   Sources: {jameson.Sources.Count} chunks");
+			_output.WriteLine($"✅ {label} entity FOUND: '{entity.Name}' (ID: {entity.Id})");
+			_output.WriteLine($"   Type: {entity.Type}, Confidence: {entity.Confidence:F2}, Frequency: {entity.Frequency}");
+			_output.WriteLine($"   Aliases: {(entity.Aliases.Count > 0 ? string.Join(", ", entity.Aliases) : "none")}");
+			_output.WriteLine($"   Sources: {entity.Sources.Count} chunks");
 		}
 	}
 
@@ -349,27 +341,6 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 			_output.WriteLine($"     - '{match.Name}' (type: {match.Type})");
 		}
 	}
-	}
-
-	private void ReportPlinianEntity(Graph graph, Entity? plinian)
-	{
-		if (plinian == null)
-		{
-			_output.WriteLine("❌ PROBLEM: Plinian entity NOT FOUND");
-			_output.WriteLine("   Searching for partial matches...");
-			var partialMatches = graph.Entities
-				.Where(e => e.Name.Contains("Plin", StringComparison.OrdinalIgnoreCase) ||
-				    e.Name.Contains("Society", StringComparison.OrdinalIgnoreCase))
-				.ToList();
-			WritePartialMatchCounts(partialMatches);
-		}
-		else
-		{
-			_output.WriteLine($"✅ Plinian entity FOUND: '{plinian.Name}' (ID: {plinian.Id})");
-			_output.WriteLine($"   Type: {plinian.Type}, Confidence: {plinian.Confidence:F2}, Frequency: {plinian.Frequency}");
-			_output.WriteLine($"   Aliases: {(plinian.Aliases.Count > 0 ? string.Join(", ", plinian.Aliases) : "none")}");
-			_output.WriteLine($"   Sources: {plinian.Sources.Count} chunks");
-		}
 	}
 
 	private void ReportJamesonPlinianRelationship(Graph graph, Entity jameson, Entity plinian)
@@ -456,38 +427,6 @@ public class GroundTruthComparisonTests(ApacheAgeFixture fixture, ITestOutputHel
 		}
 	}
 
-	private async Task<Graph> BuildDarwinGraphAsync(PanoramicData.Chunker.Models.ChunkingResult chunkingResult)
-	{
-		var entityExtractor = new HybridEntityExtractor();
-		var entities = await entityExtractor.ExtractEntitiesAsync(
-			chunkingResult.Chunks, _cancellationToken);
-
-		_output.WriteLine($"Extracted {entities.Count} entities");
-
-		// Build graph
-		var graph = new Graph("Darwin Autobiography - Baseline Extraction");
-		foreach (var entity in entities)
-		{
-			graph.AddEntity(entity);
-		}
-
-		// Extract relationships
-		var relationshipExtractor = new PatternBasedRelationshipExtractor(
-			maxDistance: 500,
-			minConfidence: 0.5);
-		var relationships = await relationshipExtractor.ExtractRelationshipsAsync(
-			graph.Entities,
-			chunkingResult.Chunks,
-			_cancellationToken);
-
-		_output.WriteLine($"Extracted {relationships.Count} relationships");
-
-		foreach (var rel in relationships)
-		{
-			graph.AddRelationship(rel);
-		}
-
-		graph.ComputeStatistics();
-		return graph;
-	}
+	private Task<Graph> BuildDarwinGraphAsync(PanoramicData.Chunker.Models.ChunkingResult chunkingResult)
+		=> BuildDarwinGraphAsync(chunkingResult, new HybridEntityExtractor(), "Darwin Autobiography - Baseline Extraction");
 }

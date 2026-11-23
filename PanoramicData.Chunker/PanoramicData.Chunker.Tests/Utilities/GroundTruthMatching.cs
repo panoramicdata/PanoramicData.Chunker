@@ -4,6 +4,13 @@ namespace PanoramicData.Chunker.Tests.Utilities;
 
 internal static class GroundTruthMatching
 {
+	public static readonly string[] DarwinEntities =
+	[
+		"Plinian Society", "Professor Jameson", "HMS Beagle", "Charles Darwin",
+		"Edinburgh University", "Robert Grant", "Captain FitzRoy", "Galapagos Islands",
+		"John Henslow", "Cambridge University", "Origin of Species"
+	];
+
 	public static bool IsFound(IEnumerable<Entity> entities, string groundTruth)
 		=> entities.Any(e =>
 			e.Name.Equals(groundTruth, StringComparison.OrdinalIgnoreCase) ||
