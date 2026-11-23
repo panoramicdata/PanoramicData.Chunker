@@ -18,13 +18,8 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 [Collection("PostgreSQL")]
 [Trait("Category", "Integration")]
 public class PlinianSocietyDebugTests(ApacheAgeFixture fixture, ITestOutputHelper output)
-	: IClassFixture<ApacheAgeFixture>
+	: DarwinIntegrationTestBase(fixture, output)
 {
-	private readonly ApacheAgeFixture _fixture = fixture;
-	private readonly ITestOutputHelper _output = output;
-
-	private readonly static CancellationToken _cancellationToken = TestContext.Current.CancellationToken;
-
 	[Fact]
 	public async Task Debug_ExtractFromPlinianSocietyChunk()
 	{
@@ -61,39 +56,6 @@ public class PlinianSocietyDebugTests(ApacheAgeFixture fixture, ITestOutputHelpe
 
 		// This test always passes - it's diagnostic only
 		true.Should().BeTrue();
-	}
-
-	private static async Task<string> DownloadDarwinHtmlAsync()
-	{
-		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
-
-		string htmlContent;
-		using (var httpClient = new HttpClient())
-		{
-			httpClient.DefaultRequestHeaders.Add("User-Agent",
-				"PanoramicData.Chunker/1.0 (Educational Testing)");
-			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
-			response.EnsureSuccessStatusCode();
-			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
-		}
-		return htmlContent;
-	}
-
-	private static async Task<ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent)
-	{
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new HtmlDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 512,
-			MaxCharactersPerChunk = 2000,
-			OverlapTokens = 100,
-			EnforceSentenceBoundaries = true
-		};
-
-		await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
-		var chunkingResult = await chunker.ChunkAsync(stream, options, _cancellationToken);
-		return chunkingResult;
 	}
 
 	private static ChunkerBase? FindPlinianSocietyChunk(ChunkingResult chunkingResult)
@@ -149,12 +111,4 @@ public class PlinianSocietyDebugTests(ApacheAgeFixture fixture, ITestOutputHelpe
 		}
 	}
 
-	private static string GetChunkContent(ChunkerBase chunk)
-	{
-		if (chunk is ContentChunk contentChunk)
-		{
-			return contentChunk.Content;
-		}
-		return string.Empty;
-	}
 }

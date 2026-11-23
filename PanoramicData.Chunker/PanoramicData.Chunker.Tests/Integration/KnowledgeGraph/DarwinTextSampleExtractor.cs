@@ -15,13 +15,8 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 [Collection("PostgreSQL")]
 [Trait("Category", "Integration")]
 public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelper output)
-	: IClassFixture<ApacheAgeFixture>
+	: DarwinIntegrationTestBase(fixture, output)
 {
-	private readonly ApacheAgeFixture _fixture = fixture;
-	private readonly ITestOutputHelper _output = output;
-
-	private readonly static CancellationToken _cancellationToken = TestContext.Current.CancellationToken;
-
 	[Fact]
 	public async Task ExtractTextSamples_ForGroundTruthRelationships()
 	{
@@ -39,7 +34,7 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 		_output.WriteLine($"Downloaded HTML document ({htmlContent.Length:N0} characters)");
 
 		// Chunk document with FIXED settings to prevent oversized chunks
-		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent);
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent, "text-sample-extraction");
 
 		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
 		_output.WriteLine($"Average chunk size: {chunkingResult.Chunks.Average(c => GetChunkContent(c).Length):F0} characters");
@@ -56,43 +51,6 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 
 		// This test always passes - it's just for extracting samples
 		true.Should().BeTrue();
-	}
-
-	private static async Task<string> DownloadDarwinHtmlAsync()
-	{
-		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
-
-		string htmlContent;
-		using (var httpClient = new HttpClient())
-		{
-			httpClient.DefaultRequestHeaders.Add("User-Agent",
-				"PanoramicData.Chunker/1.0 (Educational Testing)");
-			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
-			response.EnsureSuccessStatusCode();
-			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
-		}
-		return htmlContent;
-	}
-
-	private static async Task<ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent)
-	{
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new HtmlDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 512,
-			MaxCharactersPerChunk = 2000,  // ✅ FORCE smaller chunks!
-			OverlapTokens = 100,  // ✅ Increased overlap to catch relationships at boundaries
-			EnforceSentenceBoundaries = true,  // ✅ Keep sentences intact
-			ExternalHierarchy = "Project Gutenberg/Charles Darwin/Autobiography",
-			Tags = ["darwin", "autobiography", "text-sample-extraction"]
-		};
-
-		await using var stream = new MemoryStream(
-			System.Text.Encoding.UTF8.GetBytes(htmlContent));
-		var chunkingResult = await chunker.ChunkAsync(
-			stream, options, _cancellationToken);
-		return chunkingResult;
 	}
 
 	private void WriteRelationshipSample(ChunkingResult chunkingResult, GroundTruthRelationship gt)
@@ -213,15 +171,6 @@ public class DarwinTextSampleExtractor(ApacheAgeFixture fixture, ITestOutputHelp
 		// Check for word-by-word match (e.g., "Charles Darwin" might appear as just "Darwin")
 		var entityWords = normalizedEntity.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 		return entityWords.All(word => normalizedContent.Contains(word));
-	}
-
-	private static string GetChunkContent(ChunkerBase chunk)
-	{
-		if (chunk is ContentChunk contentChunk)
-		{
-			return contentChunk.Content;
-		}
-		return string.Empty;
 	}
 
 	private static string ExtractContextWindow(string content, string entity1, string entity2, int windowSize)

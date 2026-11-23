@@ -9,6 +9,7 @@ using PanoramicData.Chunker.Models;
 using PanoramicData.Chunker.Models.KnowledgeGraph;
 using PanoramicData.Chunker.Tests.Fixtures;
 using PanoramicData.Chunker.Tests.Helpers;
+using PanoramicData.Chunker.Tests.Utilities;
 
 namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 
@@ -21,13 +22,8 @@ namespace PanoramicData.Chunker.Tests.Integration.KnowledgeGraph;
 [Collection("PostgreSQL")]
 [Trait("Category", "Integration")]
 public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutputHelper output)
-	: IClassFixture<ApacheAgeFixture>
+	: DarwinIntegrationTestBase(fixture, output)
 {
-	private readonly ApacheAgeFixture _fixture = fixture;
-	private readonly ITestOutputHelper _output = output;
-
-	private readonly static CancellationToken _cancellationToken = TestContext.Current.CancellationToken;
-
 	[Fact]
 	public async Task OllamaExtraction_ShouldImprove_RecallVsBaseline()
 	{
@@ -135,11 +131,7 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 
 		foreach (var gt in groundTruthEntities)
 		{
-			var found = graph.Entities.Any(e =>
-				e.Name.Equals(gt, StringComparison.OrdinalIgnoreCase) ||
-				e.Name.Contains(gt, StringComparison.OrdinalIgnoreCase) ||
-				gt.Contains(e.Name, StringComparison.OrdinalIgnoreCase) ||
-				e.Aliases.Any(a => a.Equals(gt, StringComparison.OrdinalIgnoreCase)));
+			var found = GroundTruthMatching.IsFound(graph.Entities, gt);
 
 			_output.WriteLine($"  {(found ? "✓" : "✗")} {gt}");
 		}
@@ -204,7 +196,7 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 		_output.WriteLine($"Downloaded HTML ({htmlContent.Length:N0} characters)");
 
 		// Chunk document
-		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent, useOllama);
+		var chunkingResult = await ChunkDarwinHtmlAsync(htmlContent, useOllama ? "ollama-extraction" : "baseline-extraction");
 
 		_output.WriteLine($"Created {chunkingResult.Chunks.Count} chunks");
 
@@ -219,41 +211,6 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 		_output.WriteLine(string.Empty);
 
 		return graph;
-	}
-
-	private static async Task<string> DownloadDarwinHtmlAsync()
-	{
-		var documentUrl = "https://www.gutenberg.org/files/2010/2010-h/2010-h.htm";
-
-		string htmlContent;
-		using (var httpClient = new HttpClient())
-		{
-			httpClient.DefaultRequestHeaders.Add("User-Agent",
-				"PanoramicData.Chunker/1.0 (Educational Testing)");
-			var response = await httpClient.GetAsync(documentUrl, _cancellationToken);
-			response.EnsureSuccessStatusCode();
-			htmlContent = await response.Content.ReadAsStringAsync(_cancellationToken);
-		}
-		return htmlContent;
-	}
-
-	private static async Task<ChunkingResult> ChunkDarwinHtmlAsync(string htmlContent, bool useOllama)
-	{
-		var tokenCounter = new CharacterBasedTokenCounter();
-		var chunker = new HtmlDocumentChunker(tokenCounter);
-		var options = new ChunkingOptions
-		{
-			MaxTokens = 512,
-			MaxCharactersPerChunk = 2000,
-			OverlapTokens = 100,
-			EnforceSentenceBoundaries = true,
-			ExternalHierarchy = "Project Gutenberg/Charles Darwin/Autobiography",
-			Tags = ["darwin", "autobiography", useOllama ? "ollama-extraction" : "baseline-extraction"]
-		};
-
-		await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
-		var chunkingResult = await chunker.ChunkAsync(stream, options, _cancellationToken);
-		return chunkingResult;
 	}
 
 	private async Task<Graph> BuildDarwinGraphAsync(ChunkingResult chunkingResult, bool useOllama)
