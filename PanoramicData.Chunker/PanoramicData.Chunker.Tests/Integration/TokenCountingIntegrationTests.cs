@@ -59,26 +59,15 @@ public class TokenCountingIntegrationTests(ITestOutputHelper output) : BaseTest(
 	[Fact]
 	public async Task ChunkingPresets_ForOpenAIEmbeddings_ShouldUseOpenAITokenCounter()
 	{
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkWithOpenAIPresetAsync(ChunkingPresets.ForOpenAIEmbeddings(), "# Test Document\n\nThis is test content for verifying preset configuration.");
 
-		var result = await ChunkTextAsync("# Test Document\n\nThis is test content for verifying preset configuration.", DocumentType.Markdown, options);
-
-		_ = result.Success.Should().BeTrue();
-		_ = options.TokenCountingMethod.Should().Be(TokenCountingMethod.OpenAI_CL100K);
-		_ = options.TokenCounter.Should().BeOfType<OpenAITokenCounter>();
 		AssertChunkTokenCounts(result);
 	}
 
 	[Fact]
 	public async Task ChunkingPresets_ForRAG_ShouldUseOpenAITokenCounter()
 	{
-		var options = ChunkingPresets.ForRAG();
-
-		var result = await ChunkTextAsync("# RAG Test\n\nContent for retrieval augmented generation testing.", DocumentType.Markdown, options);
-
-		_ = result.Success.Should().BeTrue();
-		_ = options.TokenCountingMethod.Should().Be(TokenCountingMethod.OpenAI_CL100K);
-		_ = options.TokenCounter.Should().BeOfType<OpenAITokenCounter>();
+		_ = await ChunkWithOpenAIPresetAsync(ChunkingPresets.ForRAG(), "# RAG Test\n\nContent for retrieval augmented generation testing.");
 	}
 
 	[Fact]
@@ -151,6 +140,16 @@ public class TokenCountingIntegrationTests(ITestOutputHelper output) : BaseTest(
 		_ = result.Statistics.MinTokensInChunk.Should().BeGreaterThanOrEqualTo(0);
 		_ = result.Statistics.MaxTokensInChunk.Should().BeGreaterThanOrEqualTo(result.Statistics.AverageTokensPerChunk);
 		_ = result.Statistics.AverageTokensPerChunk.Should().BeGreaterThanOrEqualTo(result.Statistics.MinTokensInChunk);
+	}
+
+	private static async Task<ChunkingResult> ChunkWithOpenAIPresetAsync(ChunkingOptions options, string markdown)
+	{
+		var result = await ChunkTextAsync(markdown, DocumentType.Markdown, options);
+
+		_ = result.Success.Should().BeTrue();
+		_ = options.TokenCountingMethod.Should().Be(TokenCountingMethod.OpenAI_CL100K);
+		_ = options.TokenCounter.Should().BeOfType<OpenAITokenCounter>();
+		return result;
 	}
 
 	private static ChunkingOptions OpenAIOptions(int maxTokens) => new()
