@@ -238,13 +238,7 @@ public partial class EndToEndKnowledgeGraphTests
 			_output.WriteLine("Falling back to in-memory graph query...");
 
 			// Fallback to in-memory query
-			var loadedGraph = await graphStore.LoadGraphAsync(graph.Id, _cancellationToken);
-			loadedGraph.Should().NotBeNull();
-
-			plinianEntities = [.. loadedGraph!.GetEntitiesByName("plinian")
-				.Concat(loadedGraph.Entities.Where(e =>
-					e.Name.Contains("plinian", StringComparison.OrdinalIgnoreCase)))
-				.DistinctBy(e => e.Id)];
+			plinianEntities = await FallbackEntitiesByNameAsync(graphStore, graph, "plinian");
 
 			_output.WriteLine($"Found {plinianEntities.Count} entities related to 'Plinian' using fallback:");
 		}
@@ -357,13 +351,7 @@ public partial class EndToEndKnowledgeGraphTests
 			_output.WriteLine($"⚠️  Cypher query not available: {ex.Message}");
 			_output.WriteLine("Falling back to in-memory query...");
 
-			var loadedGraph = await graphStore.LoadGraphAsync(graph.Id, _cancellationToken);
-			var darwinEntities = loadedGraph!.GetEntitiesByName("darwin")
-				.Concat(loadedGraph.Entities.Where(e =>
-					e.Name.Contains("darwin", StringComparison.OrdinalIgnoreCase)))
-				.DistinctBy(e => e.Id)
-				.Take(5)
-				.ToList();
+			var darwinEntities = (await FallbackEntitiesByNameAsync(graphStore, graph, "darwin")).Take(5).ToList();
 
 			_output.WriteLine($"Found {darwinEntities.Count} entities related to 'Darwin' using fallback:");
 			foreach (var entity in darwinEntities)
@@ -372,6 +360,16 @@ public partial class EndToEndKnowledgeGraphTests
 			}
 		}
 		_output.WriteLine("");
+	}
+
+	private async Task<List<Entity>> FallbackEntitiesByNameAsync(IGraphStore graphStore, Graph graph, string name)
+	{
+		var loadedGraph = await graphStore.LoadGraphAsync(graph.Id, _cancellationToken);
+		loadedGraph.Should().NotBeNull();
+
+		return [.. loadedGraph!.GetEntitiesByName(name)
+			.Concat(loadedGraph.Entities.Where(e => e.Name.Contains(name, StringComparison.OrdinalIgnoreCase)))
+			.DistinctBy(e => e.Id)];
 	}
 
 	private List<Models.ContentChunk> LogPlinianChunks(Models.ChunkingResult chunkingResult)

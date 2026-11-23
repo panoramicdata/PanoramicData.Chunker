@@ -122,12 +122,7 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 
 		// Ground truth check
 		_output.WriteLine("=== GROUND TRUTH ENTITY COVERAGE ===");
-		var groundTruthEntities = new[]
-		{
-			"Plinian Society", "Professor Jameson", "HMS Beagle", "Charles Darwin",
-			"Edinburgh University", "Robert Grant", "Captain FitzRoy", "Galapagos Islands",
-			"John Henslow", "Cambridge University", "Origin of Species"
-		};
+		var groundTruthEntities = GroundTruthMatching.DarwinEntities;
 
 		foreach (var gt in groundTruthEntities)
 		{
@@ -213,43 +208,8 @@ public class OllamaExtractionComparisonTests(ApacheAgeFixture fixture, ITestOutp
 		return graph;
 	}
 
-	private async Task<Graph> BuildDarwinGraphAsync(ChunkingResult chunkingResult, bool useOllama)
-	{
-		IEntityExtractor entityExtractor = useOllama
-			? new OllamaEntityExtractor()
-			: new HybridEntityExtractor();
-
-		var entities = await entityExtractor.ExtractEntitiesAsync(
-			chunkingResult.Chunks, _cancellationToken);
-
-		_output.WriteLine($"Extracted {entities.Count} entities using {entityExtractor.Name}");
-
-		// Build graph
-		var graph = new Graph($"Darwin Autobiography - {(useOllama ? "LLM" : "Baseline")} Extraction");
-		foreach (var entity in entities)
-		{
-			graph.AddEntity(entity);
-		}
-
-		// Extract relationships
-		var relationshipExtractor = new PatternBasedRelationshipExtractor(
-			maxDistance: 500,
-			minConfidence: 0.5);
-		var relationships = await relationshipExtractor.ExtractRelationshipsAsync(
-			graph.Entities,
-			chunkingResult.Chunks,
-			_cancellationToken);
-
-		_output.WriteLine($"Extracted {relationships.Count} relationships");
-
-		foreach (var rel in relationships)
-		{
-			graph.AddRelationship(rel);
-		}
-
-		graph.ComputeStatistics();
-		return graph;
-	}
+	private Task<Graph> BuildDarwinGraphAsync(ChunkingResult chunkingResult, bool useOllama)
+		=> BuildDarwinGraphAsync(chunkingResult, useOllama ? new OllamaEntityExtractor() : new HybridEntityExtractor(), $"Darwin Autobiography - {(useOllama ? "LLM" : "Baseline")} Extraction");
 
 	/// <summary>
 	/// Checks if Ollama is available at the default endpoint.

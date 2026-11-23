@@ -27,12 +27,26 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 		}
 	}
 
+	private static void AssertOllamaAvailable()
+	{
+		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
+	}
+
+	private static ChunkEnricher CreateEnricher(LLMEnrichmentOptions enrichmentOptions, InMemoryEnrichmentCache? cache = null)
+		=> new(
+			new OllamaLlmProvider(new OllamaOptions { DefaultModel = "llama3" }, new Mock<ILogger<OllamaLlmProvider>>().Object),
+			new PromptTemplateManager(),
+			cache ?? new InMemoryEnrichmentCache(),
+			enrichmentOptions,
+			new Mock<ILogger<ChunkEnricher>>().Object);
+
+	private static TestContentChunk CreateChunk(string content) => new() { Content = content, Id = Guid.NewGuid() };
+
 	[Fact]
 	public async Task RealOllama_GenerateAsync_ShouldProduceResponse()
 	{
-		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
+		AssertOllamaAvailable();
 
-		// Arrange
 		var options = new OllamaOptions
 		{
 			BaseUrl = "http://localhost:11434",
@@ -49,10 +63,8 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 			MaxTokens = 10
 		};
 
-		// Act
 		var response = await provider.GenerateAsync(request, CancellationToken);
 
-		// Assert
 		_ = response.Should().NotBeNull();
 		_ = response.Success.Should().BeTrue();
 		_ = response.Text.Should().NotBeNullOrEmpty();
@@ -66,41 +78,22 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_EnrichChunk_ShouldGenerateSummary()
 	{
-		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
+		AssertOllamaAvailable();
 
-		// Arrange
-		var ollamaOptions = new OllamaOptions { DefaultModel = "llama3" };
-		var enrichmentOptions = new LLMEnrichmentOptions
+		var enricher = CreateEnricher(new LLMEnrichmentOptions
 		{
 			EnableSummarization = true,
 			EnableKeywordExtraction = false,
 			EnablePreliminaryNER = false,
 			SummaryMaxWords = 20
-		};
+		});
+		var chunk = CreateChunk(
+			"Artificial intelligence is revolutionizing many industries. " +
+			"Machine learning algorithms can now process vast amounts of data " +
+			"and make predictions with remarkable accuracy.");
 
-		var llmProvider = new OllamaLlmProvider(
-			ollamaOptions,
-			new Mock<ILogger<OllamaLlmProvider>>().Object);
-
-		var enricher = new ChunkEnricher(
-			llmProvider,
-			new PromptTemplateManager(),
-			new InMemoryEnrichmentCache(),
-			enrichmentOptions,
-			new Mock<ILogger<ChunkEnricher>>().Object);
-
-		var chunk = new TestContentChunk
-		{
-			Content = "Artificial intelligence is revolutionizing many industries. " +
-					  "Machine learning algorithms can now process vast amounts of data " +
-					  "and make predictions with remarkable accuracy.",
-			Id = Guid.NewGuid()
-		};
-
-		// Act
 		var enriched = await enricher.EnrichAsync(chunk, CancellationToken);
 
-		// Assert
 		_ = enriched.Should().NotBeNull();
 		_ = enriched.Summary.Should().NotBeNullOrEmpty();
 		_ = enriched.TokensUsed.Should().BePositive();
@@ -113,38 +106,18 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_ExtractKeywords_ShouldReturnKeywords()
 	{
-		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
+		AssertOllamaAvailable();
 
-		// Arrange
-		var ollamaOptions = new OllamaOptions { DefaultModel = "llama3" };
-		var enrichmentOptions = new LLMEnrichmentOptions
+		var enricher = CreateEnricher(new LLMEnrichmentOptions
 		{
 			EnableSummarization = false,
 			EnableKeywordExtraction = true,
 			MaxKeywords = 5
-		};
+		});
+		var chunk = CreateChunk("Cloud computing enables scalable and flexible infrastructure for modern applications.");
 
-		var llmProvider = new OllamaLlmProvider(
-			ollamaOptions,
-			new Mock<ILogger<OllamaLlmProvider>>().Object);
-
-		var enricher = new ChunkEnricher(
-			llmProvider,
-			new PromptTemplateManager(),
-			new InMemoryEnrichmentCache(),
-			enrichmentOptions,
-			new Mock<ILogger<ChunkEnricher>>().Object);
-
-		var chunk = new TestContentChunk
-		{
-			Content = "Cloud computing enables scalable and flexible infrastructure for modern applications.",
-			Id = Guid.NewGuid()
-		};
-
-		// Act
 		var enriched = await enricher.EnrichAsync(chunk, CancellationToken);
 
-		// Assert
 		_ = enriched.Should().NotBeNull();
 		_ = enriched.Keywords.Should().NotBeEmpty();
 		enriched.Keywords.Count.Should().BeLessThanOrEqualTo(5);
@@ -156,38 +129,22 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_BatchEnrichment_ShouldProcessMultipleChunks()
 	{
-		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
+		AssertOllamaAvailable();
 
-		// Arrange
-		var ollamaOptions = new OllamaOptions { DefaultModel = "llama3" };
-		var enrichmentOptions = new LLMEnrichmentOptions
+		var enricher = CreateEnricher(new LLMEnrichmentOptions
 		{
 			EnableSummarization = true,
 			MaxConcurrency = 2
-		};
-
-		var llmProvider = new OllamaLlmProvider(
-			ollamaOptions,
-			new Mock<ILogger<OllamaLlmProvider>>().Object);
-
-		var enricher = new ChunkEnricher(
-			llmProvider,
-			new PromptTemplateManager(),
-			new InMemoryEnrichmentCache(),
-			enrichmentOptions,
-			new Mock<ILogger<ChunkEnricher>>().Object);
-
+		});
 		var chunks = new[]
 		{
-			new TestContentChunk { Content = "Python is a popular programming language.", Id = Guid.NewGuid() },
-			new TestContentChunk { Content = "Docker containers enable portable deployments.", Id = Guid.NewGuid() },
-			new TestContentChunk { Content = "React is a JavaScript library for building user interfaces.", Id = Guid.NewGuid() }
+			CreateChunk("Python is a popular programming language."),
+			CreateChunk("Docker containers enable portable deployments."),
+			CreateChunk("React is a JavaScript library for building user interfaces.")
 		};
 
-		// Act
 		var results = await enricher.EnrichBatchAsync(chunks, CancellationToken);
 
-		// Assert
 		_ = results.Should().HaveCount(3);
 		_ = results.Should().OnlyContain(r => !string.IsNullOrEmpty(r.Summary));
 
@@ -200,45 +157,21 @@ public class OllamaIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task RealOllama_CacheEfficiency_ShouldReuseResults()
 	{
-		_ = IsOllamaAvailable().Should().BeTrue("Ollama must be running at http://localhost:11434 (run 'ollama serve') with the models these tests use pulled; run this class only where Ollama is available");
+		AssertOllamaAvailable();
 
-		// Arrange
 		var cache = new InMemoryEnrichmentCache();
-		var ollamaOptions = new OllamaOptions { DefaultModel = "llama3" };
-		var enrichmentOptions = new LLMEnrichmentOptions
+		var enricher = CreateEnricher(new LLMEnrichmentOptions
 		{
 			EnableCaching = true,
 			EnableSummarization = true
-		};
+		}, cache);
+		var chunk1 = CreateChunk("Machine learning models require training data.");
+		var chunk2 = CreateChunk("Machine learning models require training data.");
 
-		var llmProvider = new OllamaLlmProvider(
-			ollamaOptions,
-			new Mock<ILogger<OllamaLlmProvider>>().Object);
-
-		var enricher = new ChunkEnricher(
-			llmProvider,
-			new PromptTemplateManager(),
-			cache,
-			enrichmentOptions,
-			new Mock<ILogger<ChunkEnricher>>().Object);
-
-		var chunk1 = new TestContentChunk
-		{
-			Content = "Machine learning models require training data.",
-			Id = Guid.NewGuid()
-		};
-		var chunk2 = new TestContentChunk
-		{
-			Content = "Machine learning models require training data.",
-			Id = Guid.NewGuid()
-		};
-
-		// Act
 		var result1 = await enricher.EnrichAsync(chunk1, CancellationToken);
 		var result2 = await enricher.EnrichAsync(chunk2, CancellationToken);
 		var stats = cache.GetStatistics();
 
-		// Assert
 		_ = stats.Hits.Should().Be(1);
 		_ = stats.HitRate.Should().Be(0.5);
 		_ = result1.Summary.Should().Be(result2.Summary);
