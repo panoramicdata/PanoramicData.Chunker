@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.KnowledgeGraph;
 using PanoramicData.Chunker.KnowledgeGraph.Extractors;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Models.KnowledgeGraph;
 using PanoramicData.Chunker.Tests.Utilities;
 
 namespace PanoramicData.Chunker.Tests.Unit.KnowledgeGraph;
@@ -14,52 +15,30 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public void Constructor_ShouldInitialize()
 	{
-		// Arrange & Act
-		var builder = new KnowledgeGraphBuilder();
-
-		// Assert
-		builder.Should().NotBeNull();
+		new KnowledgeGraphBuilder().Should().NotBeNull();
 	}
 
 	[Fact]
 	public void AddEntityExtractor_ShouldReturnBuilder()
 	{
-		// Arrange
 		var builder = new KnowledgeGraphBuilder();
-		var extractor = new SimpleKeywordExtractor();
 
-		// Act
-		var result = builder.AddEntityExtractor(extractor);
-
-		// Assert
-		result.Should().BeSameAs(builder);
+		builder.AddEntityExtractor(new SimpleKeywordExtractor()).Should().BeSameAs(builder);
 	}
 
 	[Fact]
 	public void AddRelationshipExtractor_ShouldReturnBuilder()
 	{
-		// Arrange
 		var builder = new KnowledgeGraphBuilder();
-		var extractor = new CooccurrenceRelationshipExtractor();
 
-		// Act
-		var result = builder.AddRelationshipExtractor(extractor);
-
-		// Assert
-		result.Should().BeSameAs(builder);
+		builder.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor()).Should().BeSameAs(builder);
 	}
 
 	[Fact]
 	public async Task BuildGraphAsync_WithNoChunks_ShouldReturnEmptyGraph()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder();
-		var chunks = new List<ChunkerBase>();
+		var result = await BuildAsync(new KnowledgeGraphBuilder(), []);
 
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		result.Graph.Should().NotBeNull();
 		result.Graph.Entities.Should().BeEmpty();
@@ -71,14 +50,8 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_WithNoExtractors_ShouldReturnEmptyGraph()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder();
-		var chunks = CreateChunks("Test content with keywords.");
+		var result = await BuildAsync(new KnowledgeGraphBuilder(), CreateChunks("Test content with keywords."));
 
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		result.Graph.Should().NotBeNull();
 		result.Graph.Entities.Should().BeEmpty();
@@ -88,20 +61,13 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_WithEntityExtractor_ShouldExtractEntities()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 5));
+		var result = await BuildAsync(
+			BuilderWith(5),
+			CreateChunks("Machine learning and artificial intelligence are transforming technology. Machine learning models require data."),
+			"Test Graph");
 
-		var chunks = CreateChunks("Machine learning and artificial intelligence are transforming technology. Machine learning models require data.");
-
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Test Graph", CancellationToken);
-
-		// Assert
-		result.Success.Should().BeTrue();
-		result.Graph.Should().NotBeNull();
-		result.Graph.Entities.Should().NotBeEmpty();
-		result.Graph.Name.Should().Be("Test Graph");
+		AssertEntitiesExtracted(result);
+		result.Graph!.Name.Should().Be("Test Graph");
 		_output.WriteLine($"Extracted {result.Statistics.EntitiesExtracted} entities");
 		_output.WriteLine($"After deduplication: {result.Statistics.EntitiesAfterDeduplication} entities");
 	}
@@ -109,20 +75,11 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_WithBothExtractors_ShouldExtractBoth()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10))
-			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor(maxDistance: 500, minConfidence: 0.3));
+		var result = await BuildAsync(
+			BuilderWith(10, new CooccurrenceRelationshipExtractor(maxDistance: 500, minConfidence: 0.3)),
+			CreateChunks("Microsoft Azure cloud computing platform provides services for machine learning and artificial intelligence applications."));
 
-		var chunks = CreateChunks("Microsoft Azure cloud computing platform provides services for machine learning and artificial intelligence applications.");
-
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
-		result.Success.Should().BeTrue();
-		result.Graph.Should().NotBeNull();
-		result.Graph.Entities.Should().NotBeEmpty();
+		AssertEntitiesExtracted(result);
 		_output.WriteLine($"Entities extracted: {result.Statistics.EntitiesExtracted}");
 		_output.WriteLine($"Relationships extracted: {result.Statistics.RelationshipsExtracted}");
 		_output.WriteLine($"Extractors used: {string.Join(", ", result.Statistics.ExtractorsUsed)}");
@@ -131,16 +88,10 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldDeduplicateEntities()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10));
+		var result = await BuildAsync(
+			BuilderWith(10),
+			CreateChunks("Machine learning is important. Machine learning transforms data. Machine learning requires expertise."));
 
-		var chunks = CreateChunks("Machine learning is important. Machine learning transforms data. Machine learning requires expertise.");
-
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		result.Graph.Should().NotBeNull();
 		var mlEntities = result.Graph.Entities
@@ -157,32 +108,10 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldConsolidateRelationships()
 	{
-		// Arrange
-		var chunkId1 = Guid.NewGuid();
-		var chunkId2 = Guid.NewGuid();
+		var chunks = CreateChunks("Cloud computing and machine learning are related technologies.", "Cloud computing enables machine learning at scale.");
 
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10))
-			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor());
+		var result = await BuildAsync(BuilderWith(10, new CooccurrenceRelationshipExtractor()), chunks);
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk
-			{
-				Id = chunkId1,
-				Content = "Cloud computing and machine learning are related technologies."
-			},
-			new TestContentChunk
-			{
-				Id = chunkId2,
-				Content = "Cloud computing enables machine learning at scale."
-			}
-		};
-
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		_output.WriteLine($"Relationships extracted: {result.Statistics.RelationshipsExtracted}");
 		_output.WriteLine($"Relationships after consolidation: {result.Statistics.RelationshipsAfterConsolidation}");
@@ -194,20 +123,11 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldBuildIndexes()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 5));
+		var result = await BuildAsync(BuilderWith(5), CreateChunks("Data science machine learning artificial intelligence analytics."));
 
-		var chunks = CreateChunks("Data science machine learning artificial intelligence analytics.");
-
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		result.Graph.Should().NotBeNull();
 
-		// Test that indexes work
 		if (result.Graph.Entities.Count > 0)
 		{
 			var firstEntity = result.Graph.Entities[0];
@@ -220,17 +140,10 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldComputeStatistics()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10))
-			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor());
+		var result = await BuildAsync(
+			BuilderWith(10, new CooccurrenceRelationshipExtractor()),
+			CreateChunks("Machine learning and data science are important for artificial intelligence applications."));
 
-		var chunks = CreateChunks("Machine learning and data science are important for artificial intelligence applications.");
-
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		result.Graph.Should().NotBeNull();
 		result.Graph.Statistics.Should().NotBeNull();
@@ -242,19 +155,11 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldValidateGraph()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 5))
-			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor());
+		var result = await BuildAsync(
+			BuilderWith(5, new CooccurrenceRelationshipExtractor()),
+			CreateChunks("Cloud computing and machine learning technologies."));
 
-		var chunks = CreateChunks("Cloud computing and machine learning technologies.");
-
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
-		// If validation fails, there should be errors
 		if (!result.Success || result.Errors.Count > 0)
 		{
 			_output.WriteLine($"Validation errors: {string.Join(", ", result.Errors)}");
@@ -264,18 +169,10 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldSetTimestamps()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 5));
-
-		var chunks = CreateChunks("Test content for timestamp validation.");
-
-		// Act
 		var startTime = DateTimeOffset.UtcNow;
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
+		var result = await BuildAsync(BuilderWith(5), CreateChunks("Test content for timestamp validation."));
 		var endTime = DateTimeOffset.UtcNow;
 
-		// Assert
 		(result.StartedAt >= startTime).Should().BeTrue();
 		(result.StartedAt <= endTime).Should().BeTrue();
 		(result.CompletedAt >= result.StartedAt).Should().BeTrue();
@@ -287,22 +184,10 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_ShouldTrackExtractionStatistics()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10))
-			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor());
+		var chunks = CreateChunks("Cloud computing provides infrastructure.", "Machine learning requires data processing.", "Artificial intelligence transforms industries.");
 
-		var chunks = new List<ChunkerBase>
-		{
-			new TestContentChunk { Id = Guid.NewGuid(), Content = "Cloud computing provides infrastructure." },
-			new TestContentChunk { Id = Guid.NewGuid(), Content = "Machine learning requires data processing." },
-			new TestContentChunk { Id = Guid.NewGuid(), Content = "Artificial intelligence transforms industries." }
-		};
+		var result = await BuildAsync(BuilderWith(10, new CooccurrenceRelationshipExtractor()), chunks);
 
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		result.Statistics.ChunksProcessed.Should().Be(3);
 		(result.Statistics.EntityExtractionTime.TotalMilliseconds > 0).Should().BeTrue();
@@ -317,19 +202,12 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_WithCancellation_ShouldHandleGracefully()
 	{
-		// Arrange
-		var builder = new KnowledgeGraphBuilder()
-			.AddEntityExtractor(new SimpleKeywordExtractor());
-
-		var chunks = CreateChunks("Test content.");
-
+		var builder = new KnowledgeGraphBuilder().AddEntityExtractor(new SimpleKeywordExtractor());
 		var cts = new CancellationTokenSource();
 		cts.Cancel();
 
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", cancellationToken: cts.Token);
+		var result = await builder.BuildGraphAsync(CreateChunks("Test content."), "Knowledge Graph", cancellationToken: cts.Token);
 
-		// Assert
 		result.Success.Should().BeFalse();
 		result.Errors.Should().Contain(e => e.Contains("cancel", StringComparison.OrdinalIgnoreCase));
 		_output.WriteLine($"Errors: {string.Join(", ", result.Errors)}");
@@ -338,17 +216,12 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_WithMultipleExtractors_ShouldTrackAllInStatistics()
 	{
-		// Arrange
 		var builder = new KnowledgeGraphBuilder()
 			.AddEntityExtractor(new SimpleKeywordExtractor())
 			.AddRelationshipExtractor(new CooccurrenceRelationshipExtractor());
 
-		var chunks = CreateChunks("Machine learning and artificial intelligence.");
+		var result = await BuildAsync(builder, CreateChunks("Machine learning and artificial intelligence."));
 
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		result.Statistics.ExtractorsUsed.Should().Contain("SimpleKeywordExtractor");
 		result.Statistics.ExtractorsUsed.Should().Contain("CooccurrenceRelationshipExtractor");
@@ -358,22 +231,32 @@ public class KnowledgeGraphBuilderTests(ITestOutputHelper output) : BaseTest(out
 	[Fact]
 	public async Task BuildGraphAsync_WithCustomEntityResolver_ShouldUseIt()
 	{
-		// Arrange
-		var resolver = new EntityResolver(similarityThreshold: 0.9);
-		var builder = new KnowledgeGraphBuilder(resolver)
+		var builder = new KnowledgeGraphBuilder(new EntityResolver(similarityThreshold: 0.9))
 			.AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: 10));
 
-		var chunks = CreateChunks("Machine learning and machine-learning are similar terms.");
+		var result = await BuildAsync(builder, CreateChunks("Machine learning and machine-learning are similar terms."));
 
-		// Act
-		var result = await builder.BuildGraphAsync(chunks, "Knowledge Graph", CancellationToken);
-
-		// Assert
 		result.Success.Should().BeTrue();
 		_output.WriteLine($"Entities before deduplication: {result.Statistics.EntitiesExtracted}");
 		_output.WriteLine($"Entities after deduplication: {result.Statistics.EntitiesAfterDeduplication}");
 	}
 
-	private static List<ChunkerBase> CreateChunks(string content)
-		=> [new TestContentChunk { Id = Guid.NewGuid(), Content = content }];
+	private static KnowledgeGraphBuilder BuilderWith(int maxKeywords, CooccurrenceRelationshipExtractor? relationships = null)
+	{
+		var builder = new KnowledgeGraphBuilder().AddEntityExtractor(new SimpleKeywordExtractor(maxKeywords: maxKeywords));
+		return relationships is null ? builder : builder.AddRelationshipExtractor(relationships);
+	}
+
+	private Task<KnowledgeGraphResult> BuildAsync(KnowledgeGraphBuilder builder, List<ChunkerBase> chunks, string name = "Knowledge Graph")
+		=> builder.BuildGraphAsync(chunks, name, CancellationToken);
+
+	private static List<ChunkerBase> CreateChunks(params string[] contents)
+		=> [.. contents.Select(content => (ChunkerBase)new TestContentChunk { Id = Guid.NewGuid(), Content = content })];
+
+	private static void AssertEntitiesExtracted(KnowledgeGraphResult result)
+	{
+		result.Success.Should().BeTrue();
+		result.Graph.Should().NotBeNull();
+		result.Graph.Entities.Should().NotBeEmpty();
+	}
 }
