@@ -78,16 +78,7 @@ public class DocxDocumentChunkerTests(ITestOutputHelper output)
 	[Fact]
 	public async Task ChunkAsync_ShouldExtractTables()
 	{
-		var result = await ChunkFixtureAsync("with-tables.docx", new ChunkingOptions());
-
-		_ = result.Success.Should().BeTrue();
-		var tables = result.Chunks.OfType<DocxTableChunk>().ToList();
-		_ = tables.Should().NotBeEmpty();
-		_ = tables.Should().AllSatisfy(table =>
-		{
-			_ = table.SerializedTable.Should().NotBeEmpty();
-			_ = table.SerializationFormat.Should().Be(TableSerializationFormat.Markdown);
-		});
+		ChunkAssert.TablesAreMarkdown(await SuccessfulDocxTablesAsync("with-tables.docx", new ChunkingOptions()));
 	}
 
 	[Fact]

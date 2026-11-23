@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.PlainText;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 using System.Text;
 
 namespace PanoramicData.Chunker.Tests.Integration;
@@ -20,17 +21,8 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
-
-		// Should have multiple paragraphs
-		var paragraphs = result.Chunks.OfType<PlainTextParagraphChunk>().ToList();
-		_ = paragraphs.Should().HaveCountGreaterThan(1);
-
-		// All chunks should have quality metrics
-		_ = result.Chunks.Should().AllSatisfy(chunk =>
-		{
-			_ = chunk.QualityMetrics.Should().NotBeNull();
-			_ = chunk.QualityMetrics!.TokenCount.Should().BePositive();
-		});
+		_ = result.Chunks.OfType<PlainTextParagraphChunk>().Should().HaveCountGreaterThan(1);
+		ChunkAssert.AllHaveTokenCounts(result.Chunks);
 	}
 
 	[Fact]
@@ -40,102 +32,47 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 
 		_ = result.Success.Should().BeTrue();
 
-		// Should detect headings
 		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
 		_ = sections.Should().NotBeEmpty();
-
-		// Should have ALL CAPS headings
-		_ = sections.Should().Contain(s => s.HeadingType == HeadingHeuristic.AllCaps);
-
-		// Should have underlined headings
-		_ = sections.Should().Contain(s => s.HeadingType == HeadingHeuristic.Underlined);
-
-		// Should have numbered sections
-		_ = sections.Should().Contain(s => s.HeadingType == HeadingHeuristic.Numbered);
-
-		// Should detect list items
-		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
-		_ = listItems.Should().NotBeEmpty();
-
-		// Should detect code blocks
-		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
-		_ = codeBlocks.Should().NotBeEmpty();
-
-		// Should have paragraphs
-		var paragraphs = result.Chunks.OfType<PlainTextParagraphChunk>().ToList();
-		_ = paragraphs.Should().NotBeEmpty();
+		_ = sections.Select(s => s.HeadingType).Should().Contain([HeadingHeuristic.AllCaps, HeadingHeuristic.Underlined, HeadingHeuristic.Numbered]);
+		_ = result.Chunks.OfType<PlainTextListItemChunk>().Should().NotBeEmpty();
+		_ = result.Chunks.OfType<PlainTextCodeBlockChunk>().Should().NotBeEmpty();
+		_ = result.Chunks.OfType<PlainTextParagraphChunk>().Should().NotBeEmpty();
 	}
 
 	[Fact]
 	public async Task ChunkAsync_AllCapsHeaders_ShouldDetectAllHeadings()
 	{
-		var result = await ChunkTestFileAsync("all-caps-headers.txt");
+		var sections = await SuccessfulChunksAsync<PlainTextSectionChunk>(ChunkTestFileAsync("all-caps-headers.txt"));
 
-		_ = result.Success.Should().BeTrue();
-
-		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		_ = sections.Should().HaveCountGreaterThan(3); // Multiple ALL CAPS headings
+		_ = sections.Should().HaveCountGreaterThan(3);
 		_ = sections.Should().AllSatisfy(s => s.HeadingType.Should().Be(HeadingHeuristic.AllCaps));
 	}
 
 	[Fact]
 	public async Task ChunkAsync_UnderlinedHeaders_ShouldDetectLevels()
 	{
-		var result = await ChunkTestFileAsync("underlined-headers.txt");
+		var sections = await SectionsWithLevelsAsync("underlined-headers.txt", 1, 2);
 
-		_ = result.Success.Should().BeTrue();
-
-		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		_ = sections.Should().NotBeEmpty();
-
-		// Should have both level 1 and level 2
-		_ = sections.Should().Contain(s => s.HeadingLevel == 1);
-		_ = sections.Should().Contain(s => s.HeadingLevel == 2);
-
-		// All should be underlined type
 		_ = sections.Should().AllSatisfy(s => s.HeadingType.Should().Be(HeadingHeuristic.Underlined));
 	}
 
 	[Fact]
 	public async Task ChunkAsync_NumberedSections_ShouldDetectHierarchy()
 	{
-		var result = await ChunkTestFileAsync("numbered-sections.txt");
+		var sections = await SectionsWithLevelsAsync("numbered-sections.txt", 1, 2, 3);
 
-		_ = result.Success.Should().BeTrue();
-
-		var sections = result.Chunks.OfType<PlainTextSectionChunk>().ToList();
-		_ = sections.Should().NotBeEmpty();
-
-		// Should have multiple levels
-		_ = sections.Should().Contain(s => s.HeadingLevel == 1); // "1."
-		_ = sections.Should().Contain(s => s.HeadingLevel == 2); // "1.1"
-		_ = sections.Should().Contain(s => s.HeadingLevel == 3); // "1.1.1"
-
-		// Should build parent-child hierarchy
-		var level1Sections = sections.Where(s => s.HeadingLevel == 1).ToList();
-		var level2Sections = sections.Where(s => s.HeadingLevel == 2).ToList();
-
-		_ = level1Sections.Should().AllSatisfy(s => s.ParentId.Should().BeNull());
-		_ = level2Sections.Should().AllSatisfy(s => s.ParentId.Should().NotBeNull());
+		_ = sections.Where(s => s.HeadingLevel == 1).Should().AllSatisfy(s => s.ParentId.Should().BeNull());
+		_ = sections.Where(s => s.HeadingLevel == 2).Should().AllSatisfy(s => s.ParentId.Should().NotBeNull());
 	}
 
 	[Fact]
 	public async Task ChunkAsync_Lists_ShouldDetectAllListTypes()
 	{
-		var result = await ChunkTestFileAsync("lists.txt");
+		var listItems = await SuccessfulChunksAsync<PlainTextListItemChunk>(ChunkTestFileAsync("lists.txt"));
 
-		_ = result.Success.Should().BeTrue();
-
-		var listItems = result.Chunks.OfType<PlainTextListItemChunk>().ToList();
 		_ = listItems.Should().HaveCountGreaterThan(10);
-
-		// Should have bullet lists
-		_ = listItems.Should().Contain(li => li.ListType == "bullet");
-
-		// Should have numbered lists
-		_ = listItems.Should().Contain(li => li.ListType == "numbered");
-
-		// Should detect nesting levels
+		_ = listItems.Select(li => li.ListType).Should().Contain(["bullet", "numbered"]);
 		_ = listItems.Should().Contain(li => li.NestingLevel == 0);
 		_ = listItems.Should().Contain(li => li.NestingLevel > 0);
 	}
@@ -143,20 +80,11 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 	[Fact]
 	public async Task ChunkAsync_CodeHeavy_ShouldDetectAllCodeBlocks()
 	{
-		var result = await ChunkTestFileAsync("code-heavy.txt");
+		var codeBlocks = await SuccessfulChunksAsync<PlainTextCodeBlockChunk>(ChunkTestFileAsync("code-heavy.txt"));
 
-		_ = result.Success.Should().BeTrue();
-
-		var codeBlocks = result.Chunks.OfType<PlainTextCodeBlockChunk>().ToList();
 		_ = codeBlocks.Should().HaveCountGreaterThan(3);
-
-		// Should have fenced code blocks
 		_ = codeBlocks.Should().Contain(cb => cb.IsFenced);
-
-		// Should have indented code blocks
 		_ = codeBlocks.Should().Contain(cb => !cb.IsFenced);
-
-		// Should detect languages
 		_ = codeBlocks.Should().Contain(cb => cb.Language != null);
 	}
 
@@ -166,14 +94,10 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 		var result = await ChunkTestFileAsync("mixed.txt");
 
 		_ = result.Success.Should().BeTrue();
-
-		// Should have all chunk types
 		_ = result.Chunks.OfType<PlainTextSectionChunk>().Should().NotBeEmpty();
 		_ = result.Chunks.OfType<PlainTextParagraphChunk>().Should().NotBeEmpty();
 		_ = result.Chunks.OfType<PlainTextListItemChunk>().Should().NotBeEmpty();
 		_ = result.Chunks.OfType<PlainTextCodeBlockChunk>().Should().NotBeEmpty();
-
-		// Should have proper statistics
 		_ = result.Statistics.TotalChunks.Should().BeGreaterThan(10);
 		_ = result.Statistics.TotalTokens.Should().BePositive();
 	}
@@ -181,29 +105,16 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 	[Fact]
 	public async Task ChunkAsync_LargeDocument_ShouldHandleEfficiently()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "large.txt");
-		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-
 		var options = ChunkingPresets.ForOpenAIEmbeddings();
 
-		// Act
 		var startTime = DateTime.UtcNow;
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
+		var result = await ChunkTextWithAsync("large.txt", options);
 		var processingTime = DateTime.UtcNow - startTime;
 
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
-
-		// Should complete in reasonable time (< 5 seconds for test document)
 		_ = processingTime.TotalSeconds.Should().BeLessThan(5);
-
-		// Should have extensive content
 		_ = result.Statistics.TotalChunks.Should().BeGreaterThan(20);
-
-		// All chunks should respect max tokens (with some margin for structural chunks)
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
 			if (chunk.QualityMetrics != null && chunk is PlainTextParagraphChunk)
@@ -216,17 +127,8 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 	[Fact]
 	public async Task ChunkAsync_WithAutoDetect_ShouldDetectPlainText()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.txt");
-		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
-		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
+		var result = await ChunkAutoDetectFileAsync(Path.Combine(_testDataPath, "simple.txt"), "test.txt");
 
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
-
-		// Act - Use auto-detect
-		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.txt", options, CancellationToken);
-
-		// Assert
 		_ = result.Success.Should().BeTrue();
 		_ = result.Chunks.Should().NotBeEmpty();
 	}
@@ -234,38 +136,28 @@ public class PlainTextIntegrationTests(ITestOutputHelper output) : BaseTest(outp
 	[Fact]
 	public async Task ChunkAsync_WithDifferentTokenCounters_ShouldProduceConsistentChunks()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "structured.txt");
-		var text = await File.ReadAllTextAsync(filePath, CancellationToken);
+		var charResult = await ChunkTextWithAsync("structured.txt", ChunkingPresets.ForFastProcessing());
+		var openAIResult = await ChunkTextWithAsync("structured.txt", ChunkingPresets.ForOpenAIEmbeddings());
 
-		var charOptions = ChunkingPresets.ForFastProcessing();
-		var openAIOptions = ChunkingPresets.ForOpenAIEmbeddings();
-
-		// Act
-		using var stream1 = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var charResult = await DocumentChunker.ChunkAsync(stream1, DocumentType.PlainText, charOptions, CancellationToken);
-
-		using var stream2 = new MemoryStream(Encoding.UTF8.GetBytes(text));
-		var openAIResult = await DocumentChunker.ChunkAsync(stream2, DocumentType.PlainText, openAIOptions, CancellationToken);
-
-		// Assert
-		_ = charResult.Success.Should().BeTrue();
-		_ = openAIResult.Success.Should().BeTrue();
-
-		// Should produce same number of chunks (structure is same)
-		_ = charResult.Chunks.Count.Should().Be(openAIResult.Chunks.Count);
-
-		// Token counts typically differ, but may occasionally be similar for short texts
-		// Just verify both counters are working (both should have positive counts)
-		_ = charResult.Statistics.TotalTokens.Should().BePositive("character-based counter should work");
-		_ = openAIResult.Statistics.TotalTokens.Should().BePositive("OpenAI counter should work");
-
-		// Both should be within reasonable range of each other (within 50%)
-		var ratio = (double)Math.Max(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens) /
-					Math.Min(charResult.Statistics.TotalTokens, openAIResult.Statistics.TotalTokens);
-		_ = ratio.Should().BeLessThan(2.0, "token counts should be within 2x of each other");
+		ChunkAssert.ComparableTokenCounts(charResult, openAIResult);
 	}
 
 	private Task<ChunkingResult> ChunkTestFileAsync(string fileName)
 		=> ChunkFileAsync(Path.Combine(_testDataPath, fileName), DocumentType.PlainText);
+
+	private async Task<List<PlainTextSectionChunk>> SectionsWithLevelsAsync(string fileName, params int[] levels)
+	{
+		var sections = await SuccessfulChunksAsync<PlainTextSectionChunk>(ChunkTestFileAsync(fileName));
+
+		_ = sections.Should().NotBeEmpty();
+		_ = sections.Select(s => s.HeadingLevel).Should().Contain(levels);
+		return sections;
+	}
+
+	private async Task<ChunkingResult> ChunkTextWithAsync(string fileName, ChunkingOptions options)
+	{
+		var text = await File.ReadAllTextAsync(Path.Combine(_testDataPath, fileName), CancellationToken);
+		using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
+		return await DocumentChunker.ChunkAsync(stream, DocumentType.PlainText, options, CancellationToken);
+	}
 }

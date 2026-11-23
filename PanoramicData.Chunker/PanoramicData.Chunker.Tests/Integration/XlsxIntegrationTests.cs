@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using PanoramicData.Chunker.Chunkers.Xlsx;
 using PanoramicData.Chunker.Configuration;
 using PanoramicData.Chunker.Models;
+using PanoramicData.Chunker.Tests.Utilities;
 
 namespace PanoramicData.Chunker.Tests.Integration;
 
@@ -17,19 +18,10 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	{
 		var result = await ChunkTestFileAsync("simple.xlsx");
 
-		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().NotBeEmpty();
+		ChunkAssert.SucceededWithChunks(result);
+		_ = SingleOf<XlsxWorksheetChunk>(result).SheetName.Should().Be("Sheet1");
 
-		// Should have worksheet chunk
-		var worksheets = result.Chunks.OfType<XlsxWorksheetChunk>().ToList();
-		_ = worksheets.Should().ContainSingle();
-		_ = worksheets[0].SheetName.Should().Be("Sheet1");
-
-		// Should have table chunk with headers
-		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		_ = tables.Should().ContainSingle();
-
-		var table = tables[0];
+		var table = SingleOf<XlsxTableChunk>(result);
 		_ = table.TableInfo.Should().NotBeNull();
 		_ = table.TableInfo!.Headers.Should().Contain(["Name", "Age", "City"]);
 		_ = table.TableInfo.RowCount.Should().Be(3);  // 3 data rows
@@ -52,31 +44,19 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 
 		_ = result.Success.Should().BeTrue();
 
-		// Should have 3 worksheet chunks
 		var worksheets = result.Chunks.OfType<XlsxWorksheetChunk>().ToList();
 		_ = worksheets.Should().HaveCount(3);
-
-		_ = worksheets.Should().Contain(w => w.SheetName == "Sales");
-		_ = worksheets.Should().Contain(w => w.SheetName == "Expenses");
-		_ = worksheets.Should().Contain(w => w.SheetName == "Summary");
-
-		// Each sheet should have table chunks
-		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		_ = tables.Should().HaveCountGreaterThan(0);
+		_ = worksheets.Select(w => w.SheetName).Should().Contain(["Sales", "Expenses", "Summary"]);
+		_ = result.Chunks.OfType<XlsxTableChunk>().Should().HaveCountGreaterThan(0);
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithFormulas_ShouldExtractFormulas()
 	{
-		var result = await ChunkTestFileAsync("with-formulas.xlsx");
+		var formulas = await SuccessfulChunksAsync<XlsxFormulaChunk>(ChunkTestFileAsync("with-formulas.xlsx"));
 
-		_ = result.Success.Should().BeTrue();
-
-		// Should have formula chunks
-		var formulas = result.Chunks.OfType<XlsxFormulaChunk>().ToList();
 		_ = formulas.Should().HaveCountGreaterThan(0);
 
-		// Check for SUM formula
 		var sumFormula = formulas.FirstOrDefault(f => f.FormulaType == "SUM");
 		_ = sumFormula.Should().NotBeNull();
 		_ = sumFormula!.Formula.Should().Contain("SUM");
@@ -85,46 +65,21 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithTable_ShouldRecognizeTableStructure()
 	{
-		var result = await ChunkTestFileAsync("with-table.xlsx");
+		var table = await SingleTableAsync("with-table.xlsx");
 
-		_ = result.Success.Should().BeTrue();
-
-		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		_ = tables.Should().ContainSingle();
-
-		var table = tables[0];
-		_ = table.TableInfo.Should().NotBeNull();
-		_ = table.TableInfo!.Headers.Should().Contain("Employee");
-		_ = table.TableInfo.Headers.Should().Contain("Department");
-		_ = table.TableInfo.Headers.Should().Contain("Salary");
+		_ = table.TableInfo!.Headers.Should().Contain(["Employee", "Department", "Salary"]);
 		_ = table.TableInfo.RowCount.Should().Be(5);  // 5 employee records
 	}
 
 	[Fact]
 	public async Task ChunkAsync_LargeSpreadsheet_ShouldHandleEfficiently()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "large.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var (result, processingTime) = await ChunkTimedAsync(Path.Combine(_testDataPath, "large.xlsx"), DocumentType.Xlsx);
 
-		// Act
-		var startTime = DateTime.UtcNow;
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-		var processingTime = DateTime.UtcNow - startTime;
-
-		// Assert
-		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().NotBeEmpty();
-
-		// Should process 1000 rows reasonably fast (< 5 seconds)
+		ChunkAssert.SucceededWithChunks(result);
 		_ = processingTime.TotalSeconds.Should().BeLessThan(5);
 
-		// Should have table chunk with all data
-		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		_ = tables.Should().ContainSingle();
-
-		var table = tables[0];
+		var table = SingleOf<XlsxTableChunk>(result);
 		_ = table.TableInfo.Should().NotBeNull();
 		_ = table.TableInfo!.RowCount.Should().Be(1000);
 	}
@@ -132,31 +87,15 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithMergedCells_ShouldHandleCorrectly()
 	{
-		var result = await ChunkTestFileAsync("with-merged-cells.xlsx");
-
-		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().NotBeEmpty();
-
-		// Should extract table with data
-		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		_ = tables.Should().ContainSingle();
+		_ = await SingleTableAsync("with-merged-cells.xlsx");
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithDataTypes_ShouldPreserveValues()
 	{
-		var result = await ChunkTestFileAsync("with-data-types.xlsx");
+		var table = await SingleTableAsync("with-data-types.xlsx");
 
-		_ = result.Success.Should().BeTrue();
-
-		var tables = result.Chunks.OfType<XlsxTableChunk>().ToList();
-		_ = tables.Should().ContainSingle();
-
-		var table = tables[0];
-		_ = table.TableInfo.Should().NotBeNull();
-		_ = table.TableInfo!.Headers.Should().Contain("Text");
-		_ = table.TableInfo.Headers.Should().Contain("Number");
-		_ = table.TableInfo.Headers.Should().Contain("Date");
+		_ = table.TableInfo!.Headers.Should().Contain(["Text", "Number", "Date"]);
 	}
 
 	[Fact]
@@ -165,8 +104,6 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 		var result = await ChunkTestFileAsync("simple.xlsx");
 
 		_ = result.Success.Should().BeTrue();
-
-		// All chunks should have quality metrics
 		_ = result.Chunks.Should().AllSatisfy(chunk =>
 		{
 			_ = chunk.QualityMetrics.Should().NotBeNull();
@@ -184,7 +121,6 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 
 		_ = result.Success.Should().BeTrue();
 
-		// Tables should be children of worksheets
 		var worksheet = result.Chunks.OfType<XlsxWorksheetChunk>().First();
 		var table = result.Chunks.OfType<XlsxTableChunk>().First();
 
@@ -197,27 +133,16 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	{
 		var result = await ChunkTestFileAsync("simple.xlsx");
 
-		_ = result.Statistics.Should().NotBeNull();
-		_ = result.Statistics.TotalChunks.Should().Be(result.Chunks.Count);
-		_ = result.Statistics.StructuralChunks.Should().BePositive();
-		_ = result.Statistics.ProcessingTime.Should().BeGreaterThan(TimeSpan.Zero);
+		ChunkAssert.StatisticsMatch(result);
 		_ = result.Statistics.TotalTokens.Should().BePositive();
 	}
 
 	[Fact]
 	public async Task ChunkAsync_WithAutoDetect_ShouldDetectXlsx()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = ChunkingPresets.ForOpenAIEmbeddings();
+		var result = await ChunkAutoDetectFileAsync(Path.Combine(_testDataPath, "simple.xlsx"), "test.xlsx");
 
-		// Act - Use auto-detect
-		var result = await DocumentChunker.ChunkAutoDetectAsync(stream, "test.xlsx", options, CancellationToken);
-
-		// Assert
-		_ = result.Success.Should().BeTrue();
-		_ = result.Chunks.Should().NotBeEmpty();
+		ChunkAssert.SucceededWithChunks(result);
 	}
 
 	[Fact]
@@ -250,22 +175,30 @@ public class XlsxIntegrationTests(ITestOutputHelper output) : BaseTest(output)
 	[Fact]
 	public async Task ChunkAsync_WithValidation_ShouldValidateChunks()
 	{
-		// Arrange
-		var filePath = Path.Combine(_testDataPath, "simple.xlsx");
-		await using var stream = File.OpenRead(filePath);
-		var options = new ChunkingOptions
-		{
-			ValidateChunks = true
-		};
+		var result = await ChunkValidatedAsync(Path.Combine(_testDataPath, "simple.xlsx"), DocumentType.Xlsx);
 
-		// Act
-		var result = await DocumentChunker.ChunkAsync(stream, DocumentType.Xlsx, options, CancellationToken);
-
-		// Assert
-		_ = result.ValidationResult.Should().NotBeNull();
-		_ = result.ValidationResult!.IsValid.Should().BeTrue();
+		ChunkAssert.IsValidated(result);
 	}
 
 	private Task<ChunkingResult> ChunkTestFileAsync(string fileName)
 		=> ChunkFileAsync(Path.Combine(_testDataPath, fileName), DocumentType.Xlsx);
+
+	private async Task<XlsxTableChunk> SingleTableAsync(string fileName)
+	{
+		var result = await ChunkTestFileAsync(fileName);
+
+		_ = result.Success.Should().BeTrue();
+
+		var table = SingleOf<XlsxTableChunk>(result);
+		_ = table.TableInfo.Should().NotBeNull();
+		return table;
+	}
+
+	private static T SingleOf<T>(ChunkingResult result) where T : ChunkerBase
+	{
+		var matches = result.Chunks.OfType<T>().ToList();
+
+		_ = matches.Should().ContainSingle();
+		return matches[0];
+	}
 }

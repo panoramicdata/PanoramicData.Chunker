@@ -32,8 +32,42 @@ public class BaseTest(ITestOutputHelper output)
 		return await DocumentChunker.ChunkAsync(stream, documentType, options, CancellationToken);
 	}
 
+	protected async Task<ChunkingResult> ChunkAutoDetectFileAsync(string filePath, string name)
+	{
+		await using var stream = File.OpenRead(filePath);
+		return await DocumentChunker.ChunkAutoDetectAsync(stream, name, ChunkingPresets.ForOpenAIEmbeddings(), CancellationToken);
+	}
+
+	protected static async Task<(ChunkingResult Result, TimeSpan Elapsed)> ChunkTimedAsync(string filePath, DocumentType documentType)
+	{
+		var startTime = DateTime.UtcNow;
+		var result = await ChunkFileAsync(filePath, documentType);
+		return (result, DateTime.UtcNow - startTime);
+	}
+
+	protected static Task<ChunkingResult> ChunkValidatedAsync(string filePath, DocumentType documentType)
+		=> ChunkFileAsync(filePath, documentType, new ChunkingOptions { ValidateChunks = true });
+
+	protected static async Task<List<T>> SuccessfulChunksAsync<T>(Task<ChunkingResult> resultTask) where T : ChunkerBase
+	{
+		var result = await resultTask;
+
+		_ = result.Success.Should().BeTrue();
+		return [.. result.Chunks.OfType<T>()];
+	}
+	protected static async Task<List<DocxTableChunk>> SuccessfulDocxTablesAsync(string fileName, ChunkingOptions options)
+	{
+		var tables = await SuccessfulChunksAsync<DocxTableChunk>(ChunkDocxAsync(fileName, options));
+
+		_ = tables.Should().NotBeEmpty();
+		return tables;
+	}
+
 	protected static Task<ChunkingResult> ChunkDocxAsync(string fileName, ChunkingOptions options)
-		=> ChunkTestDataAsync(new DocxDocumentChunker(new CharacterBasedTokenCounter()), Path.Combine("TestData", "Docx", fileName), options);
+		=> ChunkDocxAsync(fileName, options, new CharacterBasedTokenCounter());
+
+	protected static Task<ChunkingResult> ChunkDocxAsync(string fileName, ChunkingOptions options, ITokenCounter tokenCounter)
+		=> ChunkTestDataAsync(new DocxDocumentChunker(tokenCounter), Path.Combine("TestData", "Docx", fileName), options);
 
 	protected static Task<ChunkingResult> ChunkPptxAsync(string fileName, ChunkingOptions options)
 		=> ChunkTestDataAsync(new PptxDocumentChunker(new CharacterBasedTokenCounter()), Path.Combine("TestData", "Pptx", fileName), options);
