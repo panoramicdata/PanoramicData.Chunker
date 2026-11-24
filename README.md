@@ -2,7 +2,7 @@
 
 [![NuGet version](https://img.shields.io/nuget/v/PanoramicData.Chunker.svg)](https://www.nuget.org/packages/PanoramicData.Chunker/)
 
-[![Codacy Badge](https://app.codacy.com/project/badge/grade/PanoramicData.Chunker)](https://app.codacy.com/gh/panoramicdata/PanoramicData.Chunker/dashboard)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/a884213448ec42839ceba578944726fc)](https://app.codacy.com/gh/panoramicdata/PanoramicData.Chunker/dashboard)
 
 # PanoramicData.Chunker
 
