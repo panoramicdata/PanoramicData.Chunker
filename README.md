@@ -18,3 +18,4 @@ Supports .NET 11.0.
 - The serialisation property order of `ChunkingStatistics` and `RelationshipMetadata` changed (the properties themselves did not).
 - `HierarchyBuilder.ValidateHierarchy(chunks, out errors)` is replaced by `HierarchyBuilder.ValidateHierarchy(chunks)`, which returns an `IntegrityCheckResult` with `IsValid` and `Errors`. The `out` overload is removed.
 - `Graph.Validate(out errors)` is replaced by `Graph.Validate()`, which returns an `IntegrityCheckResult` with `IsValid` and `Errors`. The `out` overload is removed.
+- PDF text extraction no longer fuses words across separately positioned text blocks (for example `4Section` and `1Expenses` in a page with a header, heading and body). `PdfPageChunk.ExtractedText` and `PdfParagraphChunk.Content` are now built from extracted words, joined with a space on the same line and a newline between lines, so the text of existing PDFs can differ from earlier output.

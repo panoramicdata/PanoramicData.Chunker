@@ -39,24 +39,29 @@ public partial class PdfDocumentChunker
 		};
 	}
 
-	private PdfPageChunk CreatePageChunk(Page page, Guid documentId) => new()
+	private PdfPageChunk CreatePageChunk(Page page, Guid documentId)
 	{
-		PageNumber = page.Number,
-		Width = (double)page.Width,
-		Height = (double)page.Height,
-		Rotation = (int)page.Rotation.Value,
-		ExtractedText = page.Text,
-		WordCount = CountWords(page.Text),
-		ParentId = documentId,
-		SequenceNumber = _sequenceNumber++,
-		SpecificType = "pdf-page",
-		Metadata = CreateMetadata($"pdf/page{page.Number}", "pdf-page"),
-		QualityMetrics = CalculateQualityMetrics(page.Text)
-	};
+		var pageText = PdfPageText.Build(page);
+
+		return new PdfPageChunk
+		{
+			PageNumber = page.Number,
+			Width = (double)page.Width,
+			Height = (double)page.Height,
+			Rotation = (int)page.Rotation.Value,
+			ExtractedText = pageText,
+			WordCount = CountWords(pageText),
+			ParentId = documentId,
+			SequenceNumber = _sequenceNumber++,
+			SpecificType = "pdf-page",
+			Metadata = CreateMetadata($"pdf/page{page.Number}", "pdf-page"),
+			QualityMetrics = CalculateQualityMetrics(pageText)
+		};
+	}
 
 	private List<PdfParagraphChunk> ExtractParagraphsFromPage(Page page, Guid pageId)
 	{
-		var text = page.Text;
+		var text = PdfPageText.Build(page);
 		if (string.IsNullOrWhiteSpace(text))
 		{
 			return [];
