@@ -16,7 +16,6 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Copyright>Copyright © Panoramic Data Limited 2025</Copyright>
     <PackageReleaseNotes>
 			Version 0.9.0 (Beta Release)
 			- Initial beta release with 9 document formats supported
